@@ -1,7 +1,7 @@
 {
   "name": "spirare-editor",
   "productName": "SpirareEditorDesktop",
-  "version": "0.4.2",
+  "version": "1.0.0",
   "description": "Spirare content editor with Babylon.js",
   "main": "./dist/main.js",
   "scripts": {
@@ -16,6 +16,7 @@
   },
   "type": "commonjs",
   "author": "HoloLab Inc.",
+  "license": "MIT",
   "devDependencies": {
     "@types/async-lock": "^1.1.5",
     "@types/react-dom": "^18.0.6",

@@ -1,6 +1,6 @@
 {
   "name": "spirare-server-client-app",
-  "version": "0.4.2",
+  "version": "1.0.0",
   "description": "",
   "main": "dist/main.js",
   "scripts": {
@@ -12,6 +12,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "HoloLab Inc.",
+  "license": "MIT",
   "devDependencies": {
     "@azure/storage-file-share": "^12.11.0",
     "@types/async-lock": "^1.1.5",
