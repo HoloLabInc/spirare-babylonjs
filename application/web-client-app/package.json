@@ -1,6 +1,6 @@
 {
   "name": "spirare-babylonjs-web-client-app",
-  "version": "0.4.2",
+  "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -10,8 +10,8 @@
     "start": "webpack-dev-server --port 3000",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "HoloLab Inc.",
+  "license": "MIT",
   "devDependencies": {
     "copy-webpack-plugin": "^11.0.0",
     "css-loader": "^6.7.1",
