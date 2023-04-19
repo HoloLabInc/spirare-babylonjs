@@ -1,0 +1,115 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type": "npm",
+      "script": "dev",
+      "path": "application/electron-app/",
+      "group": {
+        "kind": "none",
+        "isDefault": false
+      },
+      "problemMatcher": {
+        "owner": "Webpack (Dev, Continuous)",
+        "severity": "error",
+        "fileLocation": "absolute",
+        "source": "webpack-typescript",
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^spirare-editor@(\\d|\\.)+ dev$",
+          "endsPattern": "^webpack (\\d|\\.)+ compiled successfully in \\d+ ms"
+        },
+        "pattern": [
+          {
+            "regexp": "ERROR in ([^\\(]*)\\((\\d+),(\\d+)\\):",
+            "file": 1,
+            "line": 2,
+            "column": 3
+          },
+          {
+            "regexp": "([A-Za-z0-9-]+):(.*)",
+            "message": 2,
+            "code": 1
+          }
+        ]
+      },
+      "label": "watch electron-app",
+      "dependsOn": [],
+      "isBackground": true
+    },
+    {
+      "type": "npm",
+      "script": "dev",
+      "path": "library/spirare-babylonjs/",
+      "group": {
+        "kind": "none",
+        "isDefault": false
+      },
+      "problemMatcher": "$tsc-watch",
+      "label": "watch spirare-babylonjs",
+      "dependsOn": [],
+      "isBackground": true
+    },
+    {
+      "type": "npm",
+      "script": "dev",
+      "path": "library/spirare-server/",
+      "group": {
+        "kind": "none",
+        "isDefault": false
+      },
+      "problemMatcher": "$tsc-watch",
+      "label": "watch spirare-server",
+      "dependsOn": [],
+      "isBackground": true
+    },
+    {
+      "type": "npm",
+      "script": "build",
+      "path": "application/electron-app/",
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "problemMatcher": [],
+      "label": "build electron-app",
+      "dependsOn": [
+        "build spirare-babylonjs",
+        "build spirare-server"
+      ]
+    },
+    {
+      "type": "npm",
+      "script": "build",
+      "path": "library/spirare-babylonjs/",
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "problemMatcher": [],
+      "label": "build spirare-babylonjs",
+      "dependsOn": []
+    },
+    {
+      "type": "npm",
+      "script": "build",
+      "path": "library/spirare-server/",
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "problemMatcher": [],
+      "label": "build spirare-server",
+      "dependsOn": [
+        "build spirare-babylonjs"
+      ]
+    },
+    {
+      "type": "npm",
+      "script": "package",
+      "path": "application/electron-app/",
+      "problemMatcher": [],
+      "label": "create electron-app exe"
+    }
+  ]
+}

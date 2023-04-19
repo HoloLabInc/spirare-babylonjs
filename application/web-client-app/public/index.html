@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Spirare Editor</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"
+    />
+    <link rel="stylesheet" href="./index.css" />
+  </head>
+  <body>
+    <section class="hero is-info">
+      <div class="hero-body">
+        <p class="title">Spirare Editor Web</p>
+      </div>
+    </section>
+    <section class="section">
+      <div class="container hidden" id="container">
+        <h1 class="title" id="title-geo-placement"></h1>
+        <div>
+          <a
+            class="button is-medium is-success"
+            id="button-geo-placement-edit-mode"
+            href="/app.html?run-mode=editor&placement-mode=geodetic"
+          ></a>
+          <a
+            class="button is-medium is-link ml-4"
+            id="button-geo-placement-view-mode"
+            href="/app.html?run-mode=viewer&placement-mode=geodetic"
+          ></a>
+        </div>
+        <h1 class="title mt-6" id="title-space-placement"></h1>
+        <a
+          class="button is-medium is-success"
+          id="button-space-placement-edit-mode"
+          href="/app.html?run-mode=editor&placement-mode=space"
+        ></a>
+        <a
+          class="button is-medium is-link ml-4"
+          id="button-space-placement-view-mode"
+          href="/app.html?run-mode=viewer&placement-mode=space"
+        ></a>
+      </div>
+    </section>
+  </body>
+</html>

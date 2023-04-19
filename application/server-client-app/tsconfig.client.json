@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.common.json",
+  "compilerOptions": {
+    "module": "esnext",
+    "outDir": "dist",
+    "baseUrl": ".",
+    "jsx": "react",
+  },
+  "include": [
+    "src-client/*.ts",
+    "src-client/@types/*",
+    "src-client/*.tsx"
+  ]
+}

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Spirare Editor</title>
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; connect-src * blob:; img-src * data: blob:; media-src * data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; script-src-elem 'self' https://dev.virtualearth.net/ https://unpkg.com/"
+    />
+
+    <style type="text/css">
+      html,
+      body,
+      #cesiumContainer,
+      #spirare_canvas {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+      }
+
+      #cesiumContainer {
+        position: absolute;
+        pointer-events: none;
+      }
+
+      #spirare_canvas {
+        position: absolute;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="cesiumContainer"></div>
+    <canvas id="spirare_canvas"></canvas>
+    <script src="./dist/editor.js"></script>
+  </body>
+</html>
+

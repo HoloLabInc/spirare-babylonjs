@@ -1,0 +1,60 @@
+{
+  "name": "spirare-editor",
+  "productName": "SpirareEditorDesktop",
+  "version": "0.4.2",
+  "description": "Spirare content editor with Babylon.js",
+  "main": "./dist/main.js",
+  "scripts": {
+    "build": "cross-env NODE_OPTIONS=--max_old_space_size=4096 webpack",
+    "build:dev": "cross-env NODE_OPTIONS=--max_old_space_size=4096 NODE_ENV=development NO_WATCH=true webpack",
+    "dev": "cross-env NODE_OPTIONS=--max_old_space_size=4096 NODE_ENV=development webpack",
+    "lint": "eslint -c .eslintrc --ext .ts ./src",
+    "start:electron": "npm run build && electron ./dist/main.js",
+    "start": "run-p -r -l dev start:electron",
+    "create-license": "npm-license-crawler --dependencies --json LICENSE.ThirdParty.json",
+    "package": "npm run create-license && npm run build && electron-packager . --out=release-builds --overwrite --ignore='^node_modules/.+' --ignore='^src/.+'"
+  },
+  "type": "commonjs",
+  "author": "HoloLab Inc.",
+  "devDependencies": {
+    "@types/async-lock": "^1.1.5",
+    "@types/react-dom": "^18.0.6",
+    "@typescript-eslint/eslint-plugin": "^5.36.1",
+    "@typescript-eslint/parser": "^5.36.1",
+    "copy-webpack-plugin": "^11.0.0",
+    "cross-env": "^7.0.3",
+    "dotenv": "^16.0.3",
+    "electron": "^20.1.1",
+    "electron-packager": "^16.0.0",
+    "eslint": "^8.23.0",
+    "md5-file": "^5.0.0",
+    "npm-license-crawler": "^0.2.1",
+    "npm-run-all": "^4.1.5",
+    "spirare-server": "file:../../library/spirare-server",
+    "ts-loader": "^9.3.1",
+    "typescript": "4.8.2",
+    "webpack-cli": "^4.10.0"
+  },
+  "dependencies": {
+    "@fortawesome/fontawesome-free": "^6.2.0",
+    "async-lock": "^1.3.2",
+    "cesium": "^1.97.0",
+    "css-loader": "^6.7.1",
+    "fast-xml-parser": "^4.0.9",
+    "i18next": "^22.4.11",
+    "i18next-browser-languagedetector": "^7.0.1",
+    "jszip": "^3.10.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-i18next": "^12.2.0",
+    "spirare-babylonjs": "file:../../library/spirare-babylonjs",
+    "style-loader": "^3.3.1",
+    "tempfile": "^4.0.0",
+    "url-loader": "^4.1.1",
+    "webpack": "^5.74.0"
+  },
+  "volta": {
+    "node": "16.17.0",
+    "npm": "8.15.0"
+  }
+}

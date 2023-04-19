@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "ES6",
+    "module": "esnext",
+    "strict": true,
+    "noImplicitAny": true,
+    "sourceMap": true,
+    "outDir": "dist",
+    "baseUrl": ".",
+    "moduleResolution": "node",
+    "jsx": "react",
+    "allowSyntheticDefaultImports": true,
+    /*
+    "paths": {
+      "*": ["node_modules/*"]
+    }
+    */
+    // "rootDir": "src"
+  },
+  "include": ["src/*.ts", "src/@types/*", "src/*.tsx"]
+}

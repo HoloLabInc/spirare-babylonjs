@@ -1,0 +1,7 @@
+/node_modules
+/dist
+/public/dist
+/tmp
+
+/.env
+/ssl

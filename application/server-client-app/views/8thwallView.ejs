@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Spirare 8thWall Viewer</title>
+
+    <style type="text/css">
+      html,
+      body,
+      #spirare_canvas {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+      }
+
+      #spirare_canvas {
+        position: absolute;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="spirare_canvas"></canvas>
+
+    <!-- XR Extras - provides utilities like load screen, almost there, and error handling.
+    See github.com/8thwall/web/tree/master/xrextras -->
+    <script src="https://cdn.8thwall.com/web/xrextras/xrextras.js"></script>
+
+    <script
+      async
+      src="https://apps.8thwall.com/xrweb?appKey=<%- apiKey %>"
+    ></script>
+
+    <script src="./dist/8thwallView.js"></script>
+  </body>
+</html>

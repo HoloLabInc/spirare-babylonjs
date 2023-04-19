@@ -1,0 +1,43 @@
+{
+  "name": "spirare-babylonjs-web-client-app",
+  "version": "0.4.2",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "webpack",
+    "build-production": "webpack --mode=production",
+    "dev": "webpack -w",
+    "start": "webpack-dev-server --port 3000",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "copy-webpack-plugin": "^11.0.0",
+    "css-loader": "^6.7.1",
+    "dotenv": "^16.0.3",
+    "html-webpack-plugin": "^5.5.0",
+    "style-loader": "^3.3.1",
+    "ts-loader": "^9.3.1",
+    "typescript": "^4.8.2",
+    "url-loader": "^4.1.1",
+    "webpack": "^5.74.0",
+    "webpack-cli": "^4.10.0",
+    "webpack-dev-server": "^4.10.1"
+  },
+  "dependencies": {
+    "@babylonjs/core": "^5.22.0",
+    "@babylonjs/inspector": "^5.22.0",
+    "@loaders.gl/core": "^3.2.8",
+    "cesium": "^1.97.0",
+    "i18next": "^22.4.11",
+    "i18next-browser-languagedetector": "^7.0.1",
+    "i18next-http-backend": "^2.2.0",
+    "jszip": "^3.10.1",
+    "spirare-babylonjs": "file:../../library/spirare-babylonjs"
+  },
+  "volta": {
+    "node": "16.17.0",
+    "npm": "8.15.0"
+  }
+}

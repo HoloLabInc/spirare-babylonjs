@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Spirare Editor</title>
+    <style type="text/css">
+      html,
+      body,
+      #cesiumContainer,
+      #spirare_canvas {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+      }
+
+      #cesiumContainer {
+        position: absolute;
+        pointer-events: none;
+      }
+
+      #spirare_canvas {
+        position: absolute;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="cesiumContainer"></div>
+    <canvas id="spirare_canvas"></canvas>
+  </body>
+</html>
