@@ -12,7 +12,8 @@
     "start:electron": "npm run build && electron ./dist/main.js",
     "start": "run-p -r -l dev start:electron",
     "create-license": "npm-license-crawler --dependencies --json LICENSE.ThirdParty.json",
-    "package": "npm run create-license && npm run build && electron-packager . --out=release-builds --overwrite --ignore='^node_modules/.+' --ignore='^src/.+'"
+    "package:win": "npm run create-license && npm run build && electron-packager . --out=release-builds --overwrite --ignore='^node_modules/.+' --ignore='^src/.+' --icon=icons/spirare_icon.ico",
+    "package:mac": "npm run create-license && npm run build && electron-packager . --out=release-builds --overwrite --ignore='^node_modules/.+' --ignore='^src/.+' --icon=icons/spirare_icon.icns"
   },
   "type": "commonjs",
   "author": "HoloLab Inc.",
