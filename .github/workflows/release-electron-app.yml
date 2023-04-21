@@ -52,7 +52,7 @@ jobs:
         run: |
           cd application/electron-app
           npm ci
-          npm run package --if-present -- --arch x64
+          npm run package:win --if-present -- --arch x64
           # npm run test --if-present
         shell: bash
 
@@ -61,8 +61,8 @@ jobs:
         run: |
           cd application/electron-app
           npm ci
-          npm run package --if-present -- --arch x64
-          npm run package --if-present -- --arch arm64
+          npm run package:mac --if-present -- --arch x64
+          # npm run package:mac --if-present -- --arch arm64
           # npm run test --if-present
         shell: bash
 
