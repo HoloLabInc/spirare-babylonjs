@@ -14,8 +14,18 @@ Add the following to .env:
 CESIUM_ION_TOKEN='<Cesium Ion Access Token>'
 ```
 
-# Start server
+# Build
+
+## Install dependencies
+
 ```
+cd application/web-client-app
+npm install --prefix ../../library/spirare-babylonjs
 npm install
+```
+
+## Start server
+
+```
 npm run start
 ```

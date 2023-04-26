@@ -39,6 +39,7 @@ AZURE_FILES_SHARE_NAME='<share name>'
 Create an `ssl` folder under the `server-client-app` directory and place `server.cert` and `server.key` in it.
 
 Generating a key using openssl:
+
 ```
 openssl req -nodes -new -x509 -keyout server.key -out server.cert
 ```
@@ -52,10 +53,20 @@ ENABLE_HTTPS='true'
 EIGHTHWALL_API_KEY='<api key>'
 ```
 
-# Start server
+# Build
+
+## Install dependencies
 
 ```
+cd application/server-client-app
+npm install --prefix ../../library/spirare-server
+npm install --prefix ../../library/spirare-babylonjs
 npm install
+```
+
+## Start server
+
+```
 npm run build
 npm run serve
 ```
