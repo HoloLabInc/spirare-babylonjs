@@ -14,13 +14,33 @@ Add the following to .env:
 CESIUM_ION_TOKEN='<Cesium Ion Access Token>'
 ```
 
-# Start application
+# Build
+
+## Install dependencies
+
 ```
+cd application/electron-app
+npm install --prefix ../../library/spirare-server
+npm install --prefix ../../library/spirare-babylonjs
 npm install
+```
+
+## Start application
+
+```
 npm run start
 ```
 
-# Build application
+## Build application
+
+### for Windows
+
 ```
-npm run package
+npm run package:win
+```
+
+### for MacOS
+
+```
+npm run package:mac
 ```
