@@ -36,31 +36,36 @@ export const getScenesOrderByLastModifiedDate = async (
 
     const promises = entries
       .filter((entry) => entry.isFile() && entry.name.endsWith('.poml'))
-      .map(async (file) => {
+      .flatMap(async (file) => {
         const filepath = path.join(scenesRootDir, file.name)
         const pomlStr = await fsPromises.readFile(filepath, {
           encoding: 'utf-8',
         })
 
         const parser = new PomlParser()
-        const poml = parser.parse(pomlStr)
+        try {
+          const poml = parser.parse(pomlStr)
 
-        const title = poml.meta?.title
-        const placementMode = getPlacementMode(poml)
+          const title = poml.meta?.title
+          const placementMode = getPlacementMode(poml)
 
-        const scene: SceneInfo = {
-          title: title,
-          pomlId: path.basename(file.name, '.poml'),
-          placementMode: placementMode,
-        }
-        const status = await fsPromises.stat(filepath)
-        return {
-          scene: scene,
-          mtime: status.mtimeMs,
+          const scene: SceneInfo = {
+            title: title,
+            pomlId: path.basename(file.name, '.poml'),
+            placementMode: placementMode,
+          }
+          const status = await fsPromises.stat(filepath)
+          return {
+            scene: scene,
+            mtime: status.mtimeMs,
+          }
+        } catch (e) {
+          console.log(e)
+          return []
         }
       })
 
-    const scenes = await Promise.all(promises)
+    const scenes = (await Promise.all(promises)).flat()
 
     // Items with a more recent last update time come first.
     const sortedScenes = scenes
@@ -69,6 +74,7 @@ export const getScenesOrderByLastModifiedDate = async (
 
     return sortedScenes
   } catch (ex) {
+    console.log(ex)
     return []
   }
 }
