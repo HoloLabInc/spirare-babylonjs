@@ -1,5 +1,5 @@
 import { Scene, TransformNode } from '@babylonjs/core'
-import { PomlElement } from 'ts-poml'
+import { MaybePomlElement, PomlElement, PomlUnknown } from 'ts-poml'
 import { PomlElementStore } from '../pomlElementStore'
 import { AssertTrue, IsNever } from './spirareNodeUtils'
 import { SpirareNodeBase } from './spirareNodeBase'
@@ -11,6 +11,7 @@ import { SpirareImageNode } from './spirareImageNode'
 import { SpirareVideoNode } from './spirareVideoNode'
 import { SpirareEmptyNode } from './spirareEmptyNode'
 import { SpirareScreenSpaceNode } from './spirareScreenSpaceNode'
+import { SpirareUnknownNode } from './spirareUnknownNode'
 
 export type SpirareNode<T extends PomlElement['type'] = PomlElement['type']> =
   T extends 'model'
@@ -31,55 +32,92 @@ export type SpirareNode<T extends PomlElement['type'] = PomlElement['type']> =
     ? SpirareScreenSpaceNode
     : never
 
+// `MaybeSpirareNode<'text'>` is `SpirareTextNode`.
+// `MaybeSpirareNode<'?'>` is `SpirareUnknownNode`.
+export type MaybeSpirareNode<
+  T extends PomlElement['type'] | '?' = PomlElement['type'] | '?'
+> = T extends '?' ? SpirareUnknownNode : SpirareNode<Exclude<T, '?'>>
+
 export type CreateNodeParams = {
   scene: Scene
   store?: PomlElementStore
   parentNode?: SpirareNode
 }
 
-export async function createSpirareNode<T extends PomlElement>(
+export async function createSpirareNode<T extends MaybePomlElement>(
   pomlElement: T,
   params: CreateNodeParams
-): Promise<SpirareNode<T['type']>> {
+): Promise<MaybeSpirareNode<T['type']>> {
   // The return type is a static type of SpirareNode that corresponds to the static type of the input PomlElement.
   // (ex) If PomlTextElement is input, the return value is SpirareTextNode.
 
-  let node: SpirareNode
+  let node: MaybeSpirareNode<T['type']>
   switch (pomlElement.type) {
     case 'model': {
-      node = await SpirareModelNode.create(pomlElement, params)
+      node = (await SpirareModelNode.create(
+        pomlElement,
+        params
+      )) as MaybeSpirareNode<T['type']>
       break
     }
     case 'text': {
-      node = await SpirareTextNode.create(pomlElement, params)
+      node = (await SpirareTextNode.create(
+        pomlElement,
+        params
+      )) as MaybeSpirareNode<T['type']>
       break
     }
     case 'image': {
-      node = await SpirareImageNode.create(pomlElement, params)
+      node = (await SpirareImageNode.create(
+        pomlElement,
+        params
+      )) as MaybeSpirareNode<T['type']>
       break
     }
     case 'video': {
-      node = await SpirareVideoNode.create(pomlElement, params)
+      node = (await SpirareVideoNode.create(
+        pomlElement,
+        params
+      )) as MaybeSpirareNode<T['type']>
       break
     }
     case 'element': {
-      node = await SpirareEmptyNode.create(pomlElement, params)
+      node = (await SpirareEmptyNode.create(
+        pomlElement,
+        params
+      )) as MaybeSpirareNode<T['type']>
       break
     }
     case 'geometry': {
-      node = await SpirareGeometryNode.create(pomlElement, params)
+      node = (await SpirareGeometryNode.create(
+        pomlElement,
+        params
+      )) as MaybeSpirareNode<T['type']>
       break
     }
     case 'cesium3dtiles': {
-      node = await SpirareCesium3dTilesNode.create(pomlElement, params)
+      node = (await SpirareCesium3dTilesNode.create(
+        pomlElement,
+        params
+      )) as MaybeSpirareNode<T['type']>
       break
     }
     case 'screen-space': {
-      node = await SpirareScreenSpaceNode.create(pomlElement, params)
+      node = (await SpirareScreenSpaceNode.create(
+        pomlElement,
+        params
+      )) as MaybeSpirareNode<T['type']>
+      break
+    }
+    case '?': {
+      node = (await SpirareUnknownNode.create(
+        pomlElement,
+        params
+      )) as MaybeSpirareNode<T['type']>
       break
     }
   }
-  return node as SpirareNode<T['type']>
+  return node
 }
 
 export function isValidElementType(type: string): type is PomlElement['type'] {
@@ -120,10 +158,22 @@ export function isSpirareNode(node: TransformNode): node is SpirareNode {
   return false
 }
 
+export function isMaybeSpirareNode(
+  node: TransformNode
+): node is MaybeSpirareNode {
+  return isSpirareNode(node) || node instanceof SpirareUnknownNode
+}
+
 export function findSpirareNodes(scene: Scene): SpirareNode[] {
   return scene.transformNodes
     .filter((n) => isSpirareNode(n))
     .map((n) => n as SpirareNode)
+}
+
+export function findMaybeSpirareNodes(scene: Scene): MaybeSpirareNode[] {
+  return scene.transformNodes
+    .filter((n) => isMaybeSpirareNode(n))
+    .map((n) => n as MaybeSpirareNode)
 }
 
 function findSpirareNode(

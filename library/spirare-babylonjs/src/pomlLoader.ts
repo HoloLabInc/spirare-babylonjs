@@ -1,6 +1,12 @@
 import { Scene, TransformNode } from '@babylonjs/core'
 import JSZip from 'jszip'
-import { Poml, PomlElement, PomlEmptyElement } from 'ts-poml'
+import {
+  MaybePomlElement,
+  Poml,
+  PomlElement,
+  PomlEmptyElement,
+  PomlUnknown,
+} from 'ts-poml'
 import { PomlParser } from 'ts-poml/dist/pomlParser'
 import { getApp } from './app'
 import { PomlElementStore } from './pomlElementStore'
@@ -8,13 +14,14 @@ import { LocalSourceResolver, WebSourceResolver } from './sourceResolver'
 import {
   CreateNodeParams,
   createSpirareNode,
+  MaybeSpirareNode,
   SpirareNode,
 } from './spirareNode/spirareNode'
 import { SourceResolver } from './types'
 
 export type LoadPomlResult = {
   poml: Poml
-  nodes: SpirareNode[]
+  nodes: MaybeSpirareNode[]
 }
 
 export type LoadPomlOptions = {
@@ -52,7 +59,10 @@ export class PomlLoader {
 
     // Convert relative URLs to absolute URLs
     const resolver = new WebSourceResolver(url)
-    await this.resolveSource(poml.scene.children, resolver)
+    await this.resolveSource(
+      poml.scene.children.filter((x): x is PomlElement => x.type !== '?'),
+      resolver
+    )
 
     return this.loadPomlAsync(scene, poml, options)
   }
@@ -78,7 +88,7 @@ export class PomlLoader {
    * Load PomlElement
    *
    * @template T
-   * @param {T} element The PomlElement to load.
+   * @param {T | PomlUnknownElement} element The PomlElement to load.
    * @param {TransformNode} [parent] The object that becomes the parent of the SpirareNode created from the PomlElement.
    * @return {*}  {Promise<{
    *     node: SpirareNode<T['type']>
@@ -87,13 +97,13 @@ export class PomlLoader {
    * The SpirareNode corresponding to the loaded PomlElement and all SpirareNodes of itself and its child elements.
    * @memberof PomlLoader
    */
-  public async loadPomlElementAsync<T extends PomlElement>(
+  public async loadPomlElementAsync<T extends MaybePomlElement>(
     element: T,
     params: CreateNodeParams,
     parent?: TransformNode
   ): Promise<{
-    node: SpirareNode<T['type']>
-    allNodes: SpirareNode[]
+    node: MaybeSpirareNode<T['type']>
+    allNodes: MaybeSpirareNode[]
   }> {
     const node = await createSpirareNode(element, params)
     if (parent) {
@@ -101,29 +111,60 @@ export class PomlLoader {
     }
 
     if (params.store) {
-      params.store.RegisterElement(node)
+      if (node.type !== '?') {
+        params.store.RegisterElement(node)
+      }
     }
 
-    const childrenParams: CreateNodeParams = {
-      ...params,
-      parentNode: node,
+    if (node.type === '?') {
+      // T is PomlUnknown here
+      return {
+        node: node,
+        allNodes: [node],
+      }
+    } else {
+      const childrenParams: CreateNodeParams = {
+        ...params,
+        parentNode: node,
+      }
+
+      const children = element.type !== '?' ? element.children : []
+      const allNodes: MaybeSpirareNode[] = children
+        ? await Promise.all(
+            children.map((ele) => {
+              return this.loadPomlElementAsync(ele, childrenParams, node)
+            })
+          ).then((loaded) => loaded.flatMap((x) => x.allNodes))
+        : []
+
+      allNodes.push(node)
+
+      return {
+        node: node,
+        allNodes: allNodes,
+      }
     }
 
-    const children = element.children
-    const allNodes: SpirareNode[] = children
-      ? await Promise.all(
-          children.map((ele) => {
-            return this.loadPomlElementAsync(ele, childrenParams, node)
-          })
-        ).then((loaded) => loaded.flatMap((x) => x.allNodes))
-      : []
+    // const childrenParams: CreateNodeParams = {
+    //   ...params,
+    //   parentNode: node,
+    // }
 
-    allNodes.push(node)
+    // const children = element.type !== '?' ? element.children : []
+    // const allNodes: SpirareNode[] = children
+    //   ? await Promise.all(
+    //       children.map((ele) => {
+    //         return this.loadPomlElementAsync(ele, childrenParams, node)
+    //       })
+    //     ).then((loaded) => loaded.flatMap((x) => x.allNodes))
+    //   : []
 
-    return {
-      node: node,
-      allNodes: allNodes,
-    }
+    // allNodes.push(node)
+
+    // return {
+    //   node: node,
+    //   allNodes: allNodes,
+    // }
   }
 
   /**
@@ -200,7 +241,10 @@ export class PomlLoader {
     const poml = this.parser.parse(pomlText)
 
     // Convert relative paths in poml to uploaded file paths
-    await this.resolveSource(poml.scene.children, resolver)
+    await this.resolveSource(
+      poml.scene.children.filter((x): x is PomlElement => x.type !== '?'),
+      resolver
+    )
 
     return this.loadPomlAsync(scene, poml, options)
   }
@@ -233,7 +277,11 @@ export class PomlLoader {
     const nodes = loaded.flatMap((x) => x.allNodes)
 
     // Activate script components after all elements loaded
-    nodes.forEach((x) => x.activateScriptComponents())
+    nodes.forEach((x) => {
+      if (x.type !== '?') {
+        x.activateScriptComponents()
+      }
+    })
 
     return {
       poml,
@@ -270,7 +318,10 @@ export class PomlLoader {
             await resolve(x)
           })
         )
-        await this.resolveSource(element.children, resolver)
+        await this.resolveSource(
+          element.children.filter((x): x is PomlElement => x.type !== '?'),
+          resolver
+        )
       })
     )
   }

@@ -36,11 +36,16 @@ import {
   PomlTextElement,
   PomlEmptyElement,
   PomlElement,
+  MaybePomlElement,
 } from 'ts-poml'
 import { BuildOptions } from 'ts-poml/dist/pomlParser'
 import { UIHelper } from './uiHelper'
 import { IOHelper } from './ioHelper'
-import { findSpirareNodes, SpirareNode } from './spirareNode/spirareNode'
+import {
+  findSpirareNodes,
+  MaybeSpirareNode,
+  SpirareNode,
+} from './spirareNode/spirareNode'
 import { GizmoController } from './gizmoController'
 import { GeoManager } from './cesium/geoManager'
 import { B3dmLoader } from './cesium/b3dmLoader'
@@ -767,19 +772,27 @@ export class App {
   private async loadPomlZipAsync(file: Blob): Promise<Poml | undefined> {
     const loaded = await this.pomlLoader.loadPomlZipAsync(file, this.scene)
     if (loaded) {
-      loaded.nodes.forEach((node) => this.onNodeLoaded(node))
+      loaded.nodes.forEach((node) => {
+        if (node.type !== '?') {
+          this.onNodeLoaded(node)
+        }
+      })
       return loaded.poml
     }
     return undefined
   }
 
-  private async loadElementAsync<T extends PomlElement>(
+  private async loadElementAsync<T extends MaybePomlElement>(
     element: T
-  ): Promise<SpirareNode<T['type']>> {
+  ): Promise<MaybeSpirareNode<T['type']>> {
     const loaded = await this.pomlLoader.loadPomlElementAsync(element, {
       scene: this.scene,
     })
-    loaded.allNodes.forEach((node) => this.onNodeLoaded(node))
+    loaded.allNodes.forEach((node) => {
+      if (node.type !== '?') {
+        this.onNodeLoaded(node)
+      }
+    })
     return loaded.node
   }
 
@@ -816,7 +829,11 @@ export class App {
       }
     })()
 
-    nodes.forEach((node) => this.onNodeLoaded(node))
+    nodes.forEach((node) => {
+      if (node.type !== '?') {
+        this.onNodeLoaded(node)
+      }
+    })
     if (this.runMode === 'viewer') {
       await this.connectWebSocket(poml)
     }
@@ -1185,7 +1202,7 @@ export class App {
       {
         width: `${paddingLeft + buttonWidth}px`,
         paddingLeft: `${paddingLeft}px`,
-        paddingBottom: "4px",
+        paddingBottom: '4px',
         horizontalAlignment: Control.HORIZONTAL_ALIGNMENT_LEFT,
         verticalAlignment: Control.VERTICAL_ALIGNMENT_BOTTOM,
       },

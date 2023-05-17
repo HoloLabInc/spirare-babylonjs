@@ -5,10 +5,16 @@ import {
   SpaceReference,
   PomlElement,
   Meta,
+  MaybePomlElement,
 } from 'ts-poml'
 import { BuildOptions, PomlParser } from 'ts-poml/dist/pomlParser'
 import JSZip from 'jszip'
-import { findSpirareNodes, SpirareNode } from './spirareNode/spirareNode'
+import {
+  findMaybeSpirareNodes,
+  findSpirareNodes,
+  isSpirareNode,
+  SpirareNode,
+} from './spirareNode/spirareNode'
 import { App, getApp } from './app'
 import { CoordinateConverter } from './coordinateConverter'
 
@@ -39,11 +45,15 @@ export class PomlBuilder {
   ): Promise<string> {
     const app = getApp(scene)
 
-    const nodes = findSpirareNodes(scene)
-    nodes.forEach((n) => n.updateElement())
+    const nodes = findMaybeSpirareNodes(scene)
+    nodes.forEach((n) => {
+      if (n.type !== '?') {
+        n.updateElement()
+      }
+    })
 
     coordinateReferences = this.updateCoordinateReferences(
-      nodes,
+      nodes.filter((n): n is SpirareNode => n.type !== '?'),
       coordinateReferences,
       app
     )
@@ -79,17 +89,22 @@ export class PomlBuilder {
       throw new Error('cannot get app')
     }
 
-    const nodes = findSpirareNodes(scene)
-    nodes.forEach((n) => n.updateElement())
+    const nodes = findMaybeSpirareNodes(scene)
+    nodes.forEach((n) => {
+      if (n.type !== '?') {
+        n.updateElement()
+      }
+    })
 
+    const spirareNodes = nodes.filter((n): n is SpirareNode => n.type !== '?');
     coordinateReferences = this.updateCoordinateReferences(
-      nodes,
+      spirareNodes,
       coordinateReferences,
       app
     )
 
     const { elementBlobMap, namedBlobs } = await PomlBuilder.getSrcBlobMapAsync(
-      nodes,
+      spirareNodes,
       app
     )
 
@@ -157,16 +172,18 @@ export class PomlBuilder {
    * @returns
    */
   private static overridePomlElements(
-    elements: PomlElement[],
+    elements: MaybePomlElement[],
     overrideProperties: Map<PomlElement, object>
-  ): PomlElement[] {
+  ): MaybePomlElement[] {
     const newElements = elements.map((element) => {
+      if (element.type === '?') {
+        return element
+      }
       const newElement = { ...element }
       const overrideProperty = overrideProperties.get(element)
       if (overrideProperty) {
         Object.assign(newElement, overrideProperty)
       }
-
       newElement.children = this.overridePomlElements(
         newElement.children,
         overrideProperties
