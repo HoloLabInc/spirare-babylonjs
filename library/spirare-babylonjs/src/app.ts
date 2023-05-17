@@ -95,6 +95,8 @@ const defaultCameraControllerFactory: CameraControllerFactory = (
   return cameraController
 }
 
+type TerrainType = 'Cesium' | '3DTiles'
+
 export class App {
   private engine: Engine
   private scene: Scene
@@ -207,14 +209,6 @@ export class App {
 
     this.pomlBuilder = new PomlBuilder()
 
-    if (isGeodeticMode) {
-      this.cesiumManager = new CesiumManager()
-      this.terrainController = new TerrainController(
-        this.cesiumManager,
-        this.geoManager
-      )
-    }
-
     const canvas = document.getElementById('spirare_canvas')
     if (!canvas || !(canvas instanceof HTMLCanvasElement)) {
       throw new Error('canvas is not found')
@@ -236,6 +230,32 @@ export class App {
     }
 
     this.scene = scene
+
+    const terrainType: TerrainType = 'Cesium' as TerrainType
+    if (isGeodeticMode) {
+      switch (terrainType) {
+        case 'Cesium': {
+          this.cesiumManager = new CesiumManager()
+          this.terrainController = new TerrainController(
+            this.cesiumManager,
+            this.geoManager
+          )
+          break
+        }
+        case '3DTiles': {
+          const terrainTilesetUrl = TERRAIN_TILESET_URL
+          if (terrainTilesetUrl) {
+            this.tilesLoader.loadAsync(
+              terrainTilesetUrl,
+              'Terrain',
+              this,
+              this.scene
+            )
+          }
+          break
+        }
+      }
+    }
 
     const cameraControllerFactory =
       params.cameraControllerFactory ?? defaultCameraControllerFactory
@@ -1185,7 +1205,7 @@ export class App {
       {
         width: `${paddingLeft + buttonWidth}px`,
         paddingLeft: `${paddingLeft}px`,
-        paddingBottom: "4px",
+        paddingBottom: '4px',
         horizontalAlignment: Control.HORIZONTAL_ALIGNMENT_LEFT,
         verticalAlignment: Control.VERTICAL_ALIGNMENT_BOTTOM,
       },
