@@ -16,6 +16,7 @@ import { B3dmLoader } from './b3dmLoader'
 import { GeoManager } from './geoManager'
 import { PntsLoader } from './pntsLoader'
 import { TileNode } from './tileNode'
+import { GlbLoader } from './glbLoader'
 
 const Vector3ToGlVector3 = (vec: Vector3) => new GlVector3(vec.x, vec.y, vec.z)
 
@@ -53,7 +54,7 @@ export class TilesLoader {
       onTileLoad: async (tile) => {
         console.log('load ' + tile.contentUrl)
         const tileName = tile.contentUrl.split('/').pop() ?? ''
-        const extension = tile.contentUrl.split('.').pop()
+        const extension = tile.contentUrl.split('.').pop()?.split('?')[0]
 
         const tileRootNode = new TileNode(app.geoManager, scene, tileName)
 
@@ -70,6 +71,16 @@ export class TilesLoader {
             )
             break
           }
+          case 'glb': {
+            loadPromise = GlbLoader.loadUrlAsync(
+              tile.contentUrl,
+              tileName,
+              app,
+              scene,
+              tileRootNode
+            )
+            break
+          }
           case 'pnts': {
             loadPromise = PntsLoader.loadUrlAsync(
               tile.contentUrl,
@@ -78,7 +89,6 @@ export class TilesLoader {
               scene,
               tileRootNode
             )
-
             break
           }
           case 'json': {

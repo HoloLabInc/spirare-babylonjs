@@ -231,7 +231,8 @@ export class App {
 
     this.scene = scene
 
-    const terrainType: TerrainType = 'Cesium' as TerrainType
+    const terrainType = TERRAIN_TILESET_URL ? '3DTiles' : 'Cesium'
+
     if (isGeodeticMode) {
       switch (terrainType) {
         case 'Cesium': {
@@ -242,18 +243,22 @@ export class App {
           )
           break
         }
-        case '3DTiles': {
-          const terrainTilesetUrl = TERRAIN_TILESET_URL
-          if (terrainTilesetUrl) {
+        case '3DTiles':
+          {
+            console.log(TERRAIN_TILESET_URL)
+            this.cesiumManager = new CesiumManager()
+            this.terrainController = new TerrainController(
+              this.cesiumManager,
+              this.geoManager
+            )
             this.tilesLoader.loadAsync(
-              terrainTilesetUrl,
+              TERRAIN_TILESET_URL,
               'Terrain',
               this,
               this.scene
             )
           }
           break
-        }
       }
     }
 
