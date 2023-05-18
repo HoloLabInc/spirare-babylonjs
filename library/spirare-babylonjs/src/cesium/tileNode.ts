@@ -1,4 +1,4 @@
-import { Scene, TransformNode, Vector3 } from '@babylonjs/core'
+import { AbstractMesh, Scene, TransformNode, Vector3 } from '@babylonjs/core'
 import { GeoCoordUtil } from './geoCoordUtil'
 import { GeoManager, OnOriginChangedEventListener } from './geoManager'
 
@@ -12,6 +12,13 @@ export class TileNode extends TransformNode {
   public set originEcef(value: Vector3 | undefined) {
     this._originEcef = value
     this.updateGeoplacement()
+  }
+
+  // meshes property
+  private _meshes: AbstractMesh[] = []
+
+  public set meshes(value: AbstractMesh[]) {
+    this._meshes = value
   }
 
   private geoManager: GeoManager
@@ -31,6 +38,12 @@ export class TileNode extends TransformNode {
 
     this.onDisposeObservable.add(() => {
       this.geoManager.onOriginChanged.remove(onOriginChangedEventListener)
+    })
+  }
+
+  public hide(): void {
+    this._meshes.forEach((m) => {
+      m.isVisible = false
     })
   }
 

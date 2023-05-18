@@ -9,7 +9,7 @@ import {
 } from '@babylonjs/core'
 import { Tiles3DLoader } from '@loaders.gl/3d-tiles'
 import { load } from '@loaders.gl/core'
-import { Tileset3D } from '@loaders.gl/tiles'
+import { TILE_REFINEMENT, Tileset3D } from '@loaders.gl/tiles'
 import { Vector3 as GlVector3 } from '@math.gl/core'
 import { App } from '../app'
 import { B3dmLoader } from './b3dmLoader'
@@ -105,7 +105,15 @@ export class TilesLoader {
 
         this.tileNodeMap.set(tile.contentUrl, { tileRootNode, loadPromise })
 
-        const parentUrl = tile.parent?.contentUrl
+        let parentUrl = tile.parent?.contentUrl
+        //console.log({ parent: tile.parent })
+        console.log({ tileParent: tile.parent })
+        console.log({ parentUrl })
+        console.log(this.tileNodeMap)
+
+        if (!parentUrl) {
+          parentUrl = tile.parent?.parent?.contentUrl
+        }
 
         if (parentUrl) {
           let parentNodeData
@@ -117,8 +125,17 @@ export class TilesLoader {
             await new Promise((resolve) => setTimeout(resolve, 100))
           }
 
+          console.log('parent found')
+
           tileRootNode.parent = parentNodeData.tileRootNode
+
+          if (tile.parent.refine === TILE_REFINEMENT.REPLACE) {
+            console.log('hide parentNode')
+            parentNodeData.tileRootNode.hide()
+            // parentNodeData.tileRootNode.dispose()
+          }
         } else {
+          console.log('parent not found')
           // If parent url is null
           const t = tile.transform
           const ecef = new Vector3(t[12], t[13], t[14])
@@ -128,6 +145,7 @@ export class TilesLoader {
         }
       },
       onTileUnload: async (tile) => {
+        console.log('on tile unload')
         const promise = this.tileNodeMap.get(tile.contentUrl)
 
         // Wait for the load to complete before unloading

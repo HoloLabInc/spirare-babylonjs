@@ -58,7 +58,10 @@ export class GlbLoader {
       )
 
       const meshes = loaded.meshes
-      console.log(meshes)
+      node.meshes = meshes
+
+
+      //console.log(meshes)
       meshes.forEach((mesh) => {
         /*
         if (mesh.material) {
@@ -68,7 +71,7 @@ export class GlbLoader {
             .forEach((t) => this.disposes.push(t))
         }
         */
-        console.log({ meshParent: mesh.parent })
+        //console.log({ meshParent: mesh.parent })
         if (mesh.parent === null) {
           mesh.parent = node
         }
@@ -93,7 +96,7 @@ export class GlbLoader {
 
       // node.originEcef = b3dmEcef
       node.originEcef = new Vector3(0, 0, 0)
-      console.log(`glb file loaded: '${target.name}'`)
+      // console.log(`glb file loaded: '${target.name}'`)
       return node
     } catch (ex) {
       console.error(ex)
