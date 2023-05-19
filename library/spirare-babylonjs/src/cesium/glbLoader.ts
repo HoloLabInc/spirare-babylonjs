@@ -61,7 +61,6 @@ export class GlbLoader {
     const copyright = await getCopyrightFromGlb(data)
     const copyrightArray = copyright.split(';')
     app.addDataAttribution(copyrightArray)
-    console.log('copyright ' + copyright)
 
     const url = URL.createObjectURL(data)
 
@@ -83,7 +82,6 @@ export class GlbLoader {
       const meshes = loaded.meshes
       node.meshes = meshes
 
-      //console.log(meshes)
       meshes.forEach((mesh) => {
         /*
         if (mesh.material) {
@@ -93,7 +91,6 @@ export class GlbLoader {
             .forEach((t) => this.disposes.push(t))
         }
         */
-        //console.log({ meshParent: mesh.parent })
         if (mesh.parent === null) {
           mesh.parent = node
         }
@@ -113,53 +110,11 @@ export class GlbLoader {
 
       // node.originEcef = b3dmEcef
       node.originEcef = new Vector3(0, 0, 0)
-      // console.log(`glb file loaded: '${target.name}'`)
       return node
     } catch (ex) {
       console.error(ex)
     } finally {
       URL.revokeObjectURL(url)
     }
-    // return undefined
-
-    // const b3dmData = await B3dmDataParser.parse(data)
-    /*
-    // const b3dmData = await B3dmDataParser.parse(data)
-    // const url = URL.createObjectURL(b3dmData.glbBlob)
-    try {
-      const node = new TileNode(app.geoManager, scene, target.name)
-      if (parent) {
-        node.parent = parent
-      }
-
-      const loaded = await SceneLoader.ImportMeshAsync(
-        undefined,
-        url,
-        undefined,
-        undefined,
-        undefined,
-        '.glb'
-      )
-      const meshRoot = loaded.meshes.find((n) => n.id === '__root__')
-      if (meshRoot) {
-        meshRoot.setParent(node)
-      }
-
-      const b3dmEcef = [...loaded.meshes, ...loaded.transformNodes]
-        .flatMap((n) => {
-          if (implementsB3dmLocation(n)) {
-            return [n.b3dmEcef]
-          }
-          return []
-        })
-        .pop()
-
-      node.originEcef = b3dmEcef
-      console.log(`b3dm file loaded: '${target.name}'`)
-      return node
-    } finally {
-      URL.revokeObjectURL(url)
-    }
-    */
   }
 }

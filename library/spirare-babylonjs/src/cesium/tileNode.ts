@@ -50,7 +50,6 @@ export class TileNode extends TransformNode {
   }
 
   private changeVisibility() {
-    console.log('changeVisibility ' + this.visible + " " + this._meshes.length + ' ' + this.name)
     this._meshes.forEach((m) => {
       m.setEnabled(this.visible)
     })
