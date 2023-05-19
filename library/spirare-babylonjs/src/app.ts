@@ -224,9 +224,6 @@ export class App {
       this.engine.resize()
     })
     const scene = new Scene(this.engine)
-    if (isGeodeticMode) {
-      scene.clearColor = new Color4(0, 0, 0, 0)
-    }
 
     // Add "app" to the metadata of the scene, so that the app can be accessed from the scene.
     scene.metadata = {
@@ -241,6 +238,7 @@ export class App {
     if (isGeodeticMode) {
       switch (this.terrainType) {
         case 'Cesium': {
+          scene.clearColor = new Color4(0, 0, 0, 0)
           this.cesiumManager = new CesiumManager()
           this.terrainController = new TerrainController(
             this.cesiumManager,
@@ -250,13 +248,7 @@ export class App {
         }
         case '3DTiles':
           {
-            scene.clearColor = new Color4(0, 0, 0, 1)
-            console.log(TERRAIN_TILESET_URL)
             this.cesiumManager = new CesiumManager()
-            this.terrainController = new TerrainController(
-              this.cesiumManager,
-              this.geoManager
-            )
             this.tilesLoader.loadAsync(
               TERRAIN_TILESET_URL,
               'Terrain',
