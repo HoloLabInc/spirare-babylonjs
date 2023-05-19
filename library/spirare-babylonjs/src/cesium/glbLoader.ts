@@ -1,7 +1,25 @@
 import { Scene, SceneLoader, TransformNode, Vector3 } from '@babylonjs/core'
 import { App } from '../app'
-import { B3dmDataParser, implementsB3dmLocation } from './b3dmDataParser'
 import { TileNode } from './tileNode'
+
+const getCopyrightFromGlb = async (blob: Blob) => {
+  try {
+    const arrayBuffer = await blob.arrayBuffer()
+    const data = new Uint8Array(arrayBuffer)
+    const view = new DataView(data.buffer)
+
+    const chunkLength = view.getUint32(12, true)
+
+    const jsonDataView = data.slice(20, 20 + chunkLength)
+    const decoder = new TextDecoder('utf-8')
+    const text = decoder.decode(jsonDataView)
+
+    const json = JSON.parse(text)
+    return json.asset?.copyright
+  } catch (e) {
+    return undefined
+  }
+}
 
 export class GlbLoader {
   public static async loadUrlAsync(
@@ -40,6 +58,11 @@ export class GlbLoader {
       data = new Blob([data])
     }
 
+    const copyright = await getCopyrightFromGlb(data)
+    const copyrightArray = copyright.split(';')
+    app.addDataAttribution(copyrightArray)
+    console.log('copyright ' + copyright)
+
     const url = URL.createObjectURL(data)
 
     try {
@@ -60,7 +83,6 @@ export class GlbLoader {
       const meshes = loaded.meshes
       node.meshes = meshes
 
-
       //console.log(meshes)
       meshes.forEach((mesh) => {
         /*
@@ -79,12 +101,6 @@ export class GlbLoader {
       })
 
       /*
-      const meshRoot = loaded.meshes.find((n) => n.id === '__root__')
-      if (meshRoot) {
-        meshRoot.setParent(node)
-      }
-      */
-
       const b3dmEcef = [...loaded.meshes, ...loaded.transformNodes]
         .flatMap((n) => {
           if (implementsB3dmLocation(n)) {
@@ -93,6 +109,7 @@ export class GlbLoader {
           return []
         })
         .pop()
+        */
 
       // node.originEcef = b3dmEcef
       node.originEcef = new Vector3(0, 0, 0)

@@ -23,6 +23,7 @@ import {
   Control,
   ScrollViewer,
   Grid,
+  TextBlock,
 } from '@babylonjs/gui'
 import { Guid } from 'guid-typescript'
 import { LoadPomlOptions, PomlLoader } from './pomlLoader'
@@ -131,6 +132,10 @@ export class App {
   public readonly tilesLoader: TilesLoader = new TilesLoader(this.geoManager)
   public readonly pomlId: string
 
+  private terrainType: TerrainType
+  private dataAttribution: string[] = []
+  private dataAttributionTextBlock: TextBlock | undefined
+
   public get title(): string | undefined {
     return this._title
   }
@@ -231,10 +236,10 @@ export class App {
 
     this.scene = scene
 
-    const terrainType = TERRAIN_TILESET_URL ? '3DTiles' : 'Cesium'
+    this.terrainType = TERRAIN_TILESET_URL ? '3DTiles' : 'Cesium'
 
     if (isGeodeticMode) {
-      switch (terrainType) {
+      switch (this.terrainType) {
         case 'Cesium': {
           this.cesiumManager = new CesiumManager()
           this.terrainController = new TerrainController(
@@ -245,6 +250,7 @@ export class App {
         }
         case '3DTiles':
           {
+            scene.clearColor = new Color4(0, 0, 0, 1)
             console.log(TERRAIN_TILESET_URL)
             this.cesiumManager = new CesiumManager()
             this.terrainController = new TerrainController(
@@ -310,8 +316,19 @@ export class App {
 
       // Create Cesium.js data attibution UI
       if (isGeodeticMode) {
-        const dataAttributionUI = this.createDataAttributionUI()
-        this.ui.addControl(dataAttributionUI)
+        switch (this.terrainType) {
+          case 'Cesium': {
+            const dataAttributionUI = this.createCesiumJsDataAttributionUI()
+            this.ui.addControl(dataAttributionUI)
+            break
+          }
+          case '3DTiles': {
+            this.dataAttributionTextBlock = this.createDataAttributionText()
+            this.updateDataAttributionText()
+            this.ui.addControl(this.dataAttributionTextBlock)
+            break
+          }
+        }
       }
 
       const hintUIOffset = isGeodeticMode ? 40 : 0
@@ -523,6 +540,20 @@ export class App {
     findSpirareNodes(this.scene).forEach((n) => {
       n.updateSpaceStatus(status)
     })
+  }
+
+  public addDataAttribution(attribution: string[]): void {
+    this.dataAttribution = [
+      ...new Set([...this.dataAttribution, ...attribution]),
+    ]
+
+    this.updateDataAttributionText()
+  }
+
+  private updateDataAttributionText(): void {
+    if (this.dataAttributionTextBlock) {
+      this.dataAttributionTextBlock.text = this.dataAttribution.join('・')
+    }
   }
 
   private listenFileDrop() {
@@ -1202,7 +1233,7 @@ export class App {
   }
 
   // create data attribution ui
-  private createDataAttributionUI(): Control {
+  private createCesiumJsDataAttributionUI(): Control {
     const buttonWidth = 130
     const paddingLeft = 140
     const button = UIHelper.createButton(
@@ -1224,6 +1255,19 @@ export class App {
       }
     )
     return button
+  }
+
+  private createDataAttributionText(): TextBlock {
+    const text = UIHelper.createTextBlock('', {
+      width: '50%',
+      height: '40px',
+      color: 'white',
+      fontSize: '10px',
+      textWrapping: true,
+      horizontalAlignment: Control.HORIZONTAL_ALIGNMENT_LEFT,
+      verticalAlignment: Control.VERTICAL_ALIGNMENT_BOTTOM,
+    })
+    return text
   }
 
   private createHintUI(bottomOffset: number = 0): Control {
