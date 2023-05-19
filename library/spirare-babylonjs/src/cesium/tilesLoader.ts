@@ -58,7 +58,7 @@ export class TilesLoader {
 
         const tileRootNode = new TileNode(app.geoManager, scene, tileName)
 
-        let loadPromise
+        let loadPromise: Promise<TransformNode | undefined>
 
         switch (extension?.toLowerCase()) {
           case 'b3dm': {
@@ -135,7 +135,9 @@ export class TilesLoader {
 
           if (tile.parent.refine === TILE_REFINEMENT.REPLACE) {
             console.log('hide parentNode')
-            parentNodeData.loadPromise.then((node) => {
+            parentNodeData.loadPromise.then(async (node) => {
+              // Hide parent node after child node is loaded
+              await loadPromise
               // If node is inherited from TileNode, call hide
               if (node instanceof TileNode) {
                 node.hide()
