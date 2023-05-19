@@ -14,11 +14,14 @@ export class TileNode extends TransformNode {
     this.updateGeoplacement()
   }
 
+  private visible: boolean = true
+
   // meshes property
   private _meshes: AbstractMesh[] = []
 
   public set meshes(value: AbstractMesh[]) {
     this._meshes = value
+    this.changeVisibility()
   }
 
   private geoManager: GeoManager
@@ -42,8 +45,14 @@ export class TileNode extends TransformNode {
   }
 
   public hide(): void {
+    this.visible = false
+    this.changeVisibility()
+  }
+
+  private changeVisibility() {
+    console.log('changeVisibility ' + this.visible + " " + this._meshes.length + ' ' + this.name)
     this._meshes.forEach((m) => {
-      m.isVisible = false
+      m.setEnabled(this.visible)
     })
   }
 

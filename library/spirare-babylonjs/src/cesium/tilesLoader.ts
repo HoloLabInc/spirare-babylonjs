@@ -105,14 +105,18 @@ export class TilesLoader {
 
         this.tileNodeMap.set(tile.contentUrl, { tileRootNode, loadPromise })
 
-        let parentUrl = tile.parent?.contentUrl
-        //console.log({ parent: tile.parent })
-        console.log({ tileParent: tile.parent })
-        console.log({ parentUrl })
-        console.log(this.tileNodeMap)
-
-        if (!parentUrl) {
-          parentUrl = tile.parent?.parent?.contentUrl
+        let parentUrl
+        let targetTile = tile
+        while (true) {
+          const parent = targetTile.parent
+          if (!parent) {
+            break
+          }
+          if (parent.contentUrl) {
+            parentUrl = parent.contentUrl
+            break
+          }
+          targetTile = parent
         }
 
         if (parentUrl) {
@@ -131,8 +135,12 @@ export class TilesLoader {
 
           if (tile.parent.refine === TILE_REFINEMENT.REPLACE) {
             console.log('hide parentNode')
-            parentNodeData.tileRootNode.hide()
-            // parentNodeData.tileRootNode.dispose()
+            parentNodeData.loadPromise.then((node) => {
+              // If node is inherited from TileNode, call hide
+              if (node instanceof TileNode) {
+                node.hide()
+              }
+            })
           }
         } else {
           console.log('parent not found')
