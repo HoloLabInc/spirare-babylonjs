@@ -46,6 +46,10 @@ const server = http.createServer(async (request, response) => {
 
   const content = await readContent(url)
   if (content) {
+    // Auto reload in 5 seconds
+    response.writeHead(200, {
+      Refresh: '5',
+    })
     response.end(content)
     return
   }
