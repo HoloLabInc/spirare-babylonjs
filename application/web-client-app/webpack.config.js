@@ -80,6 +80,7 @@ const webpackConfig = {
       CESIUM_ION_TOKEN: JSON.stringify(process.env.CESIUM_ION_TOKEN ?? ''),
       // Define relative base path in cesium for loading assets
       CESIUM_BASE_URL: JSON.stringify('.'),
+      TERRAIN_TILESET_URL: JSON.stringify(process.env.TERRAIN_TILESET_URL ?? ''),
     }),
 
     // Suppress the following error:
