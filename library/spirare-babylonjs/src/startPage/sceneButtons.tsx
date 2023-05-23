@@ -8,7 +8,15 @@ export const SceneButtons: React.FC<{
   onSceneClick?: (scene: SceneInfo) => void
   onDeleteClick?: (scene: SceneInfo) => void
   getTemporaryUrl?: (scene: SceneInfo) => Promise<string>
-}> = ({ scenes, enableMenu, onSceneClick, onDeleteClick, getTemporaryUrl }) => {
+  openSceneFolder?: (scene: SceneInfo) => Promise<void>
+}> = ({
+  scenes,
+  enableMenu,
+  onSceneClick,
+  onDeleteClick,
+  getTemporaryUrl,
+  openSceneFolder,
+}) => {
   return (
     <div className="columns is-multiline">
       {scenes.map((scene) => (
@@ -18,6 +26,7 @@ export const SceneButtons: React.FC<{
           onSceneClick={onSceneClick}
           onDeleteClick={onDeleteClick}
           getTemporaryUrl={getTemporaryUrl}
+          openSceneFolder={openSceneFolder}
           key={scene.pomlId}
         />
       ))}
