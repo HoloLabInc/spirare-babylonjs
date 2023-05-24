@@ -67,11 +67,11 @@ export class PomlBuilder {
       })
     }
 
-    const elements = nodes.map((n) => {
-      return n.element
-    })
+    const sceneRootElements = nodes
+      .filter((n) => !n.parent)
+      .map((n) => n.element)
 
-    poml.scene.children = elements
+    poml.scene.children = sceneRootElements
     poml.scene.coordinateReferences = coordinateReferences
     const pomlText = this.parser.build(poml, options)
 
@@ -96,7 +96,7 @@ export class PomlBuilder {
       }
     })
 
-    const spirareNodes = nodes.filter((n): n is SpirareNode => n.type !== '?');
+    const spirareNodes = nodes.filter((n): n is SpirareNode => n.type !== '?')
     coordinateReferences = this.updateCoordinateReferences(
       spirareNodes,
       coordinateReferences,
@@ -118,11 +118,16 @@ export class PomlBuilder {
 
     // Create poml string
     const poml = new Poml()
-    const elements = nodes.map((n) => n.element)
-    poml.scene.children = PomlBuilder.overridePomlElements(
-      elements,
+    const elements = PomlBuilder.overridePomlElements(
+      nodes.map((n) => n.element),
       overrideProperties
     )
+    const sceneRootElements = nodes.flatMap((n, i) =>
+      n.parent ? [] : elements[i]
+    )
+    console.log('sceneRootElements')
+    console.log(sceneRootElements)
+    poml.scene.children = sceneRootElements
     poml.scene.coordinateReferences = coordinateReferences
     const pomlText = this.parser.build(poml, options)
 
