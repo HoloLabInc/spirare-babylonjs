@@ -177,7 +177,7 @@ export class PomlBuilder {
   ): MaybePomlElement[] {
     const newElements = elements.map((element) => {
       if (element.type === '?') {
-        return element
+        return { ...element }
       }
       const newElement = { ...element }
       const overrideProperty = overrideProperties.get(element)
