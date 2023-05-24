@@ -125,8 +125,6 @@ export class PomlBuilder {
     const sceneRootElements = nodes.flatMap((n, i) =>
       n.parent ? [] : elements[i]
     )
-    console.log('sceneRootElements')
-    console.log(sceneRootElements)
     poml.scene.children = sceneRootElements
     poml.scene.coordinateReferences = coordinateReferences
     const pomlText = this.parser.build(poml, options)
