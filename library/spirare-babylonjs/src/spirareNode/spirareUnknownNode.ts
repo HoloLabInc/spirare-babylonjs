@@ -11,7 +11,6 @@ export class SpirareUnknownNode extends TransformNode {
   ) {
     super(name ?? element.type, params.scene)
     this._element = element
-    console.log(element._original)
   }
 
   public get element(): PomlUnknown {
