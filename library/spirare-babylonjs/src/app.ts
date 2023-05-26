@@ -37,6 +37,7 @@ import {
   PomlEmptyElement,
   PomlElement,
   MaybePomlElement,
+  ScriptElement,
 } from 'ts-poml'
 import { BuildOptions } from 'ts-poml/dist/pomlParser'
 import { UIHelper } from './uiHelper'
@@ -133,6 +134,8 @@ export class App {
   public readonly geoManager: GeoManager = new GeoManager()
   public readonly tilesLoader: TilesLoader = new TilesLoader(this.geoManager)
   public readonly pomlId: string
+
+  private sceneScriptElements: ScriptElement[] = []
 
   public get title(): string | undefined {
     return this._title
@@ -467,7 +470,11 @@ export class App {
 
   public async buildPoml(): Promise<string> {
     const placements = this.getPlacementsForPoml()
-    const poml = await this.pomlBuilder.buildPoml(this.scene, placements)
+    const poml = await this.pomlBuilder.buildPoml(
+      this.scene,
+      placements,
+      this.sceneScriptElements
+    )
     return poml
   }
 
@@ -772,6 +779,7 @@ export class App {
   private async loadPomlZipAsync(file: Blob): Promise<Poml | undefined> {
     const loaded = await this.pomlLoader.loadPomlZipAsync(file, this.scene)
     if (loaded) {
+      this.sceneScriptElements = loaded.poml.scene.scriptElements
       loaded.nodes.forEach((node) => {
         if (node.type !== '?') {
           this.onNodeLoaded(node)
@@ -828,6 +836,8 @@ export class App {
         )
       }
     })()
+
+    this.sceneScriptElements = poml.scene.scriptElements
 
     nodes.forEach((node) => {
       if (node.type !== '?') {
@@ -1181,6 +1191,7 @@ export class App {
       this.scene,
       this.pomlId,
       placements,
+      this.sceneScriptElements,
       options
     )
 

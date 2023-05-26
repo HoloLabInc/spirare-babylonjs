@@ -6,6 +6,7 @@ import {
   PomlElement,
   Meta,
   MaybePomlElement,
+  ScriptElement,
 } from 'ts-poml'
 import { BuildOptions, PomlParser } from 'ts-poml/dist/pomlParser'
 import JSZip from 'jszip'
@@ -41,6 +42,7 @@ export class PomlBuilder {
   public async buildPoml(
     scene: Scene,
     coordinateReferences: CoordinateReference[],
+    sceneScriptElements: ScriptElement[],
     options?: BuildOptions
   ): Promise<string> {
     const app = getApp(scene)
@@ -71,8 +73,10 @@ export class PomlBuilder {
       .filter((n) => !n.parent)
       .map((n) => n.element)
 
+    console.log(sceneRootElements)
     poml.scene.children = sceneRootElements
     poml.scene.coordinateReferences = coordinateReferences
+    poml.scene.scriptElements = sceneScriptElements
     const pomlText = this.parser.build(poml, options)
 
     return pomlText
@@ -82,6 +86,7 @@ export class PomlBuilder {
     scene: Scene,
     pomlFileName: string,
     coordinateReferences: CoordinateReference[],
+    sceneScriptElements: ScriptElement[],
     options?: BuildOptions
   ): Promise<PomlBuilderResult> {
     const app = getApp(scene)
@@ -127,6 +132,7 @@ export class PomlBuilder {
     )
     poml.scene.children = sceneRootElements
     poml.scene.coordinateReferences = coordinateReferences
+    poml.scene.scriptElements = sceneScriptElements
     const pomlText = this.parser.build(poml, options)
 
     let pomlzBlob = undefined
