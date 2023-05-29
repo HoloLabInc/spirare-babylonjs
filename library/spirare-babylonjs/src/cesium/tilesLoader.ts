@@ -71,7 +71,6 @@ export class TilesLoader {
       return
     }
 
-    console.log('load ' + tile.contentUrl)
     const tileName = tile.contentUrl.split('/').pop() ?? ''
     const extension = tile.contentUrl.split('.').pop()?.split('?')[0]
 
@@ -192,7 +191,6 @@ export class TilesLoader {
         await this.loadTileAsync(tile, rootNode, app, scene)
       },
       onTileUnload: async (tile) => {
-        console.log('on tile unload')
         const promise = this.tileNodeMap.get(tile.contentUrl)
 
         // Wait for the load to complete before unloading

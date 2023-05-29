@@ -16,7 +16,6 @@ export class TileNode extends TransformNode {
 
   private visible: boolean = true
 
-  // meshes property
   private _meshes: AbstractMesh[] = []
 
   public set meshes(value: AbstractMesh[]) {

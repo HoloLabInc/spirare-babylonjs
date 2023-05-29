@@ -53,7 +53,6 @@ export class GlbLoader {
     parent?: TransformNode
   ): Promise<TransformNode | undefined> {
     let data = target instanceof File ? target : target.data
-    // console.log(data)
     if (data instanceof Uint8Array) {
       data = new Blob([data])
     }
@@ -83,32 +82,11 @@ export class GlbLoader {
       node.meshes = meshes
 
       meshes.forEach((mesh) => {
-        /*
-        if (mesh.material) {
-          this.disposes.push(mesh.material)
-          mesh.material
-            .getActiveTextures()
-            .forEach((t) => this.disposes.push(t))
-        }
-        */
         if (mesh.parent === null) {
           mesh.parent = node
         }
-        //mesh.actionManager = this.actionManager
       })
 
-      /*
-      const b3dmEcef = [...loaded.meshes, ...loaded.transformNodes]
-        .flatMap((n) => {
-          if (implementsB3dmLocation(n)) {
-            return [n.b3dmEcef]
-          }
-          return []
-        })
-        .pop()
-        */
-
-      // node.originEcef = b3dmEcef
       node.originEcef = new Vector3(0, 0, 0)
       return node
     } catch (ex) {
