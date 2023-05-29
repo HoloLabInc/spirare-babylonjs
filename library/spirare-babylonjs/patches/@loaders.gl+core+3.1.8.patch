@@ -1,0 +1,15 @@
+diff --git a/node_modules/@loaders.gl/core/dist/esm/lib/utils/resource-utils.js b/node_modules/@loaders.gl/core/dist/esm/lib/utils/resource-utils.js
+index d8d7db8..94d81d2 100644
+--- a/node_modules/@loaders.gl/core/dist/esm/lib/utils/resource-utils.js
++++ b/node_modules/@loaders.gl/core/dist/esm/lib/utils/resource-utils.js
+@@ -55,6 +55,8 @@ export function getResourceContentLength(resource) {
+ }
+ 
+ function stripQueryString(url) {
+-  return url.replace(QUERY_STRING_PATTERN, '');
++  // Changed by HoloLab
++  // return url.replace(QUERY_STRING_PATTERN, '');
++  return url;
+ }
+ //# sourceMappingURL=resource-utils.js.map
+\ No newline at end of file

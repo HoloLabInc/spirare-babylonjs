@@ -1,0 +1,34 @@
+diff --git a/node_modules/@loaders.gl/3d-tiles/dist/esm/lib/parsers/parse-3d-tile-header.js b/node_modules/@loaders.gl/3d-tiles/dist/esm/lib/parsers/parse-3d-tile-header.js
+index 08cbe2d..582e0fb 100644
+--- a/node_modules/@loaders.gl/3d-tiles/dist/esm/lib/parsers/parse-3d-tile-header.js
++++ b/node_modules/@loaders.gl/3d-tiles/dist/esm/lib/parsers/parse-3d-tile-header.js
+@@ -49,6 +49,19 @@ export function normalizeTileData(tile, options) {
+   if (tile.content) {
+     const contentUri = tile.content.uri || tile.content.url;
+     tile.contentUrl = "".concat(options.basePath, "/").concat(contentUri);
++
++    // Added by HoloLab
++    if (contentUri.startsWith("/")) {
++      const parentUrl = new URL(options.parentUrl)
++      const queryString = parentUrl.search.substring(1);
++
++      tile.contentUrl = "".concat(parentUrl.origin).concat(contentUri)
++      if (tile.contentUrl.indexOf("?") > -1) {
++        tile.contentUrl = tile.contentUrl.concat("&").concat(queryString);
++      } else {
++        tile.contentUrl = tile.contentUrl.concat("?").concat(queryString);
++      }
++    }
+   }
+ 
+   tile.id = tile.contentUrl;
+@@ -71,7 +84,8 @@ export function normalizeTileHeaders(tileset) {
+ 
+     for (const childHeader of children) {
+       normalizeTileData(childHeader, {
+-        basePath
++        basePath,
++        parentUrl: tileset.url // Changed by HoloLab
+       });
+       stack.push(childHeader);
+     }

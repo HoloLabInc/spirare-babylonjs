@@ -1,0 +1,30 @@
+diff --git a/node_modules/@loaders.gl/tiles/dist/esm/tileset/helpers/zoom.js b/node_modules/@loaders.gl/tiles/dist/esm/tileset/helpers/zoom.js
+index 15571bc..ec6fe4f 100644
+--- a/node_modules/@loaders.gl/tiles/dist/esm/tileset/helpers/zoom.js
++++ b/node_modules/@loaders.gl/tiles/dist/esm/tileset/helpers/zoom.js
+@@ -10,7 +10,9 @@ export function getZoomFromBoundingVolume(boundingVolume, cartorgraphicCenter) {
+       halfAxes
+     } = boundingVolume;
+     const obbSize = getObbSize(halfAxes);
+-    return Math.log2(WGS84_RADIUS_Z / (obbSize + cartorgraphicCenter[2]));
++    // Changed by HoloLab
++    // return Math.log2(WGS84_RADIUS_Z / (obbSize + cartorgraphicCenter[2]));
++    return Math.log2(WGS84_RADIUS_Z / (obbSize + cartorgraphicCenter?.[2] ?? 0));
+   } else if (boundingVolume instanceof BoundingSphere) {
+     const {
+       radius
+diff --git a/node_modules/@loaders.gl/tiles/dist/esm/tileset/tile-3d.js b/node_modules/@loaders.gl/tiles/dist/esm/tileset/tile-3d.js
+index 2ab4443..9e706f8 100644
+--- a/node_modules/@loaders.gl/tiles/dist/esm/tileset/tile-3d.js
++++ b/node_modules/@loaders.gl/tiles/dist/esm/tileset/tile-3d.js
+@@ -284,7 +284,9 @@ export default class TileHeader {
+       const loader = this.tileset.loader;
+       const options = { ...this.tileset.loadOptions,
+         [loader.id]: { ...this.tileset.loadOptions[loader.id],
+-          isTileset: this.type === 'json',
++          // Changed by HoloLab
++          // isTileset: this.type === 'json',
++          isTileset: this.type.startsWith('json'),
+           ...this._getLoaderSpecificOptions(loader.id)
+         }
+       };
