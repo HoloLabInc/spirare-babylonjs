@@ -1,4 +1,10 @@
-import { app, BrowserWindow, ipcMain, IpcMainInvokeEvent } from 'electron'
+import {
+  app,
+  BrowserWindow,
+  ipcMain,
+  IpcMainInvokeEvent,
+  shell,
+} from 'electron'
 import { FileData, SceneInfo } from 'spirare-babylonjs/src/types'
 import {
   getScenesOrderByLastModifiedDate,
@@ -40,6 +46,10 @@ const server = http.createServer(async (request, response) => {
 
   const content = await readContent(url)
   if (content) {
+    // For auto-reload
+    response.writeHead(200, {
+      Refresh: '3',
+    })
     response.end(content)
     return
   }
@@ -184,6 +194,20 @@ const handleDeletePoml = async (event: IpcMainInvokeEvent, pomlId: string) => {
   )
 }
 
+const handleOpenSceneFolder = async (
+  event: IpcMainInvokeEvent,
+  pomlId: string
+) => {
+  // open folder with electron
+  const pomlFileFolderPath = getPomlFileFolderPath(pomlId)
+
+  try {
+    shell.openPath(pomlFileFolderPath)
+  } catch (ex) {
+    console.log(ex)
+  }
+}
+
 const handleLoadPoml = async (event: IpcMainInvokeEvent, pomlId: string) => {
   console.log(`load poml ${pomlId}`)
 
@@ -232,6 +256,7 @@ app.on('ready', () => {
   ipcMain.handle('download-file', handleDownloadFile)
   ipcMain.handle('save-poml', handleSavePoml)
   ipcMain.handle('delete-poml', handleDeletePoml)
+  ipcMain.handle('open-scene-folder', handleOpenSceneFolder)
   ipcMain.handle('load-poml', handleLoadPoml)
   ipcMain.handle('get-absolute-file-path', handleGetAbsoluteFilePath)
   ipcMain.handle('get-recent-scenes', handleGetRecentScenes)

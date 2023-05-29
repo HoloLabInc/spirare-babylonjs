@@ -18,6 +18,10 @@ const onDeleteClick = async (scene: SceneInfo): Promise<void> => {
   location.reload()
 }
 
+const openSceneFolder = async (scene: SceneInfo): Promise<void> => {
+  await window.electronAPI.openSceneFolder(scene.pomlId)
+}
+
 ;(async () => {
   const startPageElement = document.getElementById('start-page')
   if (startPageElement == null) {
@@ -33,6 +37,7 @@ const onDeleteClick = async (scene: SceneInfo): Promise<void> => {
         editorPageUrl="./index.html"
         scenes={scenes}
         onDeleteClick={onDeleteClick}
+        openSceneFolder={openSceneFolder}
       ></StartPage>
     )
   } catch (ex) {
