@@ -23,6 +23,7 @@ import {
   Control,
   ScrollViewer,
   Grid,
+  TextBlock,
 } from '@babylonjs/gui'
 import { Guid } from 'guid-typescript'
 import { LoadPomlOptions, PomlLoader } from './pomlLoader'
@@ -95,6 +96,8 @@ const defaultCameraControllerFactory: CameraControllerFactory = (
   return cameraController
 }
 
+type TerrainType = 'Cesium' | '3DTiles'
+
 export class App {
   private engine: Engine
   private scene: Scene
@@ -128,6 +131,10 @@ export class App {
   public readonly geoManager: GeoManager = new GeoManager()
   public readonly tilesLoader: TilesLoader = new TilesLoader(this.geoManager)
   public readonly pomlId: string
+
+  private terrainType: TerrainType
+  private dataAttribution: string[] = []
+  private dataAttributionTextBlock: TextBlock | undefined
 
   public get title(): string | undefined {
     return this._title
@@ -207,14 +214,6 @@ export class App {
 
     this.pomlBuilder = new PomlBuilder()
 
-    if (isGeodeticMode) {
-      this.cesiumManager = new CesiumManager()
-      this.terrainController = new TerrainController(
-        this.cesiumManager,
-        this.geoManager
-      )
-    }
-
     const canvas = document.getElementById('spirare_canvas')
     if (!canvas || !(canvas instanceof HTMLCanvasElement)) {
       throw new Error('canvas is not found')
@@ -225,9 +224,6 @@ export class App {
       this.engine.resize()
     })
     const scene = new Scene(this.engine)
-    if (isGeodeticMode) {
-      scene.clearColor = new Color4(0, 0, 0, 0)
-    }
 
     // Add "app" to the metadata of the scene, so that the app can be accessed from the scene.
     scene.metadata = {
@@ -236,6 +232,33 @@ export class App {
     }
 
     this.scene = scene
+
+    this.terrainType = TERRAIN_TILESET_URL ? '3DTiles' : 'Cesium'
+
+    if (isGeodeticMode) {
+      switch (this.terrainType) {
+        case 'Cesium': {
+          scene.clearColor = new Color4(0, 0, 0, 0)
+          this.cesiumManager = new CesiumManager()
+          this.terrainController = new TerrainController(
+            this.cesiumManager,
+            this.geoManager
+          )
+          break
+        }
+        case '3DTiles':
+          {
+            this.cesiumManager = new CesiumManager()
+            this.tilesLoader.loadAsync(
+              TERRAIN_TILESET_URL,
+              'Terrain',
+              this,
+              this.scene
+            )
+          }
+          break
+      }
+    }
 
     const cameraControllerFactory =
       params.cameraControllerFactory ?? defaultCameraControllerFactory
@@ -285,8 +308,19 @@ export class App {
 
       // Create Cesium.js data attibution UI
       if (isGeodeticMode) {
-        const dataAttributionUI = this.createDataAttributionUI()
-        this.ui.addControl(dataAttributionUI)
+        switch (this.terrainType) {
+          case 'Cesium': {
+            const dataAttributionUI = this.createCesiumJsDataAttributionUI()
+            this.ui.addControl(dataAttributionUI)
+            break
+          }
+          case '3DTiles': {
+            this.dataAttributionTextBlock = this.createDataAttributionText()
+            this.updateDataAttributionText()
+            this.ui.addControl(this.dataAttributionTextBlock)
+            break
+          }
+        }
       }
 
       const hintUIOffset = isGeodeticMode ? 40 : 0
@@ -498,6 +532,20 @@ export class App {
     findSpirareNodes(this.scene).forEach((n) => {
       n.updateSpaceStatus(status)
     })
+  }
+
+  public addDataAttribution(attribution: string[]): void {
+    this.dataAttribution = [
+      ...new Set([...this.dataAttribution, ...attribution]),
+    ]
+
+    this.updateDataAttributionText()
+  }
+
+  private updateDataAttributionText(): void {
+    if (this.dataAttributionTextBlock) {
+      this.dataAttributionTextBlock.text = this.dataAttribution.join('・')
+    }
   }
 
   private listenFileDrop() {
@@ -1177,7 +1225,7 @@ export class App {
   }
 
   // create data attribution ui
-  private createDataAttributionUI(): Control {
+  private createCesiumJsDataAttributionUI(): Control {
     const buttonWidth = 130
     const paddingLeft = 140
     const button = UIHelper.createButton(
@@ -1185,7 +1233,7 @@ export class App {
       {
         width: `${paddingLeft + buttonWidth}px`,
         paddingLeft: `${paddingLeft}px`,
-        paddingBottom: "4px",
+        paddingBottom: '4px',
         horizontalAlignment: Control.HORIZONTAL_ALIGNMENT_LEFT,
         verticalAlignment: Control.VERTICAL_ALIGNMENT_BOTTOM,
       },
@@ -1199,6 +1247,19 @@ export class App {
       }
     )
     return button
+  }
+
+  private createDataAttributionText(): TextBlock {
+    const text = UIHelper.createTextBlock('', {
+      width: '50%',
+      height: '40px',
+      color: 'white',
+      fontSize: '10px',
+      textWrapping: true,
+      horizontalAlignment: Control.HORIZONTAL_ALIGNMENT_LEFT,
+      verticalAlignment: Control.VERTICAL_ALIGNMENT_BOTTOM,
+    })
+    return text
   }
 
   private createHintUI(bottomOffset: number = 0): Control {

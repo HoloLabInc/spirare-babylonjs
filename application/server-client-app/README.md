@@ -22,6 +22,14 @@ Add the following to .env:
 DUMMY_USER_ID='testuser'
 ```
 
+## Settings for Photorealistic 3D Tiles Terrain (optional)
+
+Add the following to .env:
+
+```
+TERRAIN_TILESET_URL='https://tile.googleapis.com/v1/3dtiles/root.json?key=<Your API Key>'
+```
+
 ## Information for Azure Files (optional)
 
 Add the following to .env:

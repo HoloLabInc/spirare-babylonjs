@@ -113,6 +113,7 @@ const clientConfig = {
     }),
     new webpack.DefinePlugin({
       CESIUM_ION_TOKEN: JSON.stringify(process.env.CESIUM_ION_TOKEN ?? ''),
+      TERRAIN_TILESET_URL: JSON.stringify(process.env.TERRAIN_TILESET_URL ?? ''),
       // Define relative base path in cesium for loading assets
       CESIUM_BASE_URL: JSON.stringify('dist'),
     }),

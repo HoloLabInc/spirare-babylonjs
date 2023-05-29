@@ -9,15 +9,27 @@ import {
 } from '@babylonjs/core'
 import { Tiles3DLoader } from '@loaders.gl/3d-tiles'
 import { load } from '@loaders.gl/core'
-import { Tileset3D } from '@loaders.gl/tiles'
+import { TILE_REFINEMENT, Tileset3D } from '@loaders.gl/tiles'
 import { Vector3 as GlVector3 } from '@math.gl/core'
 import { App } from '../app'
 import { B3dmLoader } from './b3dmLoader'
 import { GeoManager } from './geoManager'
 import { PntsLoader } from './pntsLoader'
 import { TileNode } from './tileNode'
+import { GlbLoader } from './glbLoader'
+import TileHeader from '@loaders.gl/tiles/dist/tileset/tile-3d'
 
 const Vector3ToGlVector3 = (vec: Vector3) => new GlVector3(vec.x, vec.y, vec.z)
+
+const getRecursiveChildTiles = (tile: TileHeader): TileHeader[] => {
+  return tile.children.flatMap((child) => {
+    if (child.contentUrl) {
+      return [child]
+    } else {
+      return getRecursiveChildTiles(child)
+    }
+  })
+}
 
 export class TilesLoader {
   private geoManager: GeoManager
@@ -44,6 +56,131 @@ export class TilesLoader {
     this.geoManager = geoManager
   }
 
+  private async loadTileAsync(
+    tile: TileHeader,
+    rootNode: TransformNode,
+    app: App,
+    scene: Scene
+  ) {
+    if (!tile.contentUrl) {
+      return
+    }
+
+    // If the tile is already loaded, return
+    if (this.tileNodeMap.get(tile.contentUrl) !== undefined) {
+      return
+    }
+
+    const tileName = tile.contentUrl.split('/').pop() ?? ''
+    const extension = tile.contentUrl.split('.').pop()?.split('?')[0]
+
+    const tileRootNode = new TileNode(app.geoManager, scene, tileName)
+
+    let loadPromise: Promise<TransformNode | undefined>
+
+    switch (extension?.toLowerCase()) {
+      case 'b3dm': {
+        loadPromise = B3dmLoader.loadUrlAsync(
+          tile.contentUrl,
+          tileName,
+          app,
+          scene,
+          tileRootNode
+        )
+        break
+      }
+      case 'glb': {
+        loadPromise = GlbLoader.loadUrlAsync(
+          tile.contentUrl,
+          tileName,
+          app,
+          scene,
+          tileRootNode
+        )
+        break
+      }
+      case 'pnts': {
+        loadPromise = PntsLoader.loadUrlAsync(
+          tile.contentUrl,
+          tileName,
+          app,
+          scene,
+          tileRootNode
+        )
+        break
+      }
+      case 'json': {
+        // create empty node
+        tileRootNode.parent = rootNode
+        loadPromise = Promise.all(
+          getRecursiveChildTiles(tile).map((child) => {
+            this.loadTileAsync(child, tileRootNode, app, scene)
+          })
+        ).then(() => undefined)
+        break
+      }
+      default:
+        console.log(`${extension} is not supported`)
+        tileRootNode.dispose()
+        return
+    }
+
+    this.tileNodeMap.set(tile.contentUrl, { tileRootNode, loadPromise })
+
+    let parentUrl
+    let targetTile = tile
+    while (true) {
+      const parent = targetTile.parent
+      if (!parent) {
+        break
+      }
+      if (parent.contentUrl) {
+        parentUrl = parent.contentUrl
+        break
+      }
+      targetTile = parent
+    }
+
+    if (parentUrl) {
+      let parentNodeData
+      while (true) {
+        parentNodeData = this.tileNodeMap.get(parentUrl)
+        if (parentNodeData !== undefined) {
+          break
+        }
+        await new Promise((resolve) => setTimeout(resolve, 100))
+      }
+
+      tileRootNode.parent = parentNodeData.tileRootNode
+
+      if (tile.parent.refine === TILE_REFINEMENT.REPLACE) {
+        const siblingPromise = Promise.all(
+          getRecursiveChildTiles(tile.parent).map((sibling) => {
+            this.loadTileAsync(sibling, rootNode, app, scene)
+          })
+        )
+
+        parentNodeData.loadPromise.then(async (node) => {
+          // Hide parent node after child nodes are loaded
+          await Promise.all([loadPromise, siblingPromise])
+          // If node is inherited from TileNode, call hide
+          if (node instanceof TileNode) {
+            node.hide()
+          }
+        })
+      }
+    } else {
+      // If parent url is null
+      const t = tile.transform
+      const ecef = new Vector3(t[12], t[13], t[14])
+      if (ecef.x !== 0 || ecef.y !== 0 || ecef.z !== 0) {
+        tileRootNode.originEcef = ecef
+      }
+    }
+
+    return loadPromise
+  }
+
   public async loadAsync(url: string, name: string, app: App, scene: Scene) {
     const tilesetJson = await load(url, Tiles3DLoader)
 
@@ -51,71 +188,7 @@ export class TilesLoader {
 
     const tileset3d = new Tileset3D(tilesetJson, {
       onTileLoad: async (tile) => {
-        console.log('load ' + tile.contentUrl)
-        const tileName = tile.contentUrl.split('/').pop() ?? ''
-        const extension = tile.contentUrl.split('.').pop()
-
-        const tileRootNode = new TileNode(app.geoManager, scene, tileName)
-
-        let loadPromise
-
-        switch (extension?.toLowerCase()) {
-          case 'b3dm': {
-            loadPromise = B3dmLoader.loadUrlAsync(
-              tile.contentUrl,
-              tileName,
-              app,
-              scene,
-              tileRootNode
-            )
-            break
-          }
-          case 'pnts': {
-            loadPromise = PntsLoader.loadUrlAsync(
-              tile.contentUrl,
-              tileName,
-              app,
-              scene,
-              tileRootNode
-            )
-
-            break
-          }
-          case 'json': {
-            // create empty node
-            tileRootNode.parent = rootNode
-            loadPromise = Promise.resolve(undefined)
-            break
-          }
-          default:
-            console.log(`${extension} is not supported`)
-            tileRootNode.dispose()
-            return
-        }
-
-        this.tileNodeMap.set(tile.contentUrl, { tileRootNode, loadPromise })
-
-        const parentUrl = tile.parent?.contentUrl
-
-        if (parentUrl) {
-          let parentNodeData
-          while (true) {
-            parentNodeData = this.tileNodeMap.get(parentUrl)
-            if (parentNodeData !== undefined) {
-              break
-            }
-            await new Promise((resolve) => setTimeout(resolve, 100))
-          }
-
-          tileRootNode.parent = parentNodeData.tileRootNode
-        } else {
-          // If parent url is null
-          const t = tile.transform
-          const ecef = new Vector3(t[12], t[13], t[14])
-          if (ecef.x !== 0 || ecef.y !== 0 || ecef.z !== 0) {
-            tileRootNode.originEcef = ecef
-          }
-        }
+        await this.loadTileAsync(tile, rootNode, app, scene)
       },
       onTileUnload: async (tile) => {
         const promise = this.tileNodeMap.get(tile.contentUrl)

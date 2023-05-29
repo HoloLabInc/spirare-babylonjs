@@ -14,6 +14,14 @@ Add the following to .env:
 CESIUM_ION_TOKEN='<Cesium Ion Access Token>'
 ```
 
+## Settings for Photorealistic 3D Tiles Terrain (optional)
+
+Add the following to .env:
+
+```
+TERRAIN_TILESET_URL='https://tile.googleapis.com/v1/3dtiles/root.json?key=<Your API Key>'
+```
+
 # Build
 
 ## Install dependencies
