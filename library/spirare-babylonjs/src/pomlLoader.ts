@@ -144,27 +144,6 @@ export class PomlLoader {
         allNodes: allNodes,
       }
     }
-
-    // const childrenParams: CreateNodeParams = {
-    //   ...params,
-    //   parentNode: node,
-    // }
-
-    // const children = element.type !== '?' ? element.children : []
-    // const allNodes: SpirareNode[] = children
-    //   ? await Promise.all(
-    //       children.map((ele) => {
-    //         return this.loadPomlElementAsync(ele, childrenParams, node)
-    //       })
-    //     ).then((loaded) => loaded.flatMap((x) => x.allNodes))
-    //   : []
-
-    // allNodes.push(node)
-
-    // return {
-    //   node: node,
-    //   allNodes: allNodes,
-    // }
   }
 
   /**
