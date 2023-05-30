@@ -11,13 +11,7 @@ import {
   AbstractMesh,
   Matrix,
 } from '@babylonjs/core'
-import {
-  Display,
-  GeoReference,
-  PomlElement,
-  Position,
-  Rotation,
-} from 'ts-poml'
+import { Display, GeoReference, PomlElement, Position, Rotation } from 'ts-poml'
 import { App, getApp } from '../app'
 import { CoordinateConverter } from '../coordinateConverter'
 import {
@@ -278,6 +272,22 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
   }
 
   // Called from the inspector.
+  private get rotationString(): string | undefined {
+    const enuRotation = this.getFirstGeoReference()?.enuRotation
+    if (enuRotation === undefined) {
+      return undefined
+    }
+
+    const string = `${enuRotation.x} ${enuRotation.y} ${enuRotation.z} ${enuRotation.w}`
+    return string
+  }
+
+  // Called from the inspector.
+  private set rotationString(str: string | undefined) {
+    this.setRotationProperty(str)
+  }
+
+  // Called from the inspector.
   private get idInspector(): string | undefined {
     return this._pomlElement.id
   }
@@ -414,6 +424,50 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
       this._pomlElement.coordinateReferences.push(geoReference)
     }
     geoReference[propertyName] = value
+    this.loadGeoReference()
+    this.onChange?.()
+  }
+
+  private setRotationProperty(str: string | undefined) {
+    const value = (() => {
+      if (str === undefined) {
+        return undefined
+      }
+
+      const tokens = str.split(' ')
+      if (tokens.length !== 4) {
+        return undefined
+      }
+
+      const x = Number.parseFloat(tokens[0])
+      const y = Number.parseFloat(tokens[1])
+      const z = Number.parseFloat(tokens[2])
+      const w = Number.parseFloat(tokens[3])
+
+      if (
+        Number.isNaN(x) ||
+        Number.isNaN(y) ||
+        Number.isNaN(z) ||
+        Number.isNaN(w)
+      ) {
+        return undefined
+      }
+
+      const rotation = new Quaternion(x, y, z, w).normalize()
+      return { x: rotation.x, y: rotation.y, z: rotation.z, w: rotation.w }
+    })()
+
+    // Do not update GeoReference when the number is not obtained.
+    if (value === undefined) {
+      return
+    }
+
+    const geoReference = this.getFirstGeoReference()
+    if (geoReference === undefined) {
+      return
+    }
+
+    geoReference.enuRotation = value
     this.loadGeoReference()
     this.onChange?.()
   }
@@ -688,6 +742,11 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
           {
             label: 'Ellipsoidal Height',
             propertyName: 'ellipsoidalHeightString',
+            type: InspectableType.String,
+          },
+          {
+            label: 'Rotation',
+            propertyName: 'rotationString',
             type: InspectableType.String,
           }
         )
