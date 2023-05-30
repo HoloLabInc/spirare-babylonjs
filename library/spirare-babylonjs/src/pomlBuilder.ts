@@ -5,10 +5,12 @@ import {
   SpaceReference,
   PomlElement,
   Meta,
+  MaybePomlElement,
+  ScriptElement,
 } from 'ts-poml'
 import { BuildOptions, PomlParser } from 'ts-poml/dist/pomlParser'
 import JSZip from 'jszip'
-import { findSpirareNodes, SpirareNode } from './spirareNode/spirareNode'
+import { findMaybeSpirareNodes, SpirareNode } from './spirareNode/spirareNode'
 import { App, getApp } from './app'
 import { CoordinateConverter } from './coordinateConverter'
 
@@ -35,15 +37,20 @@ export class PomlBuilder {
   public async buildPoml(
     scene: Scene,
     coordinateReferences: CoordinateReference[],
+    sceneScriptElements: ScriptElement[],
     options?: BuildOptions
   ): Promise<string> {
     const app = getApp(scene)
 
-    const nodes = findSpirareNodes(scene)
-    nodes.forEach((n) => n.updateElement())
+    const nodes = findMaybeSpirareNodes(scene)
+    nodes.forEach((n) => {
+      if (n.type !== '?') {
+        n.updateElement()
+      }
+    })
 
     coordinateReferences = this.updateCoordinateReferences(
-      nodes,
+      nodes.filter((n): n is SpirareNode => n.type !== '?'),
       coordinateReferences,
       app
     )
@@ -57,12 +64,14 @@ export class PomlBuilder {
       })
     }
 
-    const elements = nodes.map((n) => {
-      return n.element
-    })
+    const sceneRootElements = nodes
+      .filter((n) => !n.parent)
+      .map((n) => n.element)
 
-    poml.scene.children = elements
+    console.log(sceneRootElements)
+    poml.scene.children = sceneRootElements
     poml.scene.coordinateReferences = coordinateReferences
+    poml.scene.scriptElements = sceneScriptElements
     const pomlText = this.parser.build(poml, options)
 
     return pomlText
@@ -72,6 +81,7 @@ export class PomlBuilder {
     scene: Scene,
     pomlFileName: string,
     coordinateReferences: CoordinateReference[],
+    sceneScriptElements: ScriptElement[],
     options?: BuildOptions
   ): Promise<PomlBuilderResult> {
     const app = getApp(scene)
@@ -79,17 +89,22 @@ export class PomlBuilder {
       throw new Error('cannot get app')
     }
 
-    const nodes = findSpirareNodes(scene)
-    nodes.forEach((n) => n.updateElement())
+    const nodes = findMaybeSpirareNodes(scene)
+    nodes.forEach((n) => {
+      if (n.type !== '?') {
+        n.updateElement()
+      }
+    })
 
+    const spirareNodes = nodes.filter((n): n is SpirareNode => n.type !== '?')
     coordinateReferences = this.updateCoordinateReferences(
-      nodes,
+      spirareNodes,
       coordinateReferences,
       app
     )
 
     const { elementBlobMap, namedBlobs } = await PomlBuilder.getSrcBlobMapAsync(
-      nodes,
+      spirareNodes,
       app
     )
 
@@ -103,12 +118,16 @@ export class PomlBuilder {
 
     // Create poml string
     const poml = new Poml()
-    const elements = nodes.map((n) => n.element)
-    poml.scene.children = PomlBuilder.overridePomlElements(
-      elements,
+    const elements = PomlBuilder.overridePomlElements(
+      nodes.map((n) => n.element),
       overrideProperties
     )
+    const sceneRootElements = nodes.flatMap((n, i) =>
+      n.parent ? [] : elements[i]
+    )
+    poml.scene.children = sceneRootElements
     poml.scene.coordinateReferences = coordinateReferences
+    poml.scene.scriptElements = sceneScriptElements
     const pomlText = this.parser.build(poml, options)
 
     let pomlzBlob = undefined
@@ -157,16 +176,18 @@ export class PomlBuilder {
    * @returns
    */
   private static overridePomlElements(
-    elements: PomlElement[],
+    elements: MaybePomlElement[],
     overrideProperties: Map<PomlElement, object>
-  ): PomlElement[] {
+  ): MaybePomlElement[] {
     const newElements = elements.map((element) => {
+      if (element.type === '?') {
+        return { ...element }
+      }
       const newElement = { ...element }
       const overrideProperty = overrideProperties.get(element)
       if (overrideProperty) {
         Object.assign(newElement, overrideProperty)
       }
-
       newElement.children = this.overridePomlElements(
         newElement.children,
         overrideProperties

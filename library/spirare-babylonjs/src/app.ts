@@ -37,11 +37,17 @@ import {
   PomlTextElement,
   PomlEmptyElement,
   PomlElement,
+  MaybePomlElement,
+  ScriptElement,
 } from 'ts-poml'
 import { BuildOptions } from 'ts-poml/dist/pomlParser'
 import { UIHelper } from './uiHelper'
 import { IOHelper } from './ioHelper'
-import { findSpirareNodes, SpirareNode } from './spirareNode/spirareNode'
+import {
+  findSpirareNodes,
+  MaybeSpirareNode,
+  SpirareNode,
+} from './spirareNode/spirareNode'
 import { GizmoController } from './gizmoController'
 import { GeoManager } from './cesium/geoManager'
 import { B3dmLoader } from './cesium/b3dmLoader'
@@ -132,6 +138,7 @@ export class App {
   public readonly tilesLoader: TilesLoader = new TilesLoader(this.geoManager)
   public readonly pomlId: string
 
+  private sceneScriptElements: ScriptElement[] = []
   private terrainType: TerrainType
   private dataAttribution: string[] = []
   private dataAttributionTextBlock: TextBlock | undefined
@@ -496,7 +503,11 @@ export class App {
 
   public async buildPoml(): Promise<string> {
     const placements = this.getPlacementsForPoml()
-    const poml = await this.pomlBuilder.buildPoml(this.scene, placements)
+    const poml = await this.pomlBuilder.buildPoml(
+      this.scene,
+      placements,
+      this.sceneScriptElements
+    )
     return poml
   }
 
@@ -815,19 +826,28 @@ export class App {
   private async loadPomlZipAsync(file: Blob): Promise<Poml | undefined> {
     const loaded = await this.pomlLoader.loadPomlZipAsync(file, this.scene)
     if (loaded) {
-      loaded.nodes.forEach((node) => this.onNodeLoaded(node))
+      this.sceneScriptElements = loaded.poml.scene.scriptElements
+      loaded.nodes.forEach((node) => {
+        if (node.type !== '?') {
+          this.onNodeLoaded(node)
+        }
+      })
       return loaded.poml
     }
     return undefined
   }
 
-  private async loadElementAsync<T extends PomlElement>(
+  private async loadElementAsync<T extends MaybePomlElement>(
     element: T
-  ): Promise<SpirareNode<T['type']>> {
+  ): Promise<MaybeSpirareNode<T['type']>> {
     const loaded = await this.pomlLoader.loadPomlElementAsync(element, {
       scene: this.scene,
     })
-    loaded.allNodes.forEach((node) => this.onNodeLoaded(node))
+    loaded.allNodes.forEach((node) => {
+      if (node.type !== '?') {
+        this.onNodeLoaded(node)
+      }
+    })
     return loaded.node
   }
 
@@ -864,7 +884,13 @@ export class App {
       }
     })()
 
-    nodes.forEach((node) => this.onNodeLoaded(node))
+    this.sceneScriptElements = poml.scene.scriptElements
+
+    nodes.forEach((node) => {
+      if (node.type !== '?') {
+        this.onNodeLoaded(node)
+      }
+    })
     if (this.runMode === 'viewer') {
       await this.connectWebSocket(poml)
     }
@@ -1212,6 +1238,7 @@ export class App {
       this.scene,
       this.pomlId,
       placements,
+      this.sceneScriptElements,
       options
     )
 
