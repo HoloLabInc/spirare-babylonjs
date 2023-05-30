@@ -10,6 +10,7 @@ type SceneMenuProps = WithTranslation & {
   scene: SceneInfo
   onDeleteClick?: (scene: SceneInfo) => void
   getTemporaryUrl?: (scene: SceneInfo) => Promise<string>
+  openSceneFolder?: (scene: SceneInfo) => Promise<void>
 }
 
 type SceneButtonState = {
@@ -22,7 +23,7 @@ class SceneMenu extends React.Component<SceneMenuProps, SceneButtonState> {
   }
 
   render() {
-    const { t, scene } = this.props
+    const { t, scene, openSceneFolder } = this.props
     const onDeleteClick = this.props.onDeleteClick
 
     return (
@@ -76,6 +77,14 @@ class SceneMenu extends React.Component<SceneMenuProps, SceneButtonState> {
                     Copy temporary URL to clipboard
                   </a>
                 )}
+                {openSceneFolder && (
+                  <a
+                    className="dropdown-item has-text-left"
+                    onClick={(_) => openSceneFolder(scene)}
+                  >
+                    Open scene folder
+                  </a>
+                )}
                 <a
                   className="dropdown-item has-text-left"
                   onClick={(_) => {
@@ -107,7 +116,8 @@ export const SceneButton: React.FC<{
   onSceneClick?: (scene: SceneInfo) => void
   onDeleteClick?: (scene: SceneInfo) => void
   getTemporaryUrl?: (scene: SceneInfo) => Promise<string>
-}> = ({ scene, enableMenu, onSceneClick, onDeleteClick, getTemporaryUrl }) => {
+  openSceneFolder?: (scene: SceneInfo) => Promise<void>
+}> = ({ scene, enableMenu, onSceneClick, onDeleteClick, getTemporaryUrl, openSceneFolder }) => {
   const title = getSceneTitle(scene)
   const tooltip = `${title} (Id: ${scene.pomlId})`
 
@@ -128,6 +138,7 @@ export const SceneButton: React.FC<{
           scene={scene}
           onDeleteClick={onDeleteClick}
           getTemporaryUrl={getTemporaryUrl}
+          openSceneFolder={openSceneFolder}
         />
       )}
 

@@ -15,6 +15,8 @@ export interface ElectronAPI {
   savePoml: (pomlId: string, poml: string) => Promise<string | undefined>
   deletePoml: (pomlId: string) => Promise<void>
 
+  openSceneFolder: (pomlId: string) => Promise<void>
+
   loadPoml: (pomlId: string) => Promise<string | undefined>
   getAbsoluteFilePath: (pomlId: string, relativePath: string) => Promise<string>
 

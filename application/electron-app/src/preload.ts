@@ -13,6 +13,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   deletePoml: (pomlId: string) => ipcRenderer.invoke('delete-poml', pomlId),
 
+  openSceneFolder: (pomlId: string) => ipcRenderer.invoke('open-scene-folder', pomlId),
+
   loadPoml: (pomlId: string) => ipcRenderer.invoke('load-poml', pomlId),
 
   getAbsoluteFilePath: (pomlId: string, relativePath: string) =>

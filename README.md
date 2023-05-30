@@ -27,3 +27,8 @@ POML files are not saved.
 
 ## License
 This project is licensed under the MIT License - see the [LICENSE](./LICENSE.md) file for details.
+
+## Related Projects
+
+- [project-spirare-docs](https://github.com/HoloLabInc/project-spirare-docs)
+- [ProjectSpirare-for-Unity](https://github.com/HoloLabInc/ProjectSpirare-for-Unity)

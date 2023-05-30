@@ -9,7 +9,14 @@ export const StartPage: React.FC<{
   editorPageUrl: string
   scenes: SceneInfo[]
   onDeleteClick?: (scene: SceneInfo) => void
-}> = ({ newScenePageUrl, editorPageUrl, scenes, onDeleteClick }) => {
+  openSceneFolder?: (scene: SceneInfo) => Promise<void>
+}> = ({
+  newScenePageUrl,
+  editorPageUrl,
+  scenes,
+  onDeleteClick,
+  openSceneFolder,
+}) => {
   const { t } = useTranslation()
 
   const onSceneClick = (sceneInfo: SceneInfo) => {
@@ -42,6 +49,7 @@ export const StartPage: React.FC<{
             enableMenu={true}
             onSceneClick={onSceneClick}
             onDeleteClick={onDeleteClick}
+            openSceneFolder={openSceneFolder}
           />
         </div>
       </section>
