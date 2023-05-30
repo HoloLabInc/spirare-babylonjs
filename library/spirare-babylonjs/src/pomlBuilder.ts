@@ -10,12 +10,7 @@ import {
 } from 'ts-poml'
 import { BuildOptions, PomlParser } from 'ts-poml/dist/pomlParser'
 import JSZip from 'jszip'
-import {
-  findMaybeSpirareNodes,
-  findSpirareNodes,
-  isSpirareNode,
-  SpirareNode,
-} from './spirareNode/spirareNode'
+import { findMaybeSpirareNodes, SpirareNode } from './spirareNode/spirareNode'
 import { App, getApp } from './app'
 import { CoordinateConverter } from './coordinateConverter'
 
