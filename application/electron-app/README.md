@@ -1,3 +1,10 @@
+This is a desktop application which allows you to edit 3D content for Spirare.  
+3D content is saved as a POML file.
+
+<img width="480" alt="Spirare Editor Space Mode" src="https://user-images.githubusercontent.com/4415085/234750272-4cf344c9-7eee-40d3-a011-a8910c1cd478.jpg"></img>
+
+<img width="480" alt="Spirare Editor Geo Mode" src="https://user-images.githubusercontent.com/4415085/235422239-6542d04b-b4b3-4303-abef-bc6b4297dd87.png"></img>
+
 # Setup
 
 Create a .env file under the electron-app directory.
