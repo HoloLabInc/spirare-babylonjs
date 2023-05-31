@@ -75,8 +75,8 @@ Afterwards, please adjust the position, rotation, and scale using the GUI.
 
 ## View 3D content with AR
 
-To display POML in AR, please use the Spirare Browser app.  
-Spirare Browser app can be built from the following repository.
+To display POML in AR, please use the Spirare Browser app.
+Spirare Browser app can be built from the following repository.  
 https://github.com/HoloLabInc/ProjectSpirare-for-Unity
 
 There are two methods to deliver POML data to the Spirare Browser app: via network and file.
