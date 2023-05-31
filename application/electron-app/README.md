@@ -1,5 +1,5 @@
 This is a desktop application which allows you to edit 3D content for Spirare.  
-3D content is saved as a POML file.
+The edited 3D content is saved as a POML file.
 
 <img width="480" alt="Spirare Editor Space Mode" src="https://user-images.githubusercontent.com/4415085/234750272-4cf344c9-7eee-40d3-a011-a8910c1cd478.jpg"></img>
 
