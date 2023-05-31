@@ -61,3 +61,32 @@ npm run package:win
 ```
 npm run package:mac
 ```
+
+# Usage
+
+## Edit 3D content
+
+Create a new scene or open an existing scene.
+
+Please drag and drop 3D models (.glb), images (.jpg, .png, .gif), and videos (.mp4) into the app window.
+Afterwards, please adjust the position, rotation, and scale using the GUI.
+
+<img width="480" alt="Spirare Editor Geo Mode" src="https://github.com/HoloLabInc/spirare-babylonjs/assets/4415085/45ed7026-b01a-41f1-9e7f-363314be24a1"></img>
+
+## View 3D content with AR
+
+To display POML in AR, please use the Spirare Browser app.  
+Spirare Browser app can be built from the following repository.
+https://github.com/HoloLabInc/ProjectSpirare-for-Unity
+
+There are two methods to deliver POML data to the Spirare Browser app: via network and file.
+
+### Network Loading
+
+Connect your PC and AR device to the same network, and make sure they can communicate.
+
+Keep the editor application in the scene editing screen display mode. In this state, you can load POML content from `http://<PC's IP address>:8080`.
+
+### File Loading
+
+Press the Export button in the upper menu of editor, and download the `.poml.zip` file. Please place this file on the AR device. For the placement location, refer to the README of the Spirare Browser.
