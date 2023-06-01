@@ -301,7 +301,7 @@ const handleLoadPoml = async (event: IpcMainInvokeEvent, pomlId: string) => {
 }
 
 const getScenesAndUpdateMap = async (): Promise<SceneInfo[]> => {
-  const searchDepth = 2
+  const searchDepth = 100
   const scenes = await getScenesOrderByLastModifiedDate(
     contentsDataPath,
     searchDepth
