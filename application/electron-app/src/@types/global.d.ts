@@ -1,4 +1,8 @@
-import { FileData, SceneInfo } from 'spirare-babylonjs/src/types'
+import {
+  FileData,
+  SceneIdentifier,
+  SceneInfo,
+} from 'spirare-babylonjs/src/types'
 
 declare global {
   interface Window {
@@ -8,18 +12,21 @@ declare global {
 
 export interface ElectronAPI {
   uploadFile: (
-    sceneInfo: SceneInfo,
+    sceneIdentifier: SceneIdentifier,
     target: FileData
   ) => Promise<{ base: string; relativePath: string } | undefined>
   downloadFile: (absFilepath: string) => Promise<ArrayBuffer | undefined>
-  savePoml: (sceneInfo: SceneInfo, poml: string) => Promise<string | undefined>
-  deletePoml: (sceneInfo: SceneInfo) => Promise<void>
+  savePoml: (
+    sceneIdentifier: SceneIdentifier,
+    poml: string
+  ) => Promise<string | undefined>
+  deletePoml: (sceneIdentifier: SceneIdentifier) => Promise<void>
 
-  openSceneFolder: (sceneInfo: SceneInfo) => Promise<void>
+  openSceneFolder: (sceneIdentifier: SceneIdentifier) => Promise<void>
 
-  loadPoml: (sceneInfo: SceneInfo) => Promise<string | undefined>
+  loadPoml: (sceneIdentifier: SceneIdentifier) => Promise<string | undefined>
   getAbsoluteFilePath: (
-    sceneInfo: SceneInfo,
+    sceneIdentifier: SceneIdentifier,
     relativePath: string
   ) => Promise<string>
 

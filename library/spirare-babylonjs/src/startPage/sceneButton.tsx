@@ -110,6 +110,15 @@ class SceneMenu extends React.Component<SceneMenuProps, SceneButtonState> {
 
 const SceneMenuWithTranslation = withTranslation()(SceneMenu)
 
+const getTooltipText = (scene: SceneInfo) => {
+  switch (scene.pomlPathMode) {
+    case 'id':
+      return `Id: ${scene.pomlId}`
+    case 'path':
+      return `Filepath: ${scene.pomlPath}`
+  }
+}
+
 export const SceneButton: React.FC<{
   scene: SceneInfo
   enableMenu?: boolean
@@ -117,9 +126,16 @@ export const SceneButton: React.FC<{
   onDeleteClick?: (scene: SceneInfo) => void
   getTemporaryUrl?: (scene: SceneInfo) => Promise<string>
   openSceneFolder?: (scene: SceneInfo) => Promise<void>
-}> = ({ scene, enableMenu, onSceneClick, onDeleteClick, getTemporaryUrl, openSceneFolder }) => {
+}> = ({
+  scene,
+  enableMenu,
+  onSceneClick,
+  onDeleteClick,
+  getTemporaryUrl,
+  openSceneFolder,
+}) => {
   const title = getSceneTitle(scene)
-  const tooltip = `${title} (Id: ${scene.pomlId})`
+  const tooltip = getTooltipText(scene)
 
   return (
     <div

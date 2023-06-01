@@ -1,27 +1,30 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import { FileData, SceneInfo } from 'spirare-babylonjs/src/types'
+import { FileData, SceneIdentifier } from 'spirare-babylonjs/src/types'
 
 contextBridge.exposeInMainWorld('electronAPI', {
-  uploadFile: (sceneInfo: SceneInfo, target: FileData) =>
-    ipcRenderer.invoke('upload-file', sceneInfo, target),
+  uploadFile: (sceneIdentifier: SceneIdentifier, target: FileData) =>
+    ipcRenderer.invoke('upload-file', sceneIdentifier, target),
 
   downloadFile: (absFilepath: string) =>
     ipcRenderer.invoke('download-file', absFilepath),
 
-  savePoml: (sceneInfo: SceneInfo, poml: string) =>
-    ipcRenderer.invoke('save-poml', sceneInfo, poml),
+  savePoml: (sceneIdentifier: SceneIdentifier, poml: string) =>
+    ipcRenderer.invoke('save-poml', sceneIdentifier, poml),
 
-  deletePoml: (sceneInfo: SceneInfo) =>
-    ipcRenderer.invoke('delete-poml', sceneInfo),
+  deletePoml: (sceneIdentifier: SceneIdentifier) =>
+    ipcRenderer.invoke('delete-poml', sceneIdentifier),
 
-  openSceneFolder: (sceneInfo: SceneInfo) =>
+  openSceneFolder: (sceneInfo: SceneIdentifier) =>
     ipcRenderer.invoke('open-scene-folder', sceneInfo),
 
-  loadPoml: (sceneInfo: SceneInfo) =>
-    ipcRenderer.invoke('load-poml', sceneInfo),
+  loadPoml: (sceneIdentifier: SceneIdentifier) =>
+    ipcRenderer.invoke('load-poml', sceneIdentifier),
 
-  getAbsoluteFilePath: (sceneInfo: SceneInfo, relativePath: string) =>
-    ipcRenderer.invoke('get-absolute-file-path', sceneInfo, relativePath),
+  getAbsoluteFilePath: (
+    sceneIdentifier: SceneIdentifier,
+    relativePath: string
+  ) =>
+    ipcRenderer.invoke('get-absolute-file-path', sceneIdentifier, relativePath),
 
   getRecentScenes: () => ipcRenderer.invoke('get-recent-scenes'),
 })

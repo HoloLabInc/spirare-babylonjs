@@ -4,6 +4,7 @@ import {
   FileData,
   getAppLaunchParms,
   ResolvedSource,
+  SceneIdentifier,
 } from 'spirare-babylonjs/src/types'
 
 const startApp = async () => {
@@ -13,11 +14,19 @@ const startApp = async () => {
     launchParams,
   }
   const app = new App(params)
-  app.sourceResolver = new ElectronAppSourceResolver(app.pomlId)
 
+  const sceneIdentifier = app.sceneIdentifier
+  if (sceneIdentifier === undefined) {
+    return
+  }
+
+  app.sourceResolver = new ElectronAppSourceResolver(sceneIdentifier)
   app.uploadFile = async (target: FileData) => {
     try {
-      const uploaded = await window.electronAPI.uploadFile(app.pomlId, target)
+      const uploaded = await window.electronAPI.uploadFile(
+        sceneIdentifier,
+        target
+      )
 
       if (uploaded) {
         return {
@@ -31,26 +40,26 @@ const startApp = async () => {
     return { success: false }
   }
 
-  let poml = await window.electronAPI.loadPoml(app.pomlId)
+  let poml = await window.electronAPI.loadPoml(sceneIdentifier)
   if (poml === undefined) {
     // There is no poml yet if a new scene is created
     poml = await app.buildPoml()
-    await window.electronAPI.savePoml(app.pomlId, poml)
+    await window.electronAPI.savePoml(sceneIdentifier, poml)
   }
   await app.initializeScene(poml)
 
   // Receive the onChange event after scene initialization is complete
   app.onChange = async () => {
     const poml = await app.buildPoml()
-    await window.electronAPI.savePoml(app.pomlId, poml)
+    await window.electronAPI.savePoml(sceneIdentifier, poml)
   }
 }
 
 class ElectronAppSourceResolver {
-  private pomlId: string
+  private sceneIdentifier: SceneIdentifier
 
-  constructor(pomlId: string) {
-    this.pomlId = pomlId
+  constructor(sceneIdentifier: SceneIdentifier) {
+    this.sceneIdentifier = sceneIdentifier
   }
 
   public async resolve(src: string): Promise<ResolvedSource> {
@@ -61,7 +70,7 @@ class ElectronAppSourceResolver {
 
     try {
       const absolutePath = await window.electronAPI.getAbsoluteFilePath(
-        this.pomlId,
+        this.sceneIdentifier,
         src
       )
       return {

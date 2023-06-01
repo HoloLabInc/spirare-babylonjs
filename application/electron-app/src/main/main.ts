@@ -5,7 +5,11 @@ import {
   IpcMainInvokeEvent,
   shell,
 } from 'electron'
-import { FileData, SceneInfo } from 'spirare-babylonjs/src/types'
+import {
+  FileData,
+  SceneIdentifier,
+  SceneInfo,
+} from 'spirare-babylonjs/src/types'
 import {
   getScenesOrderByLastModifiedDate,
   saveFileWithUniqueName,
@@ -88,37 +92,43 @@ const getPomlFileFolderPath = (pomlId: string) => {
   return contentsDataPath
 }
 */
-const getPomlFileFolderPath = (sceneInfo: SceneInfo) => {
+const getPomlFileFolderPath = (sceneIdentifier: SceneIdentifier) => {
   // TODO
-  return contentsDataPath
+  //return contentsDataPath
+  switch (sceneIdentifier.pomlPathMode) {
+    case 'id':
+      return contentsDataPath
+    case 'path':
+      return path.dirname(sceneIdentifier.pomlPath ?? '')
+  }
 }
 
 // const getPomlFilePath = (pomlId: string) => {
-const getPomlFilePath = (sceneInfo: SceneInfo) => {
-  const folderPath = getPomlFileFolderPath(sceneInfo)
+const getPomlFilePath = (sceneIdentifier: SceneIdentifier) => {
+  const folderPath = getPomlFileFolderPath(sceneIdentifier)
   // TODO
-  return path.join(folderPath, `${sceneInfo.pomlId}.poml`)
+  return path.join(folderPath, `${sceneIdentifier.pomlId}.poml`)
 }
 
 //const getFileUploadPath = (pomlId: string) => {
-const getFileUploadPath = (sceneInfo: SceneInfo) => {
-  const folderPath = getPomlFileFolderPath(sceneInfo)
+const getFileUploadPath = (sceneIdentifier: SceneIdentifier) => {
+  const folderPath = getPomlFileFolderPath(sceneIdentifier)
   return path.join(folderPath, 'assets')
 }
 
 function handleGetAbsoluteFilePath(
   event: IpcMainInvokeEvent,
-  sceneInfo: SceneInfo,
+  sceneIdentifier: SceneIdentifier,
   relativePath: string
 ) {
-  const pomlFileFolderPath = getPomlFileFolderPath(sceneInfo)
+  const pomlFileFolderPath = getPomlFileFolderPath(sceneIdentifier)
   const absolutePath = path.join(pomlFileFolderPath, relativePath)
   return absolutePath
 }
 
 async function handleUploadFile(
   event: IpcMainInvokeEvent,
-  sceneInfo: SceneInfo,
+  sceneIdentifier: SceneIdentifier,
   target: FileData
 ): Promise<{ base: string; relativePath: string } | undefined> {
   let filepath: string
@@ -135,7 +145,7 @@ async function handleUploadFile(
   }
 
   try {
-    const modelUploadPath = getFileUploadPath(sceneInfo)
+    const modelUploadPath = getFileUploadPath(sceneIdentifier)
     const savedFilename = await saveFileWithUniqueName(
       modelUploadPath,
       filepath,
@@ -170,14 +180,14 @@ async function handleDownloadFile(
 
 const handleSavePoml = async (
   event: IpcMainInvokeEvent,
-  sceneInfo: SceneInfo,
+  sceneIdentifier: SceneIdentifier,
   poml: string
 ) => {
   // Save files
   const pomlUploadPath = contentsDataPath
 
   console.log('save poml')
-  console.log(sceneInfo)
+  console.log(sceneIdentifier)
   return
   /*
   const filepath = path.join(pomlUploadPath, `${pomlId}.poml`)
@@ -200,10 +210,10 @@ const handleSavePoml = async (
 
 const handleDeletePoml = async (
   event: IpcMainInvokeEvent,
-  sceneInfo: SceneInfo
+  sceneIdentifier: SceneIdentifier
 ) => {
-  const pomlPath = getPomlFilePath(sceneInfo)
-  const pomlDataDir = getFileUploadPath(sceneInfo)
+  const pomlPath = getPomlFilePath(sceneIdentifier)
+  const pomlDataDir = getFileUploadPath(sceneIdentifier)
 
   lock.acquire(
     'write',
@@ -221,10 +231,13 @@ const handleDeletePoml = async (
 
 const handleOpenSceneFolder = async (
   event: IpcMainInvokeEvent,
-  sceneInfo: SceneInfo
+  sceneIdentifier: SceneIdentifier
 ) => {
   // open folder with electron
-  const pomlFileFolderPath = getPomlFileFolderPath(sceneInfo)
+  const pomlFileFolderPath = getPomlFileFolderPath(sceneIdentifier)
+
+  console.log(sceneIdentifier)
+  console.log(pomlFileFolderPath)
 
   try {
     shell.openPath(pomlFileFolderPath)
@@ -235,9 +248,9 @@ const handleOpenSceneFolder = async (
 
 const handleLoadPoml = async (
   event: IpcMainInvokeEvent,
-  sceneInfo: SceneInfo
+  sceneIdentifier: SceneIdentifier
 ) => {
-  console.log(`load scene ${sceneInfo}`)
+  console.log(`load scene ${sceneIdentifier}`)
 
   return
 
