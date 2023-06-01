@@ -33,6 +33,12 @@ export type SourceResolver = {
   resolve: (src: string) => Promise<ResolvedSource>
 }
 
+export type SceneIdentifier = {
+  pomlPathMode: PomlPathMode
+  pomlId: string | undefined
+  pomlPath: string | undefined
+}
+
 export type SceneInfo = {
   title: string | undefined
   pomlPathMode: PomlPathMode
@@ -45,6 +51,7 @@ export interface AppLaunchParams {
   placementMode: PlacementMode
   runMode: AppRunMode
   pomlId: string | undefined
+  pomlPath: string | undefined
   pomlUrlArray?: string[]
   displayMode?: AppDisplayMode
   startPageUrl?: string
@@ -82,12 +89,24 @@ export function getAppLaunchParms(url: string): AppLaunchParams {
     placementMode: getPlacementMode(params),
     runMode: getAppRunMode(params),
     pomlId: params.get('pomlId') ?? undefined,
+    pomlPath: params.get('pomlPath') ?? undefined,
     pomlUrlArray: getPomlUrlArray(params),
   }
 }
 
 export function getUrlParamString(p: AppLaunchParams) {
-  return `pomlId=${p.pomlId}&run-mode=${p.runMode}&placement-mode=${p.placementMode}`
+  let paramString
+  if (p.pomlId !== undefined) {
+    paramString = `pomlId=${p.pomlId}`
+  } else {
+    paramString = `pomlPath=${p.pomlPath}`
+  }
+
+  if (paramString !== undefined) {
+    paramString += `&`
+  }
+
+  return `run-mode=${p.runMode}&placement-mode=${p.placementMode}`
 }
 
 function getPlacementMode(urlParams: URLSearchParams): PlacementMode {

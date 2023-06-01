@@ -69,6 +69,7 @@ import {
   AppLaunchParams,
   SpaceStatus,
   AppDisplayMode,
+  SceneIdentifier,
 } from './types'
 import { CoordinateConverter } from './coordinateConverter'
 import { openFilePicker } from './filePicker'
@@ -136,7 +137,8 @@ export class App {
   public readonly gizmoController: GizmoController
   public readonly geoManager: GeoManager = new GeoManager()
   public readonly tilesLoader: TilesLoader = new TilesLoader(this.geoManager)
-  public readonly pomlId: string
+  // public readonly pomlId: string
+  public readonly sceneIdentifier: SceneIdentifier | undefined
 
   private sceneScriptElements: ScriptElement[] = []
   private terrainType: TerrainType
@@ -186,29 +188,45 @@ export class App {
     const launchParams = params.launchParams
     this.startPageUrl = launchParams.startPageUrl
 
-    if (launchParams.pomlId === undefined) {
+    if (launchParams.pomlId !== undefined) {
+      this.sceneIdentifier = {
+        pomlPathMode: 'id',
+        pomlId: launchParams.pomlId,
+        pomlPath: undefined,
+      }
+    } else if (launchParams.pomlPath !== undefined) {
+      this.sceneIdentifier = {
+        pomlPathMode: 'path',
+        pomlId: undefined,
+        pomlPath: launchParams.pomlPath,
+      }
+    } else {
       switch (launchParams.runMode) {
         case 'viewer':
-          this.pomlId = ''
+          this.sceneIdentifier = undefined
           break
         case 'editor':
-          this.pomlId = Guid.create().toString()
+          const pomlId = Guid.create().toString()
+
+          this.sceneIdentifier = {
+            pomlPathMode: 'id',
+            pomlId: pomlId,
+            pomlPath: undefined,
+          }
 
           // Modify the URL of the browser to include the pomlId
           let pageUrl = window.location.href
           if (window.location.search) {
             // If the URL already has query parameters
-            pageUrl = `${pageUrl}&pomlId=${this.pomlId}`
+            pageUrl = `${pageUrl}&pomlId=${pomlId}`
           } else {
             // If the URL does not have any query parameters
-            pageUrl = `${pageUrl}?pomlId=${this.pomlId}`
+            pageUrl = `${pageUrl}?pomlId=${pomlId}`
           }
 
           window.history.replaceState(null, '', pageUrl)
           break
       }
-    } else {
-      this.pomlId = launchParams.pomlId
     }
 
     this._title = undefined
@@ -1234,19 +1252,25 @@ export class App {
       ignoreCustomAttributes: true,
     }
 
+    const filename =
+      this.title ||
+      this.sceneIdentifier?.pomlId ||
+      this.sceneIdentifier?.pomlPath?.split('/').pop()?.split('.')[0] ||
+      'download'
+
     const result = await this.pomlBuilder.buildPomlZip(
       this.scene,
-      this.pomlId,
+      filename,
       placements,
       this.sceneScriptElements,
       options
     )
 
     if (result.pomlzBlob) {
-      const zipName = this.title || this.pomlId
-      IOHelper.downloadBlob(result.pomlzBlob, `${zipName}.poml.zip`)
+      // const zipName = this.title || this.pomlId
+      IOHelper.downloadBlob(result.pomlzBlob, `${filename}.poml.zip`)
     } else {
-      IOHelper.downloadText(result.pomlText, `${this.pomlId}.poml`)
+      IOHelper.downloadText(result.pomlText, `${filename}.poml`)
     }
     console.log(result.pomlText)
   }

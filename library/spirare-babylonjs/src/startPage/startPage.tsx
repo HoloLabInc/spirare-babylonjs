@@ -24,6 +24,7 @@ export const StartPage: React.FC<{
       runMode: 'editor',
       placementMode: sceneInfo.placementMode,
       pomlId: sceneInfo.pomlId,
+      pomlPath: sceneInfo.pomlPath,
     })
 
     const href = `${editorPageUrl}?${urlParams}`

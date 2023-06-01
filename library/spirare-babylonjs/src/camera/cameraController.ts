@@ -19,6 +19,7 @@ import {
   createScreenSpaceCamera,
   updateScreenSpaceCameraSize,
 } from './screenSpaceCamera'
+import { SceneIdentifier } from '../types'
 
 type FrameTiming = 'beforeRender' | 'afterRender'
 
@@ -71,7 +72,7 @@ const isGeodeticCameraPose = (a: any): a is GeodeticCameraPose => {
 const CameraPoseStorageKeyPrefix = 'spirareCameraPose'
 
 const saveBabylonCameraPose = (
-  pomlId: string,
+  sceneIdentifier: SceneIdentifier | undefined,
   camera: ArcRotateCamera
 ): void => {
   const pose: CameraPose = {
@@ -86,11 +87,11 @@ const saveBabylonCameraPose = (
       z: camera.target.z,
     },
   }
-  saveCameraPose(pomlId, pose)
+  saveCameraPose(sceneIdentifier, pose)
 }
 
 const saveGeodeticCameraPose = (
-  pomlId: string,
+  sceneIdentifier: SceneIdentifier | undefined,
   cameraPosition: GeodeticPosition,
   cameraTarget: GeodeticPosition
 ): void => {
@@ -98,19 +99,31 @@ const saveGeodeticCameraPose = (
     position: cameraPosition,
     target: cameraTarget,
   }
-  saveCameraPose(pomlId, pose)
+  saveCameraPose(sceneIdentifier, pose)
 }
 
 const saveCameraPose = (
-  pomlId: string,
+  sceneIdentifier: SceneIdentifier | undefined,
   cameraPose: GeodeticCameraPose | CameraPose
 ): void => {
+  if (sceneIdentifier === undefined) {
+    return
+  }
+
   const json = JSON.stringify(cameraPose)
-  localStorage.setItem(`${CameraPoseStorageKeyPrefix}_${pomlId}`, json)
+  const key = sceneIdentifierToStorageKey(sceneIdentifier)
+  localStorage.setItem(key, json)
 }
 
-const loadBabylonCameraPose = (pomlId: string): CameraPose | undefined => {
-  const json = localStorage.getItem(`${CameraPoseStorageKeyPrefix}_${pomlId}`)
+const loadBabylonCameraPose = (
+  sceneIdentifier: SceneIdentifier | undefined
+): CameraPose | undefined => {
+  if (sceneIdentifier === undefined) {
+    return undefined
+  }
+
+  const key = sceneIdentifierToStorageKey(sceneIdentifier)
+  const json = localStorage.getItem(key)
   if (json) {
     const pose = JSON.parse(json) as unknown
     if (isCameraPose(pose)) {
@@ -120,14 +133,30 @@ const loadBabylonCameraPose = (pomlId: string): CameraPose | undefined => {
 }
 
 const loadGeodeticCameraPose = (
-  pomlId: string
+  sceneIdentifier: SceneIdentifier | undefined
 ): GeodeticCameraPose | undefined => {
-  const json = localStorage.getItem(`${CameraPoseStorageKeyPrefix}_${pomlId}`)
+  if (sceneIdentifier === undefined) {
+    return undefined
+  }
+
+  const key = sceneIdentifierToStorageKey(sceneIdentifier)
+  const json = localStorage.getItem(key)
   if (json) {
     const pose = JSON.parse(json) as unknown
     if (isGeodeticCameraPose(pose)) {
       return pose
     }
+  }
+}
+
+const sceneIdentifierToStorageKey = (
+  sceneIdentifier: SceneIdentifier
+): string => {
+  switch (sceneIdentifier.pomlPathMode) {
+    case 'id':
+      return `${CameraPoseStorageKeyPrefix}_${sceneIdentifier.pomlId}`
+    case 'path':
+      return `${CameraPoseStorageKeyPrefix}_${sceneIdentifier.pomlPath}`
   }
 }
 
@@ -251,14 +280,14 @@ export class CameraController implements ICameraController {
     const isGeodeticMode = this.geoManager !== undefined
 
     if (isGeodeticMode) {
-      const geodeticPose = loadGeodeticCameraPose(this.app.pomlId)
+      const geodeticPose = loadGeodeticCameraPose(this.app.sceneIdentifier)
       if (geodeticPose) {
         this.geodeticCameraPosition = geodeticPose.position
         this.geodeticCameraTarget = geodeticPose.target
         this.updateCameraPositionWithGeodeticPosition(this.camera)
       }
     } else {
-      const pose = loadBabylonCameraPose(this.app.pomlId)
+      const pose = loadBabylonCameraPose(this.app.sceneIdentifier)
       if (pose) {
         this.camera.position = new Vector3(
           pose.position.x,
@@ -410,12 +439,12 @@ export class CameraController implements ICameraController {
         if (this.geoManager) {
           this.updateGeodeticPosition()
           saveGeodeticCameraPose(
-            this.app.pomlId,
+            this.app.sceneIdentifier,
             this.geodeticCameraPosition,
             this.geodeticCameraTarget
           )
         } else {
-          saveBabylonCameraPose(this.app.pomlId, camera)
+          saveBabylonCameraPose(this.app.sceneIdentifier, camera)
         }
       }
     })

@@ -257,7 +257,11 @@ const handleLoadPoml = async (
 const handleGetRecentScenes = async (
   event: IpcMainInvokeEvent
 ): Promise<SceneInfo[]> => {
-  const scenes = await getScenesOrderByLastModifiedDate(contentsDataPath)
+  const folderDepth = 2
+  const scenes = await getScenesOrderByLastModifiedDate(
+    contentsDataPath,
+    folderDepth
+  )
   return scenes
 }
 
