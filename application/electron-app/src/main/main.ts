@@ -156,7 +156,9 @@ async function handleUploadFile(
     )
     if (savedFilename) {
       const absoluteFilePath = path.join(modelUploadPath, savedFilename)
-      const relativePath = path.relative(pomlFolderPath, absoluteFilePath)
+      let relativePath = path.relative(pomlFolderPath, absoluteFilePath)
+      relativePath = relativePath.replace(/\\/g, '/')
+      relativePath = './' + relativePath
 
       return {
         base: pomlFolderPath,
