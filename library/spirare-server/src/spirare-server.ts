@@ -43,10 +43,11 @@ const getFilesRecursively = async (
 }
 
 export const getScenesOrderByLastModifiedDate = async (
-  scenesRootDir: string
+  scenesRootDir: string,
+  depth: number = 1
 ): Promise<SceneInfo[]> => {
   try {
-    const files = await getFilesRecursively(scenesRootDir, 2)
+    const files = await getFilesRecursively(scenesRootDir, depth)
     files.forEach((file) => console.log(file))
 
     /*

@@ -14,12 +14,12 @@ const getScenes = async (): Promise<SceneInfo[]> => {
 }
 
 const onDeleteClick = async (scene: SceneInfo): Promise<void> => {
-  await window.electronAPI.deletePoml(scene.pomlId)
+  await window.electronAPI.deletePoml(scene)
   location.reload()
 }
 
 const openSceneFolder = async (scene: SceneInfo): Promise<void> => {
-  await window.electronAPI.openSceneFolder(scene.pomlId)
+  await window.electronAPI.openSceneFolder(scene)
 }
 
 ;(async () => {

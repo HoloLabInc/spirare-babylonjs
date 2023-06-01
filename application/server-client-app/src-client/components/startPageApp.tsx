@@ -65,8 +65,10 @@ export const StartPageApp: React.FC<{
       case 'ar-view':
         return async (sceneInfo: SceneInfo) => {
           try {
-            const response = await getTemporaryPoml(sceneInfo.pomlId)
-            location.href = `spirare-geodetic:${response.url}`
+            if (sceneInfo.pomlId !== undefined) {
+              const response = await getTemporaryPoml(sceneInfo.pomlId)
+              location.href = `spirare-geodetic:${response.url}`
+            }
           } catch (ex) {
             console.log(ex)
           }
@@ -86,16 +88,22 @@ export const StartPageApp: React.FC<{
   })()
 
   const onDeleteClick = async (sceneInfo: SceneInfo): Promise<void> => {
-    const result = await deletePoml(sceneInfo.pomlId)
-    // Reload the page if the deletion is successful
-    if (result) {
-      location.reload()
+    if (sceneInfo.pomlId !== undefined) {
+      const result = await deletePoml(sceneInfo.pomlId)
+      // Reload the page if the deletion is successful
+      if (result) {
+        location.reload()
+      }
     }
   }
 
   const getTemporaryUrl = async (sceneInfo: SceneInfo): Promise<string> => {
-    const response = await getTemporaryPoml(sceneInfo.pomlId)
-    return response.url
+    if (sceneInfo.pomlId !== undefined) {
+      const response = await getTemporaryPoml(sceneInfo.pomlId)
+      return response.url
+    } else {
+      return ''
+    }
   }
 
   if (pageMode == 'ar-view') {

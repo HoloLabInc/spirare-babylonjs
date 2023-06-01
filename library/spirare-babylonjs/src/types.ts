@@ -2,6 +2,8 @@ export type AppRunMode = 'editor' | 'viewer'
 export type PlacementMode = 'space' | 'geodetic'
 export type AppDisplayMode = 'normal' | 'ar'
 
+export type PomlPathMode = 'id' | 'path'
+
 export type SpirareEventType = 'start' | 'update' | 'select'
 export type InvokableSpirareEventType = Exclude<SpirareEventType, 'start'>
 
@@ -33,7 +35,9 @@ export type SourceResolver = {
 
 export type SceneInfo = {
   title: string | undefined
-  pomlId: string
+  pomlPathMode: PomlPathMode
+  pomlId: string | undefined
+  pomlPath: string | undefined
   placementMode: PlacementMode
 }
 

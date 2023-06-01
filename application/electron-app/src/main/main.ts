@@ -19,7 +19,8 @@ const fsPromises = fs.promises
 import AsyncLock from 'async-lock'
 const lock = new AsyncLock()
 
-let latestPomlId: string
+// let latestPomlId: string
+let latestScene: SceneInfo
 
 // Web server for accessing from Spirare Browser
 const server = http.createServer(async (request, response) => {
@@ -37,9 +38,12 @@ const server = http.createServer(async (request, response) => {
   console.log(`request url: ${url}`)
 
   if (url == '/') {
+    // TODO
+    /*
     response.writeHead(302, {
       Location: '/' + latestPomlId + '.poml',
     })
+    */
     response.end()
     return
   }
@@ -79,33 +83,42 @@ const readContent = async (relativePath: string) => {
 
 const contentsDataPath = path.join(app.getPath('userData'), 'ContentsData')
 
+/*
 const getPomlFileFolderPath = (pomlId: string) => {
   return contentsDataPath
 }
-
-const getPomlFilePath = (pomlId: string) => {
-  const folderPath = getPomlFileFolderPath(pomlId)
-  return path.join(folderPath, `${pomlId}.poml`)
+*/
+const getPomlFileFolderPath = (sceneInfo: SceneInfo) => {
+  // TODO
+  return contentsDataPath
 }
 
-const getFileUploadPath = (pomlId: string) => {
-  const folderPath = getPomlFileFolderPath(pomlId)
-  return path.join(folderPath, pomlId)
+// const getPomlFilePath = (pomlId: string) => {
+const getPomlFilePath = (sceneInfo: SceneInfo) => {
+  const folderPath = getPomlFileFolderPath(sceneInfo)
+  // TODO
+  return path.join(folderPath, `${sceneInfo.pomlId}.poml`)
+}
+
+//const getFileUploadPath = (pomlId: string) => {
+const getFileUploadPath = (sceneInfo: SceneInfo) => {
+  const folderPath = getPomlFileFolderPath(sceneInfo)
+  return path.join(folderPath, 'assets')
 }
 
 function handleGetAbsoluteFilePath(
   event: IpcMainInvokeEvent,
-  pomlId: string,
+  sceneInfo: SceneInfo,
   relativePath: string
 ) {
-  const pomlFileFolderPath = getPomlFileFolderPath(pomlId)
+  const pomlFileFolderPath = getPomlFileFolderPath(sceneInfo)
   const absolutePath = path.join(pomlFileFolderPath, relativePath)
   return absolutePath
 }
 
 async function handleUploadFile(
   event: IpcMainInvokeEvent,
-  pomlId: string,
+  sceneInfo: SceneInfo,
   target: FileData
 ): Promise<{ base: string; relativePath: string } | undefined> {
   let filepath: string
@@ -122,14 +135,16 @@ async function handleUploadFile(
   }
 
   try {
-    const modelUploadPath = getFileUploadPath(pomlId)
+    const modelUploadPath = getFileUploadPath(sceneInfo)
     const savedFilename = await saveFileWithUniqueName(
       modelUploadPath,
       filepath,
       name
     )
     if (savedFilename) {
-      const relativePath = `./${pomlId}/${savedFilename}`
+      //const relativePath = `./${pomlId}/${savedFilename}`
+      // TODO
+      const relativePath = `./${savedFilename}`
       return {
         base: contentsDataPath,
         relativePath: relativePath,
@@ -155,18 +170,24 @@ async function handleDownloadFile(
 
 const handleSavePoml = async (
   event: IpcMainInvokeEvent,
-  pomlId: string,
+  sceneInfo: SceneInfo,
   poml: string
 ) => {
   // Save files
   const pomlUploadPath = contentsDataPath
+
+  console.log('save poml')
+  console.log(sceneInfo)
+  return
+  /*
   const filepath = path.join(pomlUploadPath, `${pomlId}.poml`)
   lock.acquire(
     'write',
     async () => {
       await fsPromises.mkdir(pomlUploadPath, { recursive: true })
       await fsPromises.writeFile(filepath, poml)
-      latestPomlId = pomlId
+      // latestPomlId = pomlId
+      latestScene = sceneInfo
     },
     (error, result) => {
       if (error) {
@@ -174,11 +195,15 @@ const handleSavePoml = async (
       }
     }
   )
+  */
 }
 
-const handleDeletePoml = async (event: IpcMainInvokeEvent, pomlId: string) => {
-  const pomlPath = getPomlFilePath(pomlId)
-  const pomlDataDir = getFileUploadPath(pomlId)
+const handleDeletePoml = async (
+  event: IpcMainInvokeEvent,
+  sceneInfo: SceneInfo
+) => {
+  const pomlPath = getPomlFilePath(sceneInfo)
+  const pomlDataDir = getFileUploadPath(sceneInfo)
 
   lock.acquire(
     'write',
@@ -196,10 +221,10 @@ const handleDeletePoml = async (event: IpcMainInvokeEvent, pomlId: string) => {
 
 const handleOpenSceneFolder = async (
   event: IpcMainInvokeEvent,
-  pomlId: string
+  sceneInfo: SceneInfo
 ) => {
   // open folder with electron
-  const pomlFileFolderPath = getPomlFileFolderPath(pomlId)
+  const pomlFileFolderPath = getPomlFileFolderPath(sceneInfo)
 
   try {
     shell.openPath(pomlFileFolderPath)
@@ -208,17 +233,25 @@ const handleOpenSceneFolder = async (
   }
 }
 
-const handleLoadPoml = async (event: IpcMainInvokeEvent, pomlId: string) => {
-  console.log(`load poml ${pomlId}`)
+const handleLoadPoml = async (
+  event: IpcMainInvokeEvent,
+  sceneInfo: SceneInfo
+) => {
+  console.log(`load scene ${sceneInfo}`)
 
+  return
+
+  /*
   const pomlBuffer = await readContent(`${pomlId}.poml`)
   if (pomlBuffer === undefined) {
     return undefined
   }
 
-  latestPomlId = pomlId
+  // latestPomlId = pomlId
+  latestScene = sceneInfo
   const poml = pomlBuffer.toString('utf-8')
   return poml
+  */
 }
 
 const handleGetRecentScenes = async (

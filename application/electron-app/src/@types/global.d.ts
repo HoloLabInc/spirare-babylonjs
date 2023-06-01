@@ -8,17 +8,20 @@ declare global {
 
 export interface ElectronAPI {
   uploadFile: (
-    pomlId: string,
+    sceneInfo: SceneInfo,
     target: FileData
   ) => Promise<{ base: string; relativePath: string } | undefined>
   downloadFile: (absFilepath: string) => Promise<ArrayBuffer | undefined>
-  savePoml: (pomlId: string, poml: string) => Promise<string | undefined>
-  deletePoml: (pomlId: string) => Promise<void>
+  savePoml: (sceneInfo: SceneInfo, poml: string) => Promise<string | undefined>
+  deletePoml: (sceneInfo: SceneInfo) => Promise<void>
 
-  openSceneFolder: (pomlId: string) => Promise<void>
+  openSceneFolder: (sceneInfo: SceneInfo) => Promise<void>
 
-  loadPoml: (pomlId: string) => Promise<string | undefined>
-  getAbsoluteFilePath: (pomlId: string, relativePath: string) => Promise<string>
+  loadPoml: (sceneInfo: SceneInfo) => Promise<string | undefined>
+  getAbsoluteFilePath: (
+    sceneInfo: SceneInfo,
+    relativePath: string
+  ) => Promise<string>
 
   getRecentScenes: () => Promise<SceneInfo[]>
 }
