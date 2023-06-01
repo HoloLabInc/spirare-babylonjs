@@ -26,18 +26,60 @@ const getPlacementMode = (poml: Poml): PlacementMode => {
   }
 }
 
+// function to get file recursively
+const getFilesRecursively = async (
+  dir: string,
+  depth: number
+): Promise<string[]> => {
+  if (depth <= 0) return []
+  const dirents = await fsPromises.readdir(dir, { withFileTypes: true })
+  const files = await Promise.all(
+    dirents.map((dirent) => {
+      const res = path.resolve(dir, dirent.name)
+      return dirent.isDirectory() ? getFilesRecursively(res, depth - 1) : [res]
+    })
+  )
+  return files.flat()
+}
+
 export const getScenesOrderByLastModifiedDate = async (
   scenesRootDir: string
 ): Promise<SceneInfo[]> => {
   try {
+    const files = await getFilesRecursively(scenesRootDir, 2)
+    files.forEach((file) => console.log(file))
+
+    /*
     const entries = await fsPromises.readdir(scenesRootDir, {
       withFileTypes: true,
     })
+    */
 
-    const promises = entries
-      .filter((entry) => entry.isFile() && entry.name.endsWith('.poml'))
-      .flatMap(async (file) => {
-        const filepath = path.join(scenesRootDir, file.name)
+    const promises = files
+      .filter((filepath) => filepath.endsWith('.poml'))
+      .flatMap(async (filepath) => {
+        console.log(filepath)
+        console.log(path.dirname(filepath))
+
+        const pomlPathMode = (() => {
+          const dir = path.dirname(filepath)
+          if (dir === scenesRootDir) {
+            return 'id'
+          } else {
+            return 'path'
+          }
+        })()
+
+        console.log(pomlPathMode)
+
+        const pomlId =
+          pomlPathMode === 'id' ? path.basename(filepath, '.poml') : undefined
+        const pomlPath = pomlPathMode === 'path' ? filepath : undefined
+
+        console.log({ pomlId })
+        console.log({ pomlPath })
+
+        // const filepath = path.join(scenesRootDir, file.name)
         const pomlStr = await fsPromises.readFile(filepath, {
           encoding: 'utf-8',
         })
@@ -51,7 +93,9 @@ export const getScenesOrderByLastModifiedDate = async (
 
           const scene: SceneInfo = {
             title: title,
-            pomlId: path.basename(file.name, '.poml'),
+            pomlPathMode: pomlPathMode,
+            pomlId: pomlId,
+            pomlPath: pomlPath,
             placementMode: placementMode,
           }
           const status = await fsPromises.stat(filepath)
