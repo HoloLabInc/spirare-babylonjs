@@ -44,7 +44,8 @@ const server = http.createServer(async (request, response) => {
     return
   }
 
-  const content = await readContent(url)
+  // TODO
+  const content = await readPomlFile(url)
   if (content) {
     // For auto-reload
     response.writeHead(200, {
@@ -58,16 +59,21 @@ const server = http.createServer(async (request, response) => {
   response.end()
 })
 
-const readContent = async (relativePath: string) => {
-  const filepath = path.join(contentsDataPath, path.normalize(relativePath))
-  console.log(filepath)
+const readPomlFile = async (pomlId: string) => {
+  //const filepath = path.join(contentsDataPath, path.normalize(relativePath))
+  //console.log(filepath)
+  const filepath = getPomlFilePath(pomlId)
+
+  if (filepath === undefined) {
+    console.log('file not found')
+    return
+  }
 
   try {
     // If the file exists, return its contents
     if (fs.existsSync(filepath)) {
       const isFile = fs.lstatSync(filepath).isFile()
       if (isFile) {
-        console.log('file exists')
         const data = fs.readFileSync(filepath)
         return data
       }
@@ -79,18 +85,41 @@ const readContent = async (relativePath: string) => {
 
 const contentsDataPath = path.join(app.getPath('userData'), 'ContentsData')
 
-const getPomlFileFolderPath = (pomlId: string) => {
-  return contentsDataPath
+const getPomlFileFolderPath = (pomlId: string): string | undefined => {
+  const filepath = pomlFilepathMap.get(pomlId)
+  if (filepath === undefined) {
+    return undefined
+  }
+  return path.dirname(filepath)
+  //return filepath
+  //return contentsDataPath
 }
 
-const getPomlFilePath = (pomlId: string) => {
+const getPomlFilePath = (pomlId: string): string | undefined => {
+  const filepath = pomlFilepathMap.get(pomlId)
+  return filepath
+  /*
+  if (filepath === undefined) {
+  }
+  */
+
+  /*
   const folderPath = getPomlFileFolderPath(pomlId)
   return path.join(folderPath, `${pomlId}.poml`)
+  */
 }
 
-const getFileUploadPath = (pomlId: string) => {
+const getFileUploadPath = (pomlId: string): string | undefined => {
   const folderPath = getPomlFileFolderPath(pomlId)
-  return path.join(folderPath, pomlId)
+  if (folderPath === undefined) {
+    return undefined
+  }
+
+  if (folderPath === contentsDataPath) {
+    return path.join(folderPath, pomlId)
+  } else {
+    return path.join(folderPath, 'assets')
+  }
 }
 
 function handleGetAbsoluteFilePath(
@@ -99,6 +128,9 @@ function handleGetAbsoluteFilePath(
   relativePath: string
 ) {
   const pomlFileFolderPath = getPomlFileFolderPath(pomlId)
+  if (pomlFileFolderPath === undefined) {
+    return ''
+  }
   const absolutePath = path.join(pomlFileFolderPath, relativePath)
   return absolutePath
 }
@@ -123,6 +155,10 @@ async function handleUploadFile(
 
   try {
     const modelUploadPath = getFileUploadPath(pomlId)
+    if (modelUploadPath === undefined) {
+      return undefined
+    }
+
     const savedFilename = await saveFileWithUniqueName(
       modelUploadPath,
       filepath,
@@ -158,9 +194,15 @@ const handleSavePoml = async (
   pomlId: string,
   poml: string
 ) => {
-  // Save files
-  const pomlUploadPath = contentsDataPath
-  const filepath = path.join(pomlUploadPath, `${pomlId}.poml`)
+  const pomlPath = getPomlFilePath(pomlId)
+  const pomlFolderPath = getPomlFileFolderPath(pomlId)
+
+  if (pomlPath === undefined) {
+    console.log(`Faild to find pomlfile\npomlId: ${pomlId}}`)
+    return
+  }
+  //const pomlUploadPath = contentsDataPath
+  //const filepath = path.join(pomlUploadPath, `${pomlId}.poml`)
   lock.acquire(
     'write',
     async () => {
@@ -178,13 +220,20 @@ const handleSavePoml = async (
 
 const handleDeletePoml = async (event: IpcMainInvokeEvent, pomlId: string) => {
   const pomlPath = getPomlFilePath(pomlId)
+  if (pomlPath === undefined) {
+    console.log('poml not found')
+    return
+  }
   const pomlDataDir = getFileUploadPath(pomlId)
 
   lock.acquire(
     'write',
     async () => {
       await fsPromises.unlink(pomlPath)
-      await fsPromises.rm(pomlDataDir, { recursive: true, force: true })
+
+      if (pomlDataDir !== undefined) {
+        await fsPromises.rm(pomlDataDir, { recursive: true, force: true })
+      }
     },
     (error, result) => {
       if (error) {
@@ -200,6 +249,9 @@ const handleOpenSceneFolder = async (
 ) => {
   // open folder with electron
   const pomlFileFolderPath = getPomlFileFolderPath(pomlId)
+  if (pomlFileFolderPath === undefined) {
+    return
+  }
 
   try {
     shell.openPath(pomlFileFolderPath)
@@ -211,21 +263,33 @@ const handleOpenSceneFolder = async (
 const handleLoadPoml = async (event: IpcMainInvokeEvent, pomlId: string) => {
   console.log(`load poml ${pomlId}`)
 
-  const pomlBuffer = await readContent(`${pomlId}.poml`)
+  const pomlBuffer = await readPomlFile(pomlId)
   if (pomlBuffer === undefined) {
     return undefined
   }
 
   latestPomlId = pomlId
   const poml = pomlBuffer.toString('utf-8')
+  console.log(poml)
   return poml
 }
+
+const pomlFilepathMap: Map<string, string> = new Map()
 
 const handleGetRecentScenes = async (
   event: IpcMainInvokeEvent
 ): Promise<SceneInfo[]> => {
-  const scenes = await getScenesOrderByLastModifiedDate(contentsDataPath)
-  return scenes
+  const searchDepth = 2
+  const scenes = await getScenesOrderByLastModifiedDate(
+    contentsDataPath,
+    searchDepth
+  )
+
+  scenes.forEach((scene) => {
+    pomlFilepathMap.set(scene.scene.pomlId, scene.filepath)
+  })
+  //return scenes
+  return scenes.map((scene) => scene.scene)
 }
 
 function createWindow() {
