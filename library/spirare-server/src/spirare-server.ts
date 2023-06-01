@@ -63,19 +63,10 @@ export const getScenesOrderByLastModifiedDate = async (
 ): Promise<{ scene: SceneInfo; filepath: string }[]> => {
   try {
     const files = await getFilesRecursively(scenesRootDir, fileSearchDepth)
-    files.forEach((file) => console.log(file))
-
-    /*
-    const entries = await fsPromises.readdir(scenesRootDir, {
-      withFileTypes: true,
-    })
-    */
 
     const promises = files
-      //.filter((entry) => entry.isFile() && entry.name.endsWith('.poml'))
       .filter((filepath) => filepath.endsWith('.poml'))
       .flatMap(async (filepath) => {
-        // const filepath = path.join(scenesRootDir, file.name)
         const pomlStr = await fsPromises.readFile(filepath, {
           encoding: 'utf-8',
         })
@@ -89,7 +80,6 @@ export const getScenesOrderByLastModifiedDate = async (
 
           const scene: SceneInfo = {
             title: title,
-            // pomlId: path.basename(file.name, '.poml'),
             pomlId: getPomlIdFromPomlFilepath(scenesRootDir, filepath),
             placementMode: placementMode,
           }
@@ -106,8 +96,6 @@ export const getScenesOrderByLastModifiedDate = async (
       })
 
     const scenes = (await Promise.all(promises)).flat()
-
-    console.log(scenes)
 
     // Items with a more recent last update time come first.
     const sortedScenes = scenes
