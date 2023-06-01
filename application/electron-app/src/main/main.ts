@@ -38,14 +38,14 @@ const server = http.createServer(async (request, response) => {
 
   if (url == '/') {
     response.writeHead(302, {
-      Location: '/' + latestPomlId + '.poml',
+      Location: '/' + latestPomlId,
     })
     response.end()
     return
   }
 
-  // TODO
-  const content = await readPomlFile(url)
+  const pomlId = url.slice(1)
+  const content = await readPomlFile(pomlId)
   if (content) {
     // For auto-reload
     response.writeHead(200, {
@@ -60,8 +60,6 @@ const server = http.createServer(async (request, response) => {
 })
 
 const readPomlFile = async (pomlId: string) => {
-  //const filepath = path.join(contentsDataPath, path.normalize(relativePath))
-  //console.log(filepath)
   const filepath = getPomlFilePath(pomlId)
 
   if (filepath === undefined) {
@@ -246,12 +244,21 @@ const handleSavePoml = async (
   )
 }
 
+const deleteFolderIfEmpty = async (folderPath: string) => {
+  const files = await fsPromises.readdir(folderPath)
+  if (files.length === 0) {
+    await fsPromises.rmdir(folderPath)
+  }
+}
+
 const handleDeletePoml = async (event: IpcMainInvokeEvent, pomlId: string) => {
   const pomlPath = getPomlFilePath(pomlId)
   if (pomlPath === undefined) {
     console.log('poml not found')
     return
   }
+
+  const pomlFolderPath = getPomlFileFolderPath(pomlId)
   const pomlDataDir = getFileUploadPath(pomlId)
 
   lock.acquire(
@@ -261,6 +268,10 @@ const handleDeletePoml = async (event: IpcMainInvokeEvent, pomlId: string) => {
 
       if (pomlDataDir !== undefined) {
         await fsPromises.rm(pomlDataDir, { recursive: true, force: true })
+      }
+
+      if (pomlFolderPath !== undefined) {
+        await deleteFolderIfEmpty(pomlFolderPath)
       }
     },
     (error, result) => {
