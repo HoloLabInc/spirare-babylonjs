@@ -153,21 +153,24 @@ async function handleUploadFile(
     name = path.basename(target.filepath)
   }
 
-  try {
-    const modelUploadPath = getFileUploadPath(pomlId)
-    if (modelUploadPath === undefined) {
-      return undefined
-    }
+  const pomlFolderPath = getPomlFileFolderPath(pomlId)
+  const modelUploadPath = getFileUploadPath(pomlId)
+  if (pomlFolderPath === undefined || modelUploadPath === undefined) {
+    return undefined
+  }
 
+  try {
     const savedFilename = await saveFileWithUniqueName(
       modelUploadPath,
       filepath,
       name
     )
     if (savedFilename) {
-      const relativePath = `./${pomlId}/${savedFilename}`
+      const absoluteFilePath = path.join(modelUploadPath, savedFilename)
+      const relativePath = path.relative(pomlFolderPath, absoluteFilePath)
+
       return {
-        base: contentsDataPath,
+        base: pomlFolderPath,
         relativePath: relativePath,
       }
     }
@@ -189,25 +192,50 @@ async function handleDownloadFile(
   }
 }
 
+const createNewPomlFile = async (
+  pomlId: string,
+  poml: string
+): Promise<void> => {
+  const pomlFolderPath = contentsDataPath
+  const pomlFilePath = path.join(pomlFolderPath, `${pomlId}.poml`)
+
+  lock.acquire(
+    'write',
+    async () => {
+      await fsPromises.mkdir(pomlFolderPath, { recursive: true })
+      await fsPromises.writeFile(pomlFilePath, poml)
+      pomlFilepathMap.set(pomlId, pomlFilePath)
+      latestPomlId = pomlId
+    },
+    (error, result) => {
+      if (error) {
+        console.log(error)
+      }
+    }
+  )
+}
+
 const handleSavePoml = async (
   event: IpcMainInvokeEvent,
   pomlId: string,
   poml: string
 ) => {
-  const pomlPath = getPomlFilePath(pomlId)
-  const pomlFolderPath = getPomlFileFolderPath(pomlId)
+  const pomlFilePath = getPomlFilePath(pomlId)
 
-  if (pomlPath === undefined) {
-    console.log(`Faild to find pomlfile\npomlId: ${pomlId}}`)
+  if (pomlFilePath === undefined) {
+    await createNewPomlFile(pomlId, poml)
     return
   }
+
+  //const pomlFolderPath = getPomlFileFolderPath(pomlId)
+
   //const pomlUploadPath = contentsDataPath
   //const filepath = path.join(pomlUploadPath, `${pomlId}.poml`)
   lock.acquire(
     'write',
     async () => {
-      await fsPromises.mkdir(pomlUploadPath, { recursive: true })
-      await fsPromises.writeFile(filepath, poml)
+      // await fsPromises.mkdir(pomlUploadPath, { recursive: true })
+      await fsPromises.writeFile(pomlFilePath, poml)
       latestPomlId = pomlId
     },
     (error, result) => {
