@@ -24,7 +24,7 @@ import AsyncLock from 'async-lock'
 const lock = new AsyncLock()
 
 // let latestPomlId: string
-let latestScene: SceneInfo
+let latestScene: SceneIdentifier
 
 // Web server for accessing from Spirare Browser
 const server = http.createServer(async (request, response) => {
@@ -52,7 +52,8 @@ const server = http.createServer(async (request, response) => {
     return
   }
 
-  const content = await readContent(url)
+  /*
+  const content = await readPomlFile(url)
   if (content) {
     // For auto-reload
     response.writeHead(200, {
@@ -61,21 +62,23 @@ const server = http.createServer(async (request, response) => {
     response.end(content)
     return
   }
+  */
 
   response.writeHead(404)
   response.end()
 })
 
-const readContent = async (relativePath: string) => {
-  const filepath = path.join(contentsDataPath, path.normalize(relativePath))
-  console.log(filepath)
+const readPomlFile = async (sceneIdentifier: SceneIdentifier) => {
+  //const filepath = path.join(contentsDataPath, path.normalize(relativePath))
+  //console.log(filepath)
+  const filepath = getPomlFilePath(sceneIdentifier)
 
   try {
     // If the file exists, return its contents
     if (fs.existsSync(filepath)) {
       const isFile = fs.lstatSync(filepath).isFile()
       if (isFile) {
-        console.log('file exists')
+        // console.log('file exists')
         const data = fs.readFileSync(filepath)
         return data
       }
@@ -93,8 +96,6 @@ const getPomlFileFolderPath = (pomlId: string) => {
 }
 */
 const getPomlFileFolderPath = (sceneIdentifier: SceneIdentifier) => {
-  // TODO
-  //return contentsDataPath
   switch (sceneIdentifier.pomlPathMode) {
     case 'id':
       return contentsDataPath
@@ -105,9 +106,19 @@ const getPomlFileFolderPath = (sceneIdentifier: SceneIdentifier) => {
 
 // const getPomlFilePath = (pomlId: string) => {
 const getPomlFilePath = (sceneIdentifier: SceneIdentifier) => {
+  /*
   const folderPath = getPomlFileFolderPath(sceneIdentifier)
   // TODO
   return path.join(folderPath, `${sceneIdentifier.pomlId}.poml`)
+  */
+  switch (sceneIdentifier.pomlPathMode) {
+    case 'id': {
+      const folderPath = getPomlFileFolderPath(sceneIdentifier)
+      return path.join(folderPath, `${sceneIdentifier.pomlId}.poml`)
+    }
+    case 'path':
+      return sceneIdentifier.pomlPath ?? ''
+  }
 }
 
 //const getFileUploadPath = (pomlId: string) => {
@@ -252,19 +263,14 @@ const handleLoadPoml = async (
 ) => {
   console.log(`load scene ${sceneIdentifier}`)
 
-  return
-
-  /*
-  const pomlBuffer = await readContent(`${pomlId}.poml`)
+  const pomlBuffer = await readPomlFile(sceneIdentifier)
   if (pomlBuffer === undefined) {
     return undefined
   }
 
-  // latestPomlId = pomlId
-  latestScene = sceneInfo
+  latestScene = sceneIdentifier
   const poml = pomlBuffer.toString('utf-8')
   return poml
-  */
 }
 
 const handleGetRecentScenes = async (

@@ -106,7 +106,7 @@ export function getUrlParamString(p: AppLaunchParams) {
     paramString += `&`
   }
 
-  return `run-mode=${p.runMode}&placement-mode=${p.placementMode}`
+  return `${paramString}run-mode=${p.runMode}&placement-mode=${p.placementMode}`
 }
 
 function getPlacementMode(urlParams: URLSearchParams): PlacementMode {
