@@ -20,6 +20,7 @@ import AsyncLock from 'async-lock'
 const lock = new AsyncLock()
 
 let latestPomlId: string
+const pomlFilepathMap: Map<string, string> = new Map()
 
 // Web server for accessing from Spirare Browser
 const server = http.createServer(async (request, response) => {
@@ -83,28 +84,17 @@ const readPomlFile = async (pomlId: string) => {
 
 const contentsDataPath = path.join(app.getPath('userData'), 'ContentsData')
 
-const getPomlFileFolderPath = (pomlId: string): string | undefined => {
+const getPomlFilePath = (pomlId: string): string | undefined => {
   const filepath = pomlFilepathMap.get(pomlId)
+  return filepath
+}
+
+const getPomlFileFolderPath = (pomlId: string): string | undefined => {
+  const filepath = getPomlFilePath(pomlId)
   if (filepath === undefined) {
     return undefined
   }
   return path.dirname(filepath)
-  //return filepath
-  //return contentsDataPath
-}
-
-const getPomlFilePath = (pomlId: string): string | undefined => {
-  const filepath = pomlFilepathMap.get(pomlId)
-  return filepath
-  /*
-  if (filepath === undefined) {
-  }
-  */
-
-  /*
-  const folderPath = getPomlFileFolderPath(pomlId)
-  return path.join(folderPath, `${pomlId}.poml`)
-  */
 }
 
 const getFileUploadPath = (pomlId: string): string | undefined => {
@@ -153,6 +143,7 @@ async function handleUploadFile(
 
   const pomlFolderPath = getPomlFileFolderPath(pomlId)
   const modelUploadPath = getFileUploadPath(pomlId)
+
   if (pomlFolderPath === undefined || modelUploadPath === undefined) {
     return undefined
   }
@@ -225,14 +216,9 @@ const handleSavePoml = async (
     return
   }
 
-  //const pomlFolderPath = getPomlFileFolderPath(pomlId)
-
-  //const pomlUploadPath = contentsDataPath
-  //const filepath = path.join(pomlUploadPath, `${pomlId}.poml`)
   lock.acquire(
     'write',
     async () => {
-      // await fsPromises.mkdir(pomlUploadPath, { recursive: true })
       await fsPromises.writeFile(pomlFilePath, poml)
       latestPomlId = pomlId
     },
@@ -309,15 +295,10 @@ const handleLoadPoml = async (event: IpcMainInvokeEvent, pomlId: string) => {
 
   latestPomlId = pomlId
   const poml = pomlBuffer.toString('utf-8')
-  console.log(poml)
   return poml
 }
 
-const pomlFilepathMap: Map<string, string> = new Map()
-
-const handleGetRecentScenes = async (
-  event: IpcMainInvokeEvent
-): Promise<SceneInfo[]> => {
+const getScenesAndUpdateMap = async (): Promise<SceneInfo[]> => {
   const searchDepth = 2
   const scenes = await getScenesOrderByLastModifiedDate(
     contentsDataPath,
@@ -327,8 +308,13 @@ const handleGetRecentScenes = async (
   scenes.forEach((scene) => {
     pomlFilepathMap.set(scene.scene.pomlId, scene.filepath)
   })
-  //return scenes
   return scenes.map((scene) => scene.scene)
+}
+
+const handleGetRecentScenes = async (
+  event: IpcMainInvokeEvent
+): Promise<SceneInfo[]> => {
+  return await getScenesAndUpdateMap()
 }
 
 function createWindow() {
@@ -352,7 +338,9 @@ function createWindow() {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on('ready', () => {
+app.on('ready', async () => {
+  await getScenesAndUpdateMap()
+
   server.listen(8080)
 
   ipcMain.handle('upload-file', handleUploadFile)
@@ -363,6 +351,7 @@ app.on('ready', () => {
   ipcMain.handle('load-poml', handleLoadPoml)
   ipcMain.handle('get-absolute-file-path', handleGetAbsoluteFilePath)
   ipcMain.handle('get-recent-scenes', handleGetRecentScenes)
+
   createWindow()
 
   app.on('activate', function () {
