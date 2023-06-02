@@ -96,6 +96,10 @@ export class SpirareImageNode extends SpirareNodeBase<PomlImageElement> {
 
     const texture = await this.loadImageToTexture(url, fileExt, scene)
 
+    if (texture === undefined) {
+      return undefined
+    }
+
     const size = texture.getSize()
     const created = createPlaneAndBackPlane(
       size.height / size.width,
@@ -121,23 +125,45 @@ export class SpirareImageNode extends SpirareNodeBase<PomlImageElement> {
     url: string,
     fileExt: string | undefined,
     scene: Scene
-  ): Promise<BaseTexture> {
+  ): Promise<BaseTexture | undefined> {
     if (fileExt == 'gif') {
       const engine = scene.getEngine()
 
-      return new Promise<BaseTexture>((resolve, reject) => {
-        const texture = new AnimatedGifTexture(url, engine, () => {
-          resolve(texture)
-        })
+      return new Promise<BaseTexture | undefined>((resolve, reject) => {
+        const texture = new AnimatedGifTexture(
+          url,
+          engine,
+          // onLoad
+          () => {
+            resolve(texture)
+          },
+          // onError
+          (e) => {
+            console.log(e)
+            resolve(undefined)
+          }
+        )
       })
     } else {
-      const texture = new Texture(url, scene)
-      await new Promise<void>((resolve, reject) => {
-        texture.onLoadObservable.add(() => {
-          resolve()
-        })
+      return new Promise<BaseTexture | undefined>((resolve, reject) => {
+        const texture = new Texture(
+          url,
+          scene,
+          undefined,
+          undefined,
+          undefined,
+          // onLoad
+          () => {
+            resolve(texture)
+          },
+          // onError
+          (message?: string, exception?: any) => {
+            console.log(message)
+            console.log(exception)
+            resolve(undefined)
+          }
+        )
       })
-      return texture
     }
   }
 }
