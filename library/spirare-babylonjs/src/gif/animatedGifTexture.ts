@@ -65,6 +65,7 @@ declare type GifFrame = {
  */
 export class AnimatedGifTexture extends BaseTexture {
     private _onLoad: Nullable<() => void>
+    private _onError: Nullable<(exception?: any) => void>
 
     private _frames: Nullable<GifFrame[]> = null;
     private _currentFrame: Nullable<GifFrame>;
@@ -85,11 +86,12 @@ export class AnimatedGifTexture extends BaseTexture {
      * @param engine engine the texture will be used in
      * @param onLoad defines a callback to trigger once all ready.
      */
-    constructor(url: string, engine: ThinEngine, onLoad: Nullable<() => void> = null) {
+    constructor(url: string, engine: ThinEngine, onLoad: Nullable<() => void> = null, onError: Nullable<(exception?: any) => void> = null) {
         super(engine);
 
         this.name = url;
         this._onLoad = onLoad;
+        this._onError = onError;
 
         this._createInternalTexture();
         this._createRenderer();
@@ -151,8 +153,12 @@ export class AnimatedGifTexture extends BaseTexture {
             this._engine.runRenderLoop(this._renderLoopCallback);
         };
 
+        const onError = (request?: IWebRequest | undefined, exception?: any) => {
+            this._onError?.(exception);
+        }
+
         // Load the array buffer from the Gif file
-        this._engine._loadFile(this.name, callback, undefined, undefined, true);
+        this._engine._loadFile(this.name, callback, undefined, undefined, true, onError);
     }
 
     /**
