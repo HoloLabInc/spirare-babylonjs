@@ -194,67 +194,62 @@ export class SpirareModelNode extends SpirareNodeBase<PomlModelElement> {
     element: PomlModelElement,
     name: string
   ) {
-    try {
-      const src = element.src
-      const url = await getFileLoadUrlAsync(this)
+    const src = element.src
+    const url = await getFileLoadUrlAsync(this)
 
-      if (src === undefined || url === undefined) {
-        return
-      }
+    if (src === undefined || url === undefined) {
+      return
+    }
 
-      const modelName = name
+    const modelName = name
 
-      // Get the file extension
-      // If the filename is set, prioritize the extension of the filename
-      const fileExt = (element.filename || src).split('.').pop()
+    // Get the file extension
+    // If the filename is set, prioritize the extension of the filename
+    const fileExt = (element.filename || src).split('.').pop()
 
-      // Switch loaders depending on the file extension
-      switch (fileExt) {
-        case 'ply': {
-          const loaded = await PointCloudLoader.importWithUrlAsync(
-            url,
-            fileExt,
-            scene
-          )
-          if (loaded) {
-            return {
-              modelName,
-              ...loaded,
-            }
-          } else {
-            return undefined
-          }
-        }
-        case 'ifc': {
-          var ifc = new IfcLoader()
-          await ifc.initialize()
-          const response = await fetch(url)
-          const blob = await response.blob()
-          const arrayBuffer = await blob.arrayBuffer()
-          const mesh = await ifc.load(new Uint8Array(arrayBuffer), scene, true)
-          return {
-            modelName,
-            meshes: [mesh],
-          }
-        }
-        default: {
-          const loaded = await SceneLoader.ImportMeshAsync(
-            '',
-            url,
-            undefined,
-            scene,
-            undefined,
-            '.glb'
-          )
+    // Switch loaders depending on the file extension
+    switch (fileExt) {
+      case 'ply': {
+        const loaded = await PointCloudLoader.importWithUrlAsync(
+          url,
+          fileExt,
+          scene
+        )
+        if (loaded) {
           return {
             modelName,
             ...loaded,
           }
+        } else {
+          return undefined
         }
       }
-    } catch (e) {
-      console.log(e)
-      return undefined
+      case 'ifc': {
+        var ifc = new IfcLoader()
+        await ifc.initialize()
+        const response = await fetch(url)
+        const blob = await response.blob()
+        const arrayBuffer = await blob.arrayBuffer()
+        const mesh = await ifc.load(new Uint8Array(arrayBuffer), scene, true)
+        return {
+          modelName,
+          meshes: [mesh],
+        }
+      }
+      default: {
+        const loaded = await SceneLoader.ImportMeshAsync(
+          '',
+          url,
+          undefined,
+          scene,
+          undefined,
+          '.glb'
+        )
+        return {
+          modelName,
+          ...loaded,
+        }
+      }
     }
   }
 }
