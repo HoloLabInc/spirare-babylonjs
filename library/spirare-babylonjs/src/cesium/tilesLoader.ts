@@ -181,34 +181,46 @@ export class TilesLoader {
     return loadPromise
   }
 
-  public async loadAsync(url: string, name: string, app: App, scene: Scene) {
-    const tilesetJson = await load(url, Tiles3DLoader)
+  public async loadAsync(
+    url: string,
+    name: string,
+    app: App,
+    scene: Scene
+  ): Promise<string | undefined> {
+    try {
+      const tilesetJson = await load(url, Tiles3DLoader)
 
-    const rootNode = new TransformNode(name)
+      const rootNode = new TransformNode(name)
 
-    const tileset3d = new Tileset3D(tilesetJson, {
-      onTileLoad: async (tile) => {
-        await this.loadTileAsync(tile, rootNode, app, scene)
-      },
-      onTileUnload: async (tile) => {
-        const promise = this.tileNodeMap.get(tile.contentUrl)
+      const tileset3d = new Tileset3D(tilesetJson, {
+        onTileLoad: async (tile) => {
+          await this.loadTileAsync(tile, rootNode, app, scene)
+        },
+        onTileUnload: async (tile) => {
+          const promise = this.tileNodeMap.get(tile.contentUrl)
 
-        // Wait for the load to complete before unloading
-        if (promise) {
-          const tileRootNode = promise.tileRootNode
-          const loadPromise = promise.loadPromise
-          this.tileNodeMap.delete(tile.contentUrl)
+          // Wait for the load to complete before unloading
+          if (promise) {
+            const tileRootNode = promise.tileRootNode
+            const loadPromise = promise.loadPromise
+            this.tileNodeMap.delete(tile.contentUrl)
 
-          await loadPromise
-          tileRootNode.dispose()
-        }
-      },
-    })
+            await loadPromise
+            tileRootNode.dispose()
+          }
+        },
+      })
 
-    const tilesetId = `tileset-${this.tilesetIndex++}`
-    this.tileset3dMap.set(tilesetId, { rootNode: rootNode, tileset: tileset3d })
+      const tilesetId = `tileset-${this.tilesetIndex++}`
+      this.tileset3dMap.set(tilesetId, {
+        rootNode: rootNode,
+        tileset: tileset3d,
+      })
 
-    return tilesetId
+      return tilesetId
+    } catch (e) {
+      console.log(e)
+    }
   }
 
   public async removeAsync(tilesetId: string) {
