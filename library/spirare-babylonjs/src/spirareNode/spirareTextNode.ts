@@ -93,7 +93,6 @@ export class SpirareTextNode extends SpirareNodeBase<PomlTextElement> {
     this.element.text = value
     this.updateText()
     this.onChange?.()
-    //this.updateElementPartially({ text: value })
   }
 
   public get fontSize(): string | undefined {
@@ -110,7 +109,6 @@ export class SpirareTextNode extends SpirareNodeBase<PomlTextElement> {
     this.element.fontSize = fontSize
     this.updateText()
     this.onChange?.()
-    // this.updateElementPartially({ fontSize: fontSize })
   }
 
   public get backgroundColor(): string {
@@ -126,7 +124,6 @@ export class SpirareTextNode extends SpirareNodeBase<PomlTextElement> {
     this.element.backgroundColor = value
     this.updateText()
     this.onChange?.()
-    // this.updateElementPartially({ backgroundColor: value })
   }
 
   public get fontColor(): string {
@@ -140,13 +137,10 @@ export class SpirareTextNode extends SpirareNodeBase<PomlTextElement> {
     this.element.fontColor = value
     this.updateText()
     this.onChange?.()
-
-    // this.updateElementPartially({ fontColor: value })
   }
 
-  /*
-  protected override updateElementPartially(diff: Partial<PomlTextElement>) {
-    // super.updateElementPartially(diff)
+  public override updateData(diff: Partial<PomlTextElement>) {
+    super.updateData(diff)
 
     // --- For assertion ---
     //
@@ -173,10 +167,8 @@ export class SpirareTextNode extends SpirareNodeBase<PomlTextElement> {
     const validKeys = Object.keys(diff).filter((key) => keys.includes(key))
     if (validKeys.length > 0) {
       this.updateText()
-      this.onChange?.()
     }
   }
-  */
 
   private updateText(): void {
     const created = SpirareTextNode.createText(this.getScene(), this.element)
