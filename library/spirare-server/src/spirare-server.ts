@@ -2,12 +2,17 @@ import * as path from 'path'
 import * as fs from 'fs'
 const fsPromises = fs.promises
 
+import crypto from 'crypto'
 import md5File from 'md5-file'
 
 import { PomlParser } from 'ts-poml/dist/pomlParser'
 import { Poml, PomlElement } from 'ts-poml'
 import { PlacementMode, SceneInfo } from './types'
 import { filenameGenerator } from './utils'
+
+const sha256 = (input: string) => {
+  return crypto.createHash('sha256').update(input).digest('hex')
+}
 
 const getPlacementMode = (poml: Poml): PlacementMode => {
   const sceneElements = poml.scene.children
@@ -26,18 +31,42 @@ const getPlacementMode = (poml: Poml): PlacementMode => {
   }
 }
 
-export const getScenesOrderByLastModifiedDate = async (
-  scenesRootDir: string
-): Promise<SceneInfo[]> => {
-  try {
-    const entries = await fsPromises.readdir(scenesRootDir, {
-      withFileTypes: true,
+const getFilesRecursively = async (
+  dir: string,
+  depth: number
+): Promise<string[]> => {
+  if (depth <= 0) return []
+  const dirents = await fsPromises.readdir(dir, { withFileTypes: true })
+  const files = await Promise.all(
+    dirents.map((dirent) => {
+      const res = path.resolve(dir, dirent.name)
+      return dirent.isDirectory() ? getFilesRecursively(res, depth - 1) : [res]
     })
+  )
+  return files.flat()
+}
 
-    const promises = entries
-      .filter((entry) => entry.isFile() && entry.name.endsWith('.poml'))
-      .flatMap(async (file) => {
-        const filepath = path.join(scenesRootDir, file.name)
+const getPomlIdFromPomlFilepath = (
+  scenesRootDir: string,
+  filepath: string
+): string => {
+  if (path.dirname(filepath) === scenesRootDir) {
+    return path.basename(filepath, '.poml')
+  } else {
+    return sha256(filepath)
+  }
+}
+
+export const getScenesOrderByLastModifiedDate = async (
+  scenesRootDir: string,
+  fileSearchDepth: number = 1
+): Promise<{ scene: SceneInfo; filepath: string }[]> => {
+  try {
+    const files = await getFilesRecursively(scenesRootDir, fileSearchDepth)
+
+    const promises = files
+      .filter((filepath) => filepath.endsWith('.poml'))
+      .flatMap(async (filepath) => {
         const pomlStr = await fsPromises.readFile(filepath, {
           encoding: 'utf-8',
         })
@@ -51,12 +80,13 @@ export const getScenesOrderByLastModifiedDate = async (
 
           const scene: SceneInfo = {
             title: title,
-            pomlId: path.basename(file.name, '.poml'),
+            pomlId: getPomlIdFromPomlFilepath(scenesRootDir, filepath),
             placementMode: placementMode,
           }
           const status = await fsPromises.stat(filepath)
           return {
             scene: scene,
+            filepath: filepath,
             mtime: status.mtimeMs,
           }
         } catch (e) {
@@ -70,7 +100,9 @@ export const getScenesOrderByLastModifiedDate = async (
     // Items with a more recent last update time come first.
     const sortedScenes = scenes
       .sort((s1, s2) => s2.mtime - s1.mtime)
-      .map((s) => s.scene)
+      .map((s) => {
+        return { scene: s.scene, filepath: s.filepath }
+      })
 
     return sortedScenes
   } catch (ex) {
