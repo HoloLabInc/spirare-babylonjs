@@ -38,27 +38,62 @@ const server = http.createServer(async (request, response) => {
   console.log(`request url: ${url}`)
 
   if (url == '/') {
+    if (latestPomlId === undefined) {
+      response.writeHead(503)
+      response.end()
+      return
+    }
+
+    const pomlFilePath = getPomlFilePath(latestPomlId)
+    if (pomlFilePath === undefined) {
+      response.writeHead(404)
+      response.end()
+      return
+    }
+
+    let relativePath = path.relative(contentsDataPath, pomlFilePath)
+    relativePath = relativePath.replace(/\\/g, '/')
     response.writeHead(302, {
-      Location: '/' + latestPomlId,
+      Location: relativePath,
     })
     response.end()
     return
   }
 
-  const pomlId = url.slice(1)
-  const content = await readPomlFile(pomlId)
-  if (content) {
+  const filepath = path.join(contentsDataPath, url)
+  const pomlBuffer = await readFileAsync(filepath)
+  if (pomlBuffer) {
     // For auto-reload
-    response.writeHead(200, {
-      Refresh: '3',
-    })
-    response.end(content)
+    if (url.endsWith('.poml')) {
+      response.writeHead(200, {
+        Refresh: '3',
+      })
+    }
+    response.end(pomlBuffer)
     return
   }
 
   response.writeHead(404)
   response.end()
 })
+
+const readFileAsync = async (filepath: string) => {
+  if (filepath === undefined) {
+    console.log('file not found')
+    return
+  }
+
+  try {
+    // If the file exists, return its contents
+    const stats = await fsPromises.lstat(filepath)
+    if (stats.isFile()) {
+      const data = await fsPromises.readFile(filepath)
+      return data
+    }
+  } catch (error) {
+    console.log(error)
+  }
+}
 
 const readPomlFile = async (pomlId: string) => {
   const filepath = getPomlFilePath(pomlId)
