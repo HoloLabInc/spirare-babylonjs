@@ -89,7 +89,11 @@ export class SpirareTextNode extends SpirareNodeBase<PomlTextElement> {
     if (value === this.text) {
       return
     }
-    this.updateData({ text: value })
+
+    this.element.text = value
+    this.updateText()
+    this.onChange?.()
+    //this.updateElementPartially({ text: value })
   }
 
   public get fontSize(): string | undefined {
@@ -102,7 +106,11 @@ export class SpirareTextNode extends SpirareNodeBase<PomlTextElement> {
     if (fontSize === this.fontSize) {
       return
     }
-    this.updateData({ fontSize: fontSize })
+
+    this.element.fontSize = fontSize
+    this.updateText()
+    this.onChange?.()
+    // this.updateElementPartially({ fontSize: fontSize })
   }
 
   public get backgroundColor(): string {
@@ -114,7 +122,11 @@ export class SpirareTextNode extends SpirareNodeBase<PomlTextElement> {
     if (value === this.backgroundColor) {
       return
     }
-    this.updateData({ backgroundColor: value })
+
+    this.element.backgroundColor = value
+    this.updateText()
+    this.onChange?.()
+    // this.updateElementPartially({ backgroundColor: value })
   }
 
   public get fontColor(): string {
@@ -124,11 +136,17 @@ export class SpirareTextNode extends SpirareNodeBase<PomlTextElement> {
     if (value === this.fontColor) {
       return
     }
-    this.updateData({ fontColor: value })
+
+    this.element.fontColor = value
+    this.updateText()
+    this.onChange?.()
+
+    // this.updateElementPartially({ fontColor: value })
   }
 
-  public override updateData(diff: Partial<PomlTextElement>) {
-    super.updateData(diff)
+  /*
+  protected override updateElementPartially(diff: Partial<PomlTextElement>) {
+    // super.updateElementPartially(diff)
 
     // --- For assertion ---
     //
@@ -137,7 +155,7 @@ export class SpirareTextNode extends SpirareNodeBase<PomlTextElement> {
       PomlTextElement,
       keyof PomlElementBase | 'type'
     >
-    type CheckedTypes = typeof properties[number]
+    type CheckedTypes = (typeof properties)[number]
     type NotImpl = Exclude<TextProperties, CheckedTypes>
     type Unexpected = Exclude<CheckedTypes, TextProperties>
 
@@ -158,6 +176,7 @@ export class SpirareTextNode extends SpirareNodeBase<PomlTextElement> {
       this.onChange?.()
     }
   }
+  */
 
   private updateText(): void {
     const created = SpirareTextNode.createText(this.getScene(), this.element)
