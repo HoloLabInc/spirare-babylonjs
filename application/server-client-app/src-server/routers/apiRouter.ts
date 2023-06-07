@@ -38,7 +38,8 @@ router.get('/scenes', async (req, res) => {
   }
 
   const scenesPath = path.join(contentDataPath, userId)
-  const scenes = await getScenesOrderByLastModifiedDate(scenesPath)
+  const sceneAndPathArray = await getScenesOrderByLastModifiedDate(scenesPath)
+  const scenes = sceneAndPathArray.map((sceneAndPath) => sceneAndPath.scene)
   res.send(scenes)
 })
 

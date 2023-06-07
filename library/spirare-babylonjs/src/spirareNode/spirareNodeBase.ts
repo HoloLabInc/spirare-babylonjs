@@ -819,6 +819,11 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
     this.loadGeoReference()
   }
 
+  /**
+   * Update element partially in Play mode.
+   * @param diff
+   * @returns
+   */
   public updateData(diff: Partial<T>) {
     // Update element itself.
     if (diff.id === this.elementId) {
