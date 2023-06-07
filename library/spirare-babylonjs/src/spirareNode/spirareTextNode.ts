@@ -89,7 +89,10 @@ export class SpirareTextNode extends SpirareNodeBase<PomlTextElement> {
     if (value === this.text) {
       return
     }
-    this.updateData({ text: value })
+
+    this.element.text = value
+    this.updateText()
+    this.onChange?.()
   }
 
   public get fontSize(): string | undefined {
@@ -102,7 +105,10 @@ export class SpirareTextNode extends SpirareNodeBase<PomlTextElement> {
     if (fontSize === this.fontSize) {
       return
     }
-    this.updateData({ fontSize: fontSize })
+
+    this.element.fontSize = fontSize
+    this.updateText()
+    this.onChange?.()
   }
 
   public get backgroundColor(): string {
@@ -114,7 +120,10 @@ export class SpirareTextNode extends SpirareNodeBase<PomlTextElement> {
     if (value === this.backgroundColor) {
       return
     }
-    this.updateData({ backgroundColor: value })
+
+    this.element.backgroundColor = value
+    this.updateText()
+    this.onChange?.()
   }
 
   public get fontColor(): string {
@@ -124,7 +133,10 @@ export class SpirareTextNode extends SpirareNodeBase<PomlTextElement> {
     if (value === this.fontColor) {
       return
     }
-    this.updateData({ fontColor: value })
+
+    this.element.fontColor = value
+    this.updateText()
+    this.onChange?.()
   }
 
   public override updateData(diff: Partial<PomlTextElement>) {
@@ -137,7 +149,7 @@ export class SpirareTextNode extends SpirareNodeBase<PomlTextElement> {
       PomlTextElement,
       keyof PomlElementBase | 'type'
     >
-    type CheckedTypes = typeof properties[number]
+    type CheckedTypes = (typeof properties)[number]
     type NotImpl = Exclude<TextProperties, CheckedTypes>
     type Unexpected = Exclude<CheckedTypes, TextProperties>
 
@@ -155,7 +167,6 @@ export class SpirareTextNode extends SpirareNodeBase<PomlTextElement> {
     const validKeys = Object.keys(diff).filter((key) => keys.includes(key))
     if (validKeys.length > 0) {
       this.updateText()
-      this.onChange?.()
     }
   }
 

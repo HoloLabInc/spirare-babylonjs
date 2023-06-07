@@ -11,13 +11,7 @@ import {
   AbstractMesh,
   Matrix,
 } from '@babylonjs/core'
-import {
-  Display,
-  GeoReference,
-  PomlElement,
-  Position,
-  Rotation,
-} from 'ts-poml'
+import { Display, GeoReference, PomlElement, Position, Rotation } from 'ts-poml'
 import { App, getApp } from '../app'
 import { CoordinateConverter } from '../coordinateConverter'
 import {
@@ -760,6 +754,11 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
     this.loadGeoReference()
   }
 
+  /**
+   * Update element partially in Play mode.
+   * @param diff
+   * @returns
+   */
   public updateData(diff: Partial<T>) {
     // Update element itself.
     if (diff.id === this.elementId) {
