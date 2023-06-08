@@ -49,6 +49,34 @@ type CustomProperty = {
   }
 }
 
+const parseQuaternion = (str: string | undefined): Rotation | undefined => {
+  if (str === undefined) {
+    return undefined
+  }
+
+  const tokens = str.split(/,|\s+/).filter((x) => x !== '')
+  if (tokens.length !== 4) {
+    return undefined
+  }
+
+  const x = Number.parseFloat(tokens[0])
+  const y = Number.parseFloat(tokens[1])
+  const z = Number.parseFloat(tokens[2])
+  const w = Number.parseFloat(tokens[3])
+
+  if (
+    Number.isNaN(x) ||
+    Number.isNaN(y) ||
+    Number.isNaN(z) ||
+    Number.isNaN(w)
+  ) {
+    return undefined
+  }
+
+  const rotation = new Quaternion(x, y, z, w).normalize()
+  return { x: rotation.x, y: rotation.y, z: rotation.z, w: rotation.w }
+}
+
 const customAttributeKey = 'spirare-editor'
 
 export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
@@ -429,36 +457,10 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
   }
 
   private setRotationProperty(str: string | undefined) {
-    const value = (() => {
-      if (str === undefined) {
-        return undefined
-      }
+    const rotation = parseQuaternion(str)
 
-      const tokens = str.split(' ')
-      if (tokens.length !== 4) {
-        return undefined
-      }
-
-      const x = Number.parseFloat(tokens[0])
-      const y = Number.parseFloat(tokens[1])
-      const z = Number.parseFloat(tokens[2])
-      const w = Number.parseFloat(tokens[3])
-
-      if (
-        Number.isNaN(x) ||
-        Number.isNaN(y) ||
-        Number.isNaN(z) ||
-        Number.isNaN(w)
-      ) {
-        return undefined
-      }
-
-      const rotation = new Quaternion(x, y, z, w).normalize()
-      return { x: rotation.x, y: rotation.y, z: rotation.z, w: rotation.w }
-    })()
-
-    // Do not update GeoReference when the number is not obtained.
-    if (value === undefined) {
+    // Do not update GeoReference when parse failed
+    if (rotation === undefined) {
       return
     }
 
@@ -467,7 +469,7 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
       return
     }
 
-    geoReference.enuRotation = value
+    geoReference.enuRotation = rotation
     this.loadGeoReference()
     this.onChange?.()
   }
