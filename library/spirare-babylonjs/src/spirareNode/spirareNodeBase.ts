@@ -1000,7 +1000,10 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
     }
 
     this.element.position = undefined
+    this.element.originalAttrs?.delete('position')
+
     this.element.rotation = undefined
+    this.element.originalAttrs?.delete('rotation')
   }
 
   /**
