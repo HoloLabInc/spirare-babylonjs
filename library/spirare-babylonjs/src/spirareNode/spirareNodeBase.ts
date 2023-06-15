@@ -1028,13 +1028,31 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
         geoManager.geodeticPositionToBabylonPosition(geodeticPosition)
       this.position = babylonPosition
 
-      if (geoReference.enuRotation) {
-        const rotation = geoManager.spirareEnuRotationToBabylonRotation(
-          geoReference.enuRotation,
-          geodeticPosition
-        )
-        this.rotationQuaternion = rotation
+      const toNormalizedQuaternion = (rotation: Rotation | undefined) => {
+        if (rotation === undefined) {
+          return new Quaternion(0, 0, 0, 1)
+        }
+
+        return new Quaternion(
+          rotation.x,
+          rotation.y,
+          rotation.z,
+          rotation.w
+        ).normalize()
       }
+
+      const elementRotation = toNormalizedQuaternion(this.element.rotation)
+      const geoReferenceRotation = toNormalizedQuaternion(
+        geoReference.enuRotation
+      )
+
+      const combinedRotation = geoReferenceRotation.multiply(elementRotation)
+
+      const rotationQuaternion = geoManager.spirareEnuRotationToBabylonRotation(
+        combinedRotation,
+        geodeticPosition
+      )
+      this.rotationQuaternion = rotationQuaternion
     }
   }
 
