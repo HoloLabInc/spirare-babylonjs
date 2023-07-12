@@ -222,6 +222,11 @@ const createNewPomlFile = async (
   pomlId: string,
   poml: string
 ): Promise<void> => {
+  // If poml is empty, do not save.
+  if (poml === '') {
+    return
+  }
+
   const pomlFolderPath = contentsDataPath
   const pomlFilePath = path.join(pomlFolderPath, `${pomlId}.poml`)
 
@@ -246,6 +251,11 @@ const handleSavePoml = async (
   pomlId: string,
   poml: string
 ) => {
+  // If poml is empty, do not save.
+  if (poml === '') {
+    return
+  }
+
   const pomlFilePath = getPomlFilePath(pomlId)
 
   if (pomlFilePath === undefined) {
