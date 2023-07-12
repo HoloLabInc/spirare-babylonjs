@@ -234,7 +234,7 @@ const createNewPomlFile = async (
     'write',
     async () => {
       await fsPromises.mkdir(pomlFolderPath, { recursive: true })
-      await fsPromises.writeFile(pomlFilePath, poml)
+      await saveFileAsync(pomlFilePath, poml)
       pomlFilepathMap.set(pomlId, pomlFilePath)
       latestPomlId = pomlId
     },
@@ -266,7 +266,7 @@ const handleSavePoml = async (
   lock.acquire(
     'write',
     async () => {
-      await fsPromises.writeFile(pomlFilePath, poml)
+      await saveFileAsync(pomlFilePath, poml)
       latestPomlId = pomlId
     },
     (error, result) => {
@@ -275,6 +275,42 @@ const handleSavePoml = async (
       }
     }
   )
+}
+
+/**
+ * Write data to temporary file and copy to filePath.
+ * @param filePath
+ * @param data
+ * @returns
+ */
+const saveFileAsync = async (
+  filePath: string,
+  data: string
+): Promise<boolean> => {
+  const tempFilePath = filePath + '.tmp'
+
+  try {
+    await fsPromises.writeFile(tempFilePath, data)
+  } catch (e) {
+    console.log(e)
+    return false
+  }
+
+  try {
+    await fsPromises.copyFile(tempFilePath, filePath)
+  } catch (e) {
+    console.log(e)
+    return false
+  }
+
+  // Remove temporary file.
+  try {
+    await fsPromises.unlink(tempFilePath)
+  } catch (e) {
+    console.log(e)
+  }
+
+  return true
 }
 
 const deleteFolderIfEmpty = async (folderPath: string) => {
