@@ -111,9 +111,11 @@ export type PointCloudData = {
 }
 
 const getPointPosition = (positions: Float32Array, index: number) => {
-  const x = positions[index * 3]
-  const y = positions[index * 3 + 2]
-  const z = positions[index * 3 + 1]
+  // ply: Y-up right-handed
+  // babylon: Y-up left-handed
+  const x = -positions[index * 3]
+  const y = positions[index * 3 + 1]
+  const z = positions[index * 3 + 2]
   return new Vector3(x, y, z)
 }
 
