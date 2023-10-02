@@ -221,7 +221,6 @@ export class SpirareTextNode extends SpirareNodeBase<PomlTextElement> {
       const font = `${renderedFontPx}px Arial`
       const texHeight = renderedFontPx * 1.5
       const texWidth = this.measureTextWidth(text, font)
-      const aspect = texHeight / texWidth
 
       const texture = new DynamicTexture(
         'textTexture',
@@ -242,7 +241,7 @@ export class SpirareTextNode extends SpirareNodeBase<PomlTextElement> {
       )
 
       const { plane, backPlane, ...materials } = createPlaneAndBackPlane(
-        aspect,
+        { width: 1, height: texHeight / texWidth },
         scene,
         texture,
         'text'

@@ -46,7 +46,7 @@ export const getHigherPriorityDisplay = (
  * }}
  */
 export const createPlaneAndBackPlane = (
-  aspect: number,
+  size: { width: number; height: number },
   scene: Scene,
   texture: BaseTexture,
   namePrefix: string
@@ -57,8 +57,8 @@ export const createPlaneAndBackPlane = (
   backMaterial: Material
 } => {
   const plane = MeshBuilder.CreatePlane(`${namePrefix}Plane`, {
-    width: 1,
-    height: aspect,
+    width: size.width,
+    height: size.height,
     // sideOrientation: Mesh.DOUBLESIDE,
   })
   plane.rotate(Vector3.Up(), Math.PI)
@@ -76,8 +76,8 @@ export const createPlaneAndBackPlane = (
   backMaterial.disableLighting = true
   const backPlane = MeshBuilder.CreatePlane(`${namePrefix}BackPlane`, {
     sideOrientation: Mesh.DOUBLESIDE, // Remove this line if you want single-sided rendering
-    width: 1,
-    height: aspect,
+    width: size.width,
+    height: size.height,
   })
   backPlane.rotate(Vector3.Up(), Math.PI)
   backPlane.material = backMaterial
@@ -122,4 +122,34 @@ export const getFileLoadUrlAsync = async (
     }
   }
   return url
+}
+
+export const getMediaDisplaySize = (
+  element: { width?: number; height?: number },
+  media: { width: number; height: number }
+): { width: number; height: number } => {
+  if (element.width !== undefined && element.height !== undefined) {
+    return { width: element.width, height: element.height }
+  }
+
+  const aspectRatio = media.height / media.width
+
+  if (element.width === undefined && element.height !== undefined) {
+    return {
+      width: element.height / aspectRatio,
+      height: element.height,
+    }
+  }
+
+  if (element.width !== undefined && element.height === undefined) {
+    return {
+      width: element.width,
+      height: element.width * aspectRatio,
+    }
+  }
+
+  return {
+    width: 1,
+    height: aspectRatio,
+  }
 }
