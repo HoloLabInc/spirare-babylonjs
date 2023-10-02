@@ -5,12 +5,15 @@ import {
   Material,
   BaseTexture,
   AbstractMesh,
+  InspectableType,
 } from '@babylonjs/core'
 import { PomlImageElement } from 'ts-poml'
 import { AnimatedGifTexture } from '../gif/animatedGifTexture'
 import {
   createPlaneAndBackPlane,
   getFileLoadUrlAsync,
+  getMediaDisplaySize,
+  parseAsNumber,
 } from './spirareNodeUtils'
 import { SpirareNodeBase } from './spirareNodeBase'
 import { CreateNodeParams } from './spirareNode'
@@ -32,6 +35,27 @@ export class SpirareImageNode extends SpirareNodeBase<PomlImageElement> {
     name?: string
   ) {
     super(imageElement, params, name)
+
+    if (this.app.runMode === 'editor') {
+      this.inspectableCustomProperties.push(
+        {
+          label: '==== PomlImageElement ====',
+          propertyName: '',
+          type: InspectableType.Tab,
+        },
+        {
+          label: 'Width',
+          propertyName: 'width',
+          type: InspectableType.String,
+        },
+        {
+          label: 'Height',
+          propertyName: 'height',
+          type: InspectableType.String,
+        }
+      )
+    }
+
     this.onDisposeObservable.add(() => {
       this.cleanUp()
     })
@@ -58,6 +82,38 @@ export class SpirareImageNode extends SpirareNodeBase<PomlImageElement> {
     const node = new SpirareImageNode(imageElement, params, name)
     await node.updateImage()
     return node
+  }
+
+  public get width(): string | undefined {
+    return this.element.width?.toString()
+  }
+  public set width(value: string | undefined) {
+    const num = parseAsNumber(value?.trim())
+    if (this.element.width === num) {
+      return
+    }
+    this.element.width = num
+    if (num === undefined) {
+      this.element.originalAttrs?.delete('width')
+    }
+    this.updateImage()
+    this.onChange?.()
+  }
+
+  public get height(): string | undefined {
+    return this.element.height?.toString()
+  }
+  public set height(value: string | undefined) {
+    const num = parseAsNumber(value?.trim())
+    if (this.element.height === num) {
+      return
+    }
+    this.element.height = num
+    if (num === undefined) {
+      this.element.originalAttrs?.delete('height')
+    }
+    this.updateImage()
+    this.onChange?.()
   }
 
   private async updateImage(): Promise<void> {
@@ -101,8 +157,15 @@ export class SpirareImageNode extends SpirareNodeBase<PomlImageElement> {
     }
 
     const size = texture.getSize()
+    const displaySize = getMediaDisplaySize(element, size)
+
+    if (displaySize.width === 0 || displaySize.height === 0) {
+      texture.dispose()
+      return undefined
+    }
+
     const created = createPlaneAndBackPlane(
-      size.height / size.width,
+      displaySize,
       scene,
       texture,
       'image'
