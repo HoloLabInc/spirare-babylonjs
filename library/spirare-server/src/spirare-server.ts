@@ -24,8 +24,10 @@ const getPlacementMode = (poml: Poml): PlacementMode => {
     )
     return isSpaceMode ? 'space' : 'geodetic'
   } else {
-    const isGeodeticMode = sceneElements.some((x) =>
-      x.coordinateReferences.some((cr) => cr.type === 'geo-reference')
+    const isGeodeticMode = sceneElements.some(
+      (x) =>
+        x.type != '?' &&
+        x.coordinateReferences.some((cr) => cr.type === 'geo-reference')
     )
     return isGeodeticMode ? 'geodetic' : 'space'
   }

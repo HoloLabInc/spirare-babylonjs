@@ -3,10 +3,13 @@ import {
   MeshBuilder,
   Scene,
   Vector3,
-  LinesMesh,
   AbstractMesh,
 } from '@babylonjs/core'
-import { PomlGeometry, PomlGeometryElement } from 'ts-poml'
+import {
+  PomlGeometry,
+  PomlGeometryElement,
+  parseGeometryPositionsString,
+} from 'ts-poml'
 import { App } from '../app'
 import { stringToColor } from '../colorUtil'
 import { AssertTrue, IsNever } from './spirareNodeUtils'
@@ -73,32 +76,51 @@ export class SpirareGeometryNode extends SpirareNodeBase<PomlGeometryElement> {
     app: App,
     scene: Scene,
     geometries: PomlGeometry[]
-  ): LinesMesh[] {
-    return geometries.map((g) => {
+  ): Mesh[] {
+    return geometries.flatMap((g) => {
       switch (g.type) {
         case 'line': {
-          const color = stringToColor(g.color ?? this.default.color)
-          const points: Vector3[] = g.positions.map((p) => {
-            switch (p.type) {
-              case 'relative': {
+          let vertices = g.vertices
+
+          if (typeof vertices === 'string') {
+            vertices = parseGeometryPositionsString(vertices)
+          }
+
+          let points: Vector3[]
+          switch (vertices?.type) {
+            case 'relative': {
+              points = vertices.positions.map((p) => {
                 return new Vector3(p.x, p.y, p.z)
-              }
-              case 'geo-location': {
+              })
+              break
+            }
+            case 'geodetic': {
+              points = vertices.positions.map((p) => {
                 const pos = app.geoManager.geodeticPositionToBabylonPosition(p)
                 return pos
-              }
+              })
+              break
             }
-          })
+            default: {
+              points = []
+              break
+            }
+          }
+          const color = stringToColor(g.color ?? this.default.color)
           const colors = points.map((_) => color.clone())
           const options = {
             points: points,
             updatable: false,
             colors: colors,
           }
-          return MeshBuilder.CreateLines('line', options, scene)
+          return [MeshBuilder.CreateLines('line', options, scene)]
+        }
+        case 'polygon': {
+          console.warn('polygon is not implemented yet')
+          return []
         }
         default: {
-          let _: AssertTrue<IsNever<typeof g.type>>
+          let _: AssertTrue<IsNever<typeof g>>
           throw new Error('It must be unreachable')
         }
       }

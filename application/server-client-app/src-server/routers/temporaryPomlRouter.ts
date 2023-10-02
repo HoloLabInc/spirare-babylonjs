@@ -4,7 +4,7 @@ import { contentDataFolderName, getPomlPath } from '../dataPath'
 import * as fs from 'fs'
 const fsPromises = fs.promises
 
-import { PomlElement } from 'ts-poml'
+import { MaybePomlElement, PomlElement } from 'ts-poml'
 import { PomlParser } from 'ts-poml/dist/pomlParser'
 const pomlParser = new PomlParser()
 
@@ -80,10 +80,14 @@ router.get('/:ownerId/:pomlId', async (req, res) => {
 })
 
 const replaceSrcUrlToTemporaryUrl = (
-  elements: PomlElement[],
+  elements: MaybePomlElement[],
   expiryDate: Date
 ) => {
   elements.forEach((element) => {
+    if (element.type === '?') {
+      return
+    }
+
     replaceSrcUrlToTemporaryUrl(element.children, expiryDate)
 
     if ('src' in element) {
