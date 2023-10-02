@@ -10,6 +10,8 @@ import {
 import { PomlImageElement } from 'ts-poml'
 import { AnimatedGifTexture } from '../gif/animatedGifTexture'
 import {
+  AssertTrue,
+  IsNever,
   createPlaneAndBackPlane,
   getFileLoadUrlAsync,
   getMediaDisplaySize,
@@ -52,6 +54,29 @@ export class SpirareImageNode extends SpirareNodeBase<PomlImageElement> {
           label: 'Height',
           propertyName: 'height',
           type: InspectableType.String,
+        },
+        {
+          label: 'Backface Mode',
+          propertyName: 'backfaceMode',
+          type: InspectableType.Options,
+          options: [
+            {
+              label: 'none',
+              value: 0,
+            },
+            {
+              label: 'solid',
+              value: 1,
+            },
+            {
+              label: 'visible',
+              value: 2,
+            },
+            {
+              label: 'flipped',
+              value: 3,
+            },
+          ],
         }
       )
     }
@@ -114,6 +139,41 @@ export class SpirareImageNode extends SpirareNodeBase<PomlImageElement> {
     }
     this.updateImage()
     this.onChange?.()
+  }
+
+  // Called from the inspector.
+  private get backfaceMode(): number {
+    const backfaceMode = this.element.backfaceMode
+    console.log({ backfaceMode })
+    switch (backfaceMode) {
+      case undefined:
+      case 'none': {
+        return 0
+      }
+      case 'solid': {
+        return 1
+      }
+      case 'visible': {
+        return 2
+      }
+      case 'flipped': {
+        return 3
+      }
+      default: {
+        let _: AssertTrue<IsNever<typeof backfaceMode>>
+        return 0
+      }
+    }
+  }
+
+  // Called from the inspector.
+  private set backfaceMode(value: number) {
+    const a = [undefined, 'solid', 'visible', 'flipped'] as const
+    if (this.element.backfaceMode !== a[value]) {
+      this.element.backfaceMode = a[value]
+      this.updateImage()
+      this.onChange?.()
+    }
   }
 
   private async updateImage(): Promise<void> {
