@@ -153,3 +153,16 @@ export const getMediaDisplaySize = (
     height: aspectRatio,
   }
 }
+
+export const parseAsNumber = (text: string | undefined): number | undefined => {
+  if (!text) {
+    return undefined
+  }
+
+  const num = Number(text)
+  if (Number.isNaN(num)) {
+    return undefined
+  } else {
+    return num
+  }
+}
