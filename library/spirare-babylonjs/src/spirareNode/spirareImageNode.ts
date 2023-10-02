@@ -11,6 +11,7 @@ import { AnimatedGifTexture } from '../gif/animatedGifTexture'
 import {
   createPlaneAndBackPlane,
   getFileLoadUrlAsync,
+  getMediaDisplaySize,
 } from './spirareNodeUtils'
 import { SpirareNodeBase } from './spirareNodeBase'
 import { CreateNodeParams } from './spirareNode'
@@ -101,8 +102,10 @@ export class SpirareImageNode extends SpirareNodeBase<PomlImageElement> {
     }
 
     const size = texture.getSize()
+    const displaySize = getMediaDisplaySize(element, size)
+
     const created = createPlaneAndBackPlane(
-      size.height / size.width,
+      displaySize,
       scene,
       texture,
       'image'

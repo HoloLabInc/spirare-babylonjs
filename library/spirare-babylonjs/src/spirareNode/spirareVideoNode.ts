@@ -9,6 +9,7 @@ import { PomlVideoElement } from 'ts-poml'
 import {
   createPlaneAndBackPlane,
   getFileLoadUrlAsync,
+  getMediaDisplaySize,
 } from './spirareNodeUtils'
 import { SpirareNodeBase } from './spirareNodeBase'
 import { CreateNodeParams } from './spirareNode'
@@ -115,9 +116,12 @@ export class SpirareVideoNode extends SpirareNodeBase<PomlVideoElement> {
         resolve()
       })
     })
+
     const size = videoTexture.getSize()
+    const displaySize = getMediaDisplaySize(element, size)
+
     const created = createPlaneAndBackPlane(
-      size.height / size.width,
+      displaySize,
       scene,
       videoTexture,
       'video'
