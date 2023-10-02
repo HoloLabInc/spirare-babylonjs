@@ -89,6 +89,9 @@ export class SpirareImageNode extends SpirareNodeBase<PomlImageElement> {
   }
   public set width(value: string | undefined) {
     const num = parseAsNumber(value?.trim())
+    if (this.element.width === num) {
+      return
+    }
     this.element.width = num
     if (num === undefined) {
       this.element.originalAttrs?.delete('width')
@@ -102,6 +105,9 @@ export class SpirareImageNode extends SpirareNodeBase<PomlImageElement> {
   }
   public set height(value: string | undefined) {
     const num = parseAsNumber(value?.trim())
+    if (this.element.height === num) {
+      return
+    }
     this.element.height = num
     if (num === undefined) {
       this.element.originalAttrs?.delete('height')
