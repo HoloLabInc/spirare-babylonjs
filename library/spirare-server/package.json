@@ -23,7 +23,7 @@
   },
   "dependencies": {
     "md5-file": "^5.0.0",
-    "ts-poml": "github:HoloLabInc/ts-poml#v0.1.0"
+    "ts-poml": "github:HoloLabInc/ts-poml#c8670965309f6362cd95dc5807c3531eef7b728b"
   },
   "volta": {
     "node": "16.17.0",
