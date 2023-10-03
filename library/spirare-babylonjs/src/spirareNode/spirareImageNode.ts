@@ -13,13 +13,16 @@ import {
   createPlaneAndBackPlane,
   getFileLoadUrlAsync,
   getMediaDisplaySize,
-  parseAsNumber,
 } from './spirareNodeUtils'
-import { SpirareNodeBase } from './spirareNodeBase'
 import { CreateNodeParams } from './spirareNode'
+import {
+  SpirareMediaNodeBase,
+  mediaElementInspectables,
+} from './spirareMediaNodeBase'
 
-export class SpirareImageNode extends SpirareNodeBase<PomlImageElement> {
+export class SpirareImageNode extends SpirareMediaNodeBase<PomlImageElement> {
   private imageTexture?: BaseTexture
+  private imageTextureUrl?: string
   private imageMaterial?: Material
   private backMaterial?: Material
   private plane?: Mesh
@@ -43,35 +46,52 @@ export class SpirareImageNode extends SpirareNodeBase<PomlImageElement> {
           propertyName: '',
           type: InspectableType.Tab,
         },
-        {
-          label: 'Width',
-          propertyName: 'width',
-          type: InspectableType.String,
-        },
-        {
-          label: 'Height',
-          propertyName: 'height',
-          type: InspectableType.String,
-        }
+        ...mediaElementInspectables
       )
+
+      this.updateBackfaceColorInspector()
     }
 
     this.onDisposeObservable.add(() => {
-      this.cleanUp()
+      this.cleanUpUnnecessaryResource(undefined)
     })
   }
 
-  private cleanUp(): void {
-    this.imageTexture?.dispose()
-    this.imageMaterial?.dispose()
-    this.backMaterial?.dispose()
-    this.plane?.dispose()
-    this.backPlane?.dispose()
-    this.imageTexture = undefined
-    this.imageMaterial = undefined
-    this.backMaterial = undefined
-    this.plane = undefined
-    this.backPlane = undefined
+  private cleanUpUnnecessaryResource(
+    newResource:
+      | {
+          plane: Mesh
+          material: Material
+          backPlane?: Mesh | undefined
+          backMaterial?: Material | undefined
+          imageTexture: BaseTexture
+        }
+      | undefined
+  ): void {
+    if (this.plane !== newResource?.plane) {
+      this.plane?.dispose()
+      this.plane = undefined
+    }
+
+    if (this.imageMaterial !== newResource?.material) {
+      this.imageMaterial?.dispose()
+      this.imageMaterial = undefined
+    }
+
+    if (this.backPlane !== newResource?.backPlane) {
+      this.backPlane?.dispose()
+      this.backPlane = undefined
+    }
+
+    if (this.backMaterial !== newResource?.backMaterial) {
+      this.backMaterial?.dispose()
+      this.backMaterial = undefined
+    }
+
+    if (this.imageTexture !== newResource?.imageTexture) {
+      this.imageTexture?.dispose()
+      this.imageTexture = undefined
+    }
   }
 
   public static async create(
@@ -80,46 +100,15 @@ export class SpirareImageNode extends SpirareNodeBase<PomlImageElement> {
     name?: string
   ): Promise<SpirareImageNode> {
     const node = new SpirareImageNode(imageElement, params, name)
-    await node.updateImage()
+    await node.updateObject()
     return node
   }
 
-  public get width(): string | undefined {
-    return this.element.width?.toString()
-  }
-  public set width(value: string | undefined) {
-    const num = parseAsNumber(value?.trim())
-    if (this.element.width === num) {
-      return
-    }
-    this.element.width = num
-    if (num === undefined) {
-      this.element.originalAttrs?.delete('width')
-    }
-    this.updateImage()
-    this.onChange?.()
-  }
-
-  public get height(): string | undefined {
-    return this.element.height?.toString()
-  }
-  public set height(value: string | undefined) {
-    const num = parseAsNumber(value?.trim())
-    if (this.element.height === num) {
-      return
-    }
-    this.element.height = num
-    if (num === undefined) {
-      this.element.originalAttrs?.delete('height')
-    }
-    this.updateImage()
-    this.onChange?.()
-  }
-
-  private async updateImage(): Promise<void> {
+  protected override async updateObject(): Promise<void> {
     const scene = this.getScene()
     const created = await this.createImage(scene, this.element)
-    this.cleanUp()
+    this.cleanUpUnnecessaryResource(created)
+
     if (created) {
       this.plane = created.plane
       this.backPlane = created.backPlane
@@ -127,11 +116,15 @@ export class SpirareImageNode extends SpirareNodeBase<PomlImageElement> {
       this.imageMaterial = created.material
       this.backMaterial = created.backMaterial
 
-      created.plane.parent = this
-      created.backPlane.parent = this
+      this.plane.parent = this
+      if (this.backPlane !== undefined) {
+        this.backPlane.parent = this
+      }
 
       this.plane.actionManager = this.actionManager
-      this.backPlane.actionManager = this.actionManager
+      if (this.backPlane !== undefined) {
+        this.backPlane.actionManager = this.actionManager
+      }
 
       this.updateDisplay()
       this.updateLayerMask()
@@ -150,7 +143,13 @@ export class SpirareImageNode extends SpirareNodeBase<PomlImageElement> {
     // If the filename is set, prioritize the extension of the filename
     const fileExt = (element.filename || src).split('.').pop()
 
-    const texture = await this.loadImageToTexture(url, fileExt, scene)
+    let texture: BaseTexture | undefined
+    if (url === this.imageTextureUrl && this.imageTexture !== undefined) {
+      texture = this.imageTexture
+    } else {
+      texture = await this.loadImageToTexture(url, fileExt, scene)
+      this.imageTextureUrl = url
+    }
 
     if (texture === undefined) {
       return undefined
@@ -164,11 +163,32 @@ export class SpirareImageNode extends SpirareNodeBase<PomlImageElement> {
       return undefined
     }
 
+    const backfaceOption = {
+      mode: element.backfaceMode ?? 'none',
+      color: element.backfaceColor ?? 'white',
+    }
+
+    const textureOption = {
+      texture: texture,
+      transparent: true,
+    }
+
+    if (this.app.runMode === 'editor') {
+      // Show backface in editor mode
+      if (backfaceOption.mode === 'none') {
+        backfaceOption.mode = 'solid'
+        backfaceOption.color = 'black'
+      }
+
+      textureOption.transparent = false
+    }
+
     const created = createPlaneAndBackPlane(
       displaySize,
       scene,
-      texture,
-      'image'
+      textureOption,
+      'image',
+      backfaceOption
     )
 
     return {

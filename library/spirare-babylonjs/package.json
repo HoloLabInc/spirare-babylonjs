@@ -49,7 +49,7 @@
     "i18next-browser-languagedetector": "^7.0.1",
     "jszip": "^3.10.1",
     "path-normalize": "^6.0.6",
-    "ts-poml": "github:HoloLabInc/ts-poml#c8670965309f6362cd95dc5807c3531eef7b728b",
+    "ts-poml": "github:HoloLabInc/ts-poml#v0.3.0",
     "url-join": "^5.0.0",
     "web-ifc-babylon": "github:HoloLabInc/web-ifc-babylon#hololab/main"
   },

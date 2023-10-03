@@ -11,13 +11,16 @@ import {
   createPlaneAndBackPlane,
   getFileLoadUrlAsync,
   getMediaDisplaySize,
-  parseAsNumber,
 } from './spirareNodeUtils'
-import { SpirareNodeBase } from './spirareNodeBase'
 import { CreateNodeParams } from './spirareNode'
+import {
+  SpirareMediaNodeBase,
+  mediaElementInspectables,
+} from './spirareMediaNodeBase'
 
-export class SpirareVideoNode extends SpirareNodeBase<PomlVideoElement> {
+export class SpirareVideoNode extends SpirareMediaNodeBase<PomlVideoElement> {
   private videoTexture?: VideoTexture
+  private videoTextureUrl?: string
   private videoMaterial?: Material
   private backMaterial?: Material
   private plane?: Mesh
@@ -46,21 +49,14 @@ export class SpirareVideoNode extends SpirareNodeBase<PomlVideoElement> {
           propertyName: '',
           type: InspectableType.Tab,
         },
-        {
-          label: 'Width',
-          propertyName: 'width',
-          type: InspectableType.String,
-        },
-        {
-          label: 'Height',
-          propertyName: 'height',
-          type: InspectableType.String,
-        }
+        ...mediaElementInspectables
       )
+
+      this.updateBackfaceColorInspector()
     }
 
     this.onDisposeObservable.add(() => {
-      this.cleanUp()
+      this.cleanUpUnnecessaryResource(undefined)
     })
   }
 
@@ -73,7 +69,7 @@ export class SpirareVideoNode extends SpirareNodeBase<PomlVideoElement> {
 
     // In case video playback fails, we don't want to wait for updateVideo() to complete before exiting the create method.
     // Therefore, updateVideo() is called asynchronously and is not awaited.
-    node.updateVideo().then(async () => {
+    node.updateObject().then(async () => {
       try {
         if (node.video) {
           // Mute the video to avoid sudden loud sounds and play it
@@ -88,43 +84,11 @@ export class SpirareVideoNode extends SpirareNodeBase<PomlVideoElement> {
     return node
   }
 
-  public get width(): string | undefined {
-    return this.element.width?.toString()
-  }
-  public set width(value: string | undefined) {
-    const num = parseAsNumber(value?.trim())
-    if (this.element.width === num) {
-      return
-    }
-    this.element.width = num
-    if (num === undefined) {
-      this.element.originalAttrs?.delete('width')
-    }
-    this.updateVideo()
-    this.onChange?.()
-  }
-
-  public get height(): string | undefined {
-    return this.element.height?.toString()
-  }
-  public set height(value: string | undefined) {
-    const num = parseAsNumber(value?.trim())
-    if (this.element.height === num) {
-      return
-    }
-    this.element.height = num
-    if (num === undefined) {
-      this.element.originalAttrs?.delete('height')
-    }
-    this.updateVideo()
-    this.onChange?.()
-  }
-
-  private async updateVideo(): Promise<void> {
+  protected override async updateObject(): Promise<void> {
     const scene = this.getScene()
     const created = await this.createVideo(scene, this.element)
 
-    this.cleanUp()
+    this.cleanUpUnnecessaryResource(created)
     if (created) {
       this.plane = created.plane
       this.backPlane = created.backPlane
@@ -132,29 +96,58 @@ export class SpirareVideoNode extends SpirareNodeBase<PomlVideoElement> {
       this.videoMaterial = created.material
       this.backMaterial = created.backMaterial
       this._video = created.videoTexture.video
-      created.plane.parent = this
-      created.backPlane.parent = this
+
+      this.plane.parent = this
+      if (this.backPlane !== undefined) {
+        this.backPlane.parent = this
+      }
 
       this.plane.actionManager = this.actionManager
-      this.backPlane.actionManager = this.actionManager
+      if (this.backPlane !== undefined) {
+        this.backPlane.actionManager = this.actionManager
+      }
 
       this.updateDisplay()
       this.updateLayerMask()
     }
   }
 
-  private cleanUp(): void {
-    this.plane?.dispose()
-    this.backPlane?.dispose()
-    this.videoTexture?.dispose()
-    this.videoMaterial?.dispose()
-    this.backMaterial?.dispose()
-    this.plane = undefined
-    this.backPlane = undefined
-    this.videoTexture = undefined
-    this.videoMaterial = undefined
-    this.backMaterial = undefined
-    this._video = undefined
+  private cleanUpUnnecessaryResource(
+    newResource:
+      | {
+          plane: Mesh
+          material: Material
+          backPlane?: Mesh | undefined
+          backMaterial?: Material | undefined
+          videoTexture: VideoTexture
+        }
+      | undefined
+  ): void {
+    if (this.plane !== newResource?.plane) {
+      this.plane?.dispose()
+      this.plane = undefined
+    }
+
+    if (this.videoMaterial !== newResource?.material) {
+      this.videoMaterial?.dispose()
+      this.videoMaterial = undefined
+    }
+
+    if (this.backPlane !== newResource?.backPlane) {
+      this.backPlane?.dispose()
+      this.backPlane = undefined
+    }
+
+    if (this.backMaterial !== newResource?.backMaterial) {
+      this.backMaterial?.dispose()
+      this.backMaterial = undefined
+    }
+
+    if (this.videoTexture !== newResource?.videoTexture) {
+      this.videoTexture?.dispose()
+      this.videoTexture = undefined
+      this._video = undefined
+    }
   }
 
   private async createVideo(scene: Scene, element: PomlVideoElement) {
@@ -165,12 +158,18 @@ export class SpirareVideoNode extends SpirareNodeBase<PomlVideoElement> {
       return
     }
 
-    const videoTexture = new VideoTexture('videoTexture', url, scene)
-    await new Promise<void>((resolve, reject) => {
-      videoTexture.onLoadObservable.add(() => {
-        resolve()
+    let videoTexture: VideoTexture | undefined
+    if (url === this.videoTextureUrl && this.videoTexture !== undefined) {
+      videoTexture = this.videoTexture
+    } else {
+      videoTexture = new VideoTexture('videoTexture', url, scene)
+      await new Promise<void>((resolve, reject) => {
+        videoTexture?.onLoadObservable.add(() => {
+          resolve()
+        })
       })
-    })
+      this.videoTextureUrl = url
+    }
 
     const size = videoTexture.getSize()
     const displaySize = getMediaDisplaySize(element, size)
@@ -180,11 +179,32 @@ export class SpirareVideoNode extends SpirareNodeBase<PomlVideoElement> {
       return undefined
     }
 
+    const backfaceOption = {
+      mode: element.backfaceMode ?? 'none',
+      color: element.backfaceColor ?? 'white',
+    }
+
+    const textureOption = {
+      texture: videoTexture,
+      transparent: true,
+    }
+
+    // Show backface in editor mode
+    if (this.app.runMode === 'editor') {
+      if (backfaceOption.mode === 'none') {
+        backfaceOption.mode = 'solid'
+        backfaceOption.color = 'black'
+      }
+
+      textureOption.transparent = false
+    }
+
     const created = createPlaneAndBackPlane(
       displaySize,
       scene,
-      videoTexture,
-      'video'
+      textureOption,
+      'video',
+      backfaceOption
     )
 
     return {
