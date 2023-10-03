@@ -83,7 +83,6 @@ export class SpirareMediaNodeBase<
   // Called from the inspector.
   private get backfaceMode(): number {
     const backfaceMode = this.element.backfaceMode
-    console.log({ backfaceMode })
     switch (backfaceMode) {
       case undefined:
       case 'none': {

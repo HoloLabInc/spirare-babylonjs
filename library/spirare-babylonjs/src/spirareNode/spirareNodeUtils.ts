@@ -51,7 +51,6 @@ export const createPlaneAndBackPlane = (
   const plane = MeshBuilder.CreatePlane(`${namePrefix}Plane`, {
     width: size.width,
     height: size.height,
-    // sideOrientation: Mesh.DOUBLESIDE,
   })
   plane.rotate(Vector3.Up(), Math.PI)
 
@@ -63,24 +62,14 @@ export const createPlaneAndBackPlane = (
 
   // Create a back plane
   const backPlane = MeshBuilder.CreatePlane(`${namePrefix}BackPlane`, {
-    // sideOrientation: Mesh.DOUBLESIDE, // Remove this line if you want single-sided rendering
     width: size.width,
     height: size.height,
   })
-  // backPlane.rotate(Vector3.Up(), Math.PI)
 
   let backMaterial: StandardMaterial | undefined
   switch (backfaceOption?.mode) {
     case 'none':
     case undefined: {
-      /*
-      backMaterial = new StandardMaterial(
-        `${namePrefix}BackPlaneMaterial`,
-        scene
-      )
-      backMaterial.disableLighting = true
-      backPlane.material = backMaterial
-      */
       break
     }
     case 'solid': {
@@ -99,7 +88,7 @@ export const createPlaneAndBackPlane = (
     }
     case 'flipped': {
       backPlane.material = material
-      // TODO
+      backPlane.scaling = new Vector3(-1, 1, 1)
       break
     }
   }
