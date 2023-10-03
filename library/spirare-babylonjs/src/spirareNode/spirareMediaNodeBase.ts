@@ -107,6 +107,21 @@ export class SpirareMediaNodeBase<
 
   // Called from the inspector.
   private set backfaceMode(value: number) {
+    const backfaceColorIsDefault = (
+      colorString: string | undefined
+    ): boolean => {
+      if (colorString === undefined) {
+        return true
+      } else if (colorString === '#ffffff') {
+        return true
+      } else if (colorString === '#fff') {
+        return true
+      } else if (colorString === 'white') {
+        return true
+      }
+      return false
+    }
+
     const a = [undefined, 'solid', 'visible', 'flipped'] as const
     const newMode = a[value]
     if (this.element.backfaceMode !== newMode) {
@@ -114,10 +129,35 @@ export class SpirareMediaNodeBase<
       if (newMode === undefined) {
         this.element.originalAttrs?.delete('backface-mode')
       }
+
+      // Delete backface-color attribute when backface-mode is not 'solid' and backface-color is default.
+      if (
+        newMode !== 'solid' &&
+        backfaceColorIsDefault(this.element.backfaceColor)
+      ) {
+        this.element.backfaceColor = undefined
+        this.element.originalAttrs?.delete('backface-color')
+      }
+
       this.updateBackfaceColorInspector()
       this.updateObject()
       this.onChange?.()
     }
+  }
+
+  // Called from the inspector.
+  private get backfaceColor(): string {
+    return this.element.backfaceColor || '#ffffff'
+  }
+
+  private set backfaceColor(value: string) {
+    if (value === this.backfaceColor) {
+      return
+    }
+
+    this.element.backfaceColor = value
+    this.updateObject()
+    this.onChange?.()
   }
 
   protected updateObject() {}
@@ -141,7 +181,7 @@ export class SpirareMediaNodeBase<
         this.inspectableCustomProperties.splice(backfaceModeIndex + 1, 0, {
           label: backfaceColorLabel,
           propertyName: 'backfaceColor',
-          type: InspectableType.Color3,
+          type: InspectableType.String,
         })
       }
     } else {
