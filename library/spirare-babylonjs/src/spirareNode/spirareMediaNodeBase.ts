@@ -114,10 +114,40 @@ export class SpirareMediaNodeBase<
       if (newMode === undefined) {
         this.element.originalAttrs?.delete('backface-mode')
       }
+      this.updateBackfaceColorInspector()
       this.updateObject()
       this.onChange?.()
     }
   }
 
   protected updateObject() {}
+
+  protected updateBackfaceColorInspector() {
+    const backfaceColorLabel = 'Backface Color'
+    const backfaceColorIndex = this.inspectableCustomProperties.findIndex(
+      (x) => x.label === backfaceColorLabel
+    )
+
+    if (this.element.backfaceMode === 'solid') {
+      const backfaceModeIndex = this.inspectableCustomProperties.findIndex(
+        (x) => x.propertyName === 'backfaceMode'
+      )
+
+      if (backfaceModeIndex === -1) {
+        return
+      }
+
+      if (backfaceColorIndex === -1) {
+        this.inspectableCustomProperties.splice(backfaceModeIndex + 1, 0, {
+          label: backfaceColorLabel,
+          propertyName: 'backfaceColor',
+          type: InspectableType.Color3,
+        })
+      }
+    } else {
+      if (backfaceColorIndex !== -1) {
+        this.inspectableCustomProperties.splice(backfaceColorIndex, 1)
+      }
+    }
+  }
 }

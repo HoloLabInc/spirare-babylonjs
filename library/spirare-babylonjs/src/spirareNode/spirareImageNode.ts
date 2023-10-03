@@ -47,6 +47,8 @@ export class SpirareImageNode extends SpirareMediaNodeBase<PomlImageElement> {
         },
         ...mediaElementInspectables
       )
+
+      this.updateBackfaceColorInspector()
     }
 
     this.onDisposeObservable.add(() => {
@@ -125,15 +127,25 @@ export class SpirareImageNode extends SpirareMediaNodeBase<PomlImageElement> {
       return undefined
     }
 
+    const backfaceOption = {
+      mode: element.backfaceMode ?? 'none',
+      color: element.backfaceColor ?? 'white',
+    }
+
+    // Show backface in editor mode
+    if (this.app.runMode === 'editor') {
+      if (backfaceOption.mode === 'none') {
+        backfaceOption.mode = 'solid'
+        backfaceOption.color = 'black'
+      }
+    }
+
     const created = createPlaneAndBackPlane(
       displaySize,
       scene,
       texture,
       'image',
-      {
-        mode: element.backfaceMode ?? 'none',
-        color: element.backfaceColor ?? 'white',
-      }
+      backfaceOption
     )
 
     return {

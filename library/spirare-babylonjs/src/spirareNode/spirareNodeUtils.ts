@@ -34,17 +34,6 @@ export const getHigherPriorityDisplay = (
 
 /**
  * Creates plane meshes for front and back faces
- *
- * @param {number} aspect Aspect ratio = height / width
- * @param {Scene} scene Babylon scene
- * @param {string} materialName
- * @param {Texture} texture
- * @return {*}  {{
- *   plane: Mesh
- *   material: Material
- *   backPlane: Mesh
- *   backMaterial: Material
- * }}
  */
 export const createPlaneAndBackPlane = (
   size: { width: number; height: number },
@@ -74,11 +63,11 @@ export const createPlaneAndBackPlane = (
 
   // Create a back plane
   const backPlane = MeshBuilder.CreatePlane(`${namePrefix}BackPlane`, {
-    sideOrientation: Mesh.DOUBLESIDE, // Remove this line if you want single-sided rendering
+    // sideOrientation: Mesh.DOUBLESIDE, // Remove this line if you want single-sided rendering
     width: size.width,
     height: size.height,
   })
-  backPlane.rotate(Vector3.Up(), Math.PI)
+  // backPlane.rotate(Vector3.Up(), Math.PI)
 
   let backMaterial: StandardMaterial | undefined
   switch (backfaceOption?.mode) {
@@ -110,6 +99,7 @@ export const createPlaneAndBackPlane = (
     }
     case 'flipped': {
       backPlane.material = material
+      // TODO
       break
     }
   }
