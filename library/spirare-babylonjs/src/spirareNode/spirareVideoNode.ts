@@ -20,6 +20,7 @@ import {
 
 export class SpirareVideoNode extends SpirareMediaNodeBase<PomlVideoElement> {
   private videoTexture?: VideoTexture
+  private videoTextureUrl?: string
   private videoMaterial?: Material
   private backMaterial?: Material
   private plane?: Mesh
@@ -55,7 +56,7 @@ export class SpirareVideoNode extends SpirareMediaNodeBase<PomlVideoElement> {
     }
 
     this.onDisposeObservable.add(() => {
-      this.cleanUp()
+      this.cleanUpUnnecessaryResource(undefined)
     })
   }
 
@@ -87,7 +88,7 @@ export class SpirareVideoNode extends SpirareMediaNodeBase<PomlVideoElement> {
     const scene = this.getScene()
     const created = await this.createVideo(scene, this.element)
 
-    this.cleanUp()
+    this.cleanUpUnnecessaryResource(created)
     if (created) {
       this.plane = created.plane
       this.backPlane = created.backPlane
@@ -111,18 +112,42 @@ export class SpirareVideoNode extends SpirareMediaNodeBase<PomlVideoElement> {
     }
   }
 
-  private cleanUp(): void {
-    this.plane?.dispose()
-    this.backPlane?.dispose()
-    this.videoTexture?.dispose()
-    this.videoMaterial?.dispose()
-    this.backMaterial?.dispose()
-    this.plane = undefined
-    this.backPlane = undefined
-    this.videoTexture = undefined
-    this.videoMaterial = undefined
-    this.backMaterial = undefined
-    this._video = undefined
+  private cleanUpUnnecessaryResource(
+    newResource:
+      | {
+          plane: Mesh
+          material: Material
+          backPlane?: Mesh | undefined
+          backMaterial?: Material | undefined
+          videoTexture: VideoTexture
+        }
+      | undefined
+  ): void {
+    if (this.plane !== newResource?.plane) {
+      this.plane?.dispose()
+      this.plane = undefined
+    }
+
+    if (this.videoMaterial !== newResource?.material) {
+      this.videoMaterial?.dispose()
+      this.videoMaterial = undefined
+    }
+
+    if (this.backPlane !== newResource?.backPlane) {
+      this.backPlane?.dispose()
+      this.backPlane = undefined
+    }
+
+    if (this.backMaterial !== newResource?.backMaterial) {
+      this.backMaterial?.dispose()
+      this.backMaterial = undefined
+    }
+
+    if (this.videoTexture !== newResource?.videoTexture) {
+      this.videoTexture?.dispose()
+      this.videoTexture = undefined
+      this._video = undefined
+    }
   }
 
   private async createVideo(scene: Scene, element: PomlVideoElement) {
@@ -133,12 +158,18 @@ export class SpirareVideoNode extends SpirareMediaNodeBase<PomlVideoElement> {
       return
     }
 
-    const videoTexture = new VideoTexture('videoTexture', url, scene)
-    await new Promise<void>((resolve, reject) => {
-      videoTexture.onLoadObservable.add(() => {
-        resolve()
+    let videoTexture: VideoTexture | undefined
+    if (url === this.videoTextureUrl && this.videoTexture !== undefined) {
+      videoTexture = this.videoTexture
+    } else {
+      videoTexture = new VideoTexture('videoTexture', url, scene)
+      await new Promise<void>((resolve, reject) => {
+        videoTexture?.onLoadObservable.add(() => {
+          resolve()
+        })
       })
-    })
+      this.videoTextureUrl = url
+    }
 
     const size = videoTexture.getSize()
     const displaySize = getMediaDisplaySize(element, size)

@@ -22,6 +22,7 @@ import {
 
 export class SpirareImageNode extends SpirareMediaNodeBase<PomlImageElement> {
   private imageTexture?: BaseTexture
+  private imageTextureUrl?: string
   private imageMaterial?: Material
   private backMaterial?: Material
   private plane?: Mesh
@@ -52,21 +53,45 @@ export class SpirareImageNode extends SpirareMediaNodeBase<PomlImageElement> {
     }
 
     this.onDisposeObservable.add(() => {
-      this.cleanUp()
+      this.cleanUpUnnecessaryResource(undefined)
     })
   }
 
-  private cleanUp(): void {
-    this.imageTexture?.dispose()
-    this.imageMaterial?.dispose()
-    this.backMaterial?.dispose()
-    this.plane?.dispose()
-    this.backPlane?.dispose()
-    this.imageTexture = undefined
-    this.imageMaterial = undefined
-    this.backMaterial = undefined
-    this.plane = undefined
-    this.backPlane = undefined
+  private cleanUpUnnecessaryResource(
+    newResource:
+      | {
+          plane: Mesh
+          material: Material
+          backPlane?: Mesh | undefined
+          backMaterial?: Material | undefined
+          imageTexture: BaseTexture
+        }
+      | undefined
+  ): void {
+    if (this.plane !== newResource?.plane) {
+      this.plane?.dispose()
+      this.plane = undefined
+    }
+
+    if (this.imageMaterial !== newResource?.material) {
+      this.imageMaterial?.dispose()
+      this.imageMaterial = undefined
+    }
+
+    if (this.backPlane !== newResource?.backPlane) {
+      this.backPlane?.dispose()
+      this.backPlane = undefined
+    }
+
+    if (this.backMaterial !== newResource?.backMaterial) {
+      this.backMaterial?.dispose()
+      this.backMaterial = undefined
+    }
+
+    if (this.imageTexture !== newResource?.imageTexture) {
+      this.imageTexture?.dispose()
+      this.imageTexture = undefined
+    }
   }
 
   public static async create(
@@ -82,7 +107,8 @@ export class SpirareImageNode extends SpirareMediaNodeBase<PomlImageElement> {
   protected override async updateObject(): Promise<void> {
     const scene = this.getScene()
     const created = await this.createImage(scene, this.element)
-    this.cleanUp()
+    this.cleanUpUnnecessaryResource(created)
+
     if (created) {
       this.plane = created.plane
       this.backPlane = created.backPlane
@@ -117,7 +143,13 @@ export class SpirareImageNode extends SpirareMediaNodeBase<PomlImageElement> {
     // If the filename is set, prioritize the extension of the filename
     const fileExt = (element.filename || src).split('.').pop()
 
-    const texture = await this.loadImageToTexture(url, fileExt, scene)
+    let texture: BaseTexture | undefined
+    if (url === this.imageTextureUrl && this.imageTexture !== undefined) {
+      texture = this.imageTexture
+    } else {
+      texture = await this.loadImageToTexture(url, fileExt, scene)
+      this.imageTextureUrl = url
+    }
 
     if (texture === undefined) {
       return undefined
