@@ -7,7 +7,7 @@ import {
   Scene,
   AbstractMesh,
 } from '@babylonjs/core'
-import { PomlElementBase, PomlTextElement } from 'ts-poml'
+import { BackfaceMode, PomlElementBase, PomlTextElement } from 'ts-poml'
 import { CreateNodeParams } from './spirareNode'
 import { SpirareNodeBase } from './spirareNodeBase'
 import {
@@ -15,6 +15,7 @@ import {
   createPlaneAndBackPlane,
   IsNever,
 } from './spirareNodeUtils'
+import { AppRunMode } from '../types'
 
 export class SpirareTextNode extends SpirareNodeBase<PomlTextElement> {
   private textTexture?: DynamicTexture
@@ -171,7 +172,11 @@ export class SpirareTextNode extends SpirareNodeBase<PomlTextElement> {
   }
 
   private updateText(): void {
-    const created = SpirareTextNode.createText(this.getScene(), this.element)
+    const created = SpirareTextNode.createText(
+      this.getScene(),
+      this.element,
+      this.app.runMode
+    )
     this.cleanUp()
     if (created) {
       this.plane = created.plane
@@ -183,11 +188,15 @@ export class SpirareTextNode extends SpirareNodeBase<PomlTextElement> {
       // Use the parent property instead of the setParent method.
       // setParent maintains the absolute position (the object does not move in relation to the entire scene).
       // Setting the parent property maintains the relative position.
-      created.plane.parent = this
-      created.backPlane.parent = this
+      this.plane.parent = this
+      if (this.backPlane !== undefined) {
+        this.backPlane.parent = this
+      }
 
       this.plane.actionManager = this.actionManager
-      this.backPlane.actionManager = this.actionManager
+      if (this.backPlane !== undefined) {
+        this.backPlane.actionManager = this.actionManager
+      }
 
       this.updateDisplay()
       this.updateLayerMask()
@@ -208,7 +217,11 @@ export class SpirareTextNode extends SpirareNodeBase<PomlTextElement> {
     this.backMaterial = undefined
   }
 
-  private static createText(scene: Scene, element: PomlTextElement) {
+  private static createText(
+    scene: Scene,
+    element: PomlTextElement,
+    appRunMode: AppRunMode
+  ) {
     const text = element.text
     if (text) {
       const fontSizeInMeter = this.getFontSizeInMeter(element.fontSize)
@@ -240,11 +253,32 @@ export class SpirareTextNode extends SpirareNodeBase<PomlTextElement> {
         true
       )
 
+      const backfaceOption: {
+        mode: BackfaceMode
+        color: string
+      } = {
+        mode: 'none',
+        color: 'black',
+      }
+
+      const textureOption = {
+        texture: texture,
+        transparent: true,
+      }
+
+      // Show backface in editor mode
+      if (appRunMode === 'editor') {
+        backfaceOption.mode = 'solid'
+        backfaceOption.color = 'black'
+        textureOption.transparent = false
+      }
+
       const { plane, backPlane, ...materials } = createPlaneAndBackPlane(
         { width: 1, height: texHeight / texWidth },
         scene,
-        texture,
-        'text'
+        textureOption,
+        'text',
+        backfaceOption
       )
 
       // The plane is designed to have a width of 1m.
@@ -252,7 +286,9 @@ export class SpirareTextNode extends SpirareNodeBase<PomlTextElement> {
       const renderedFontSizeInMeter = renderedFontPx / texWidth // Size of the rendered text in meters
       const scale = fontSizeInMeter / renderedFontSizeInMeter
       plane.scaling = new Vector3(scale, scale, scale)
-      backPlane.scaling = new Vector3(scale, scale, scale)
+      if (backPlane !== undefined) {
+        backPlane.scaling = new Vector3(scale, scale, scale)
+      }
 
       return {
         plane: plane,

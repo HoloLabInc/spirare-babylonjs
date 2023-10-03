@@ -95,11 +95,16 @@ export class SpirareVideoNode extends SpirareMediaNodeBase<PomlVideoElement> {
       this.videoMaterial = created.material
       this.backMaterial = created.backMaterial
       this._video = created.videoTexture.video
-      created.plane.parent = this
-      created.backPlane.parent = this
+
+      this.plane.parent = this
+      if (this.backPlane !== undefined) {
+        this.backPlane.parent = this
+      }
 
       this.plane.actionManager = this.actionManager
-      this.backPlane.actionManager = this.actionManager
+      if (this.backPlane !== undefined) {
+        this.backPlane.actionManager = this.actionManager
+      }
 
       this.updateDisplay()
       this.updateLayerMask()
@@ -148,18 +153,25 @@ export class SpirareVideoNode extends SpirareMediaNodeBase<PomlVideoElement> {
       color: element.backfaceColor ?? 'white',
     }
 
+    const textureOption = {
+      texture: videoTexture,
+      transparent: true,
+    }
+
     // Show backface in editor mode
     if (this.app.runMode === 'editor') {
       if (backfaceOption.mode === 'none') {
         backfaceOption.mode = 'solid'
         backfaceOption.color = 'black'
       }
+
+      textureOption.transparent = false
     }
 
     const created = createPlaneAndBackPlane(
       displaySize,
       scene,
-      videoTexture,
+      textureOption,
       'video',
       backfaceOption
     )

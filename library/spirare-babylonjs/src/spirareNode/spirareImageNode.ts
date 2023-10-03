@@ -90,11 +90,15 @@ export class SpirareImageNode extends SpirareMediaNodeBase<PomlImageElement> {
       this.imageMaterial = created.material
       this.backMaterial = created.backMaterial
 
-      created.plane.parent = this
-      created.backPlane.parent = this
+      this.plane.parent = this
+      if (this.backPlane !== undefined) {
+        this.backPlane.parent = this
+      }
 
       this.plane.actionManager = this.actionManager
-      this.backPlane.actionManager = this.actionManager
+      if (this.backPlane !== undefined) {
+        this.backPlane.actionManager = this.actionManager
+      }
 
       this.updateDisplay()
       this.updateLayerMask()
@@ -132,18 +136,25 @@ export class SpirareImageNode extends SpirareMediaNodeBase<PomlImageElement> {
       color: element.backfaceColor ?? 'white',
     }
 
-    // Show backface in editor mode
+    const textureOption = {
+      texture: texture,
+      transparent: true,
+    }
+
     if (this.app.runMode === 'editor') {
+      // Show backface in editor mode
       if (backfaceOption.mode === 'none') {
         backfaceOption.mode = 'solid'
         backfaceOption.color = 'black'
       }
+
+      textureOption.transparent = false
     }
 
     const created = createPlaneAndBackPlane(
       displaySize,
       scene,
-      texture,
+      textureOption,
       'image',
       backfaceOption
     )

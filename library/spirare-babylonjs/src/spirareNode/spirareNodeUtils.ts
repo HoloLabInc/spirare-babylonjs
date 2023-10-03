@@ -38,13 +38,13 @@ export const getHigherPriorityDisplay = (
 export const createPlaneAndBackPlane = (
   size: { width: number; height: number },
   scene: Scene,
-  texture: BaseTexture,
+  textureOption: { texture: BaseTexture; transparent: boolean },
   namePrefix: string,
   backfaceOption?: { mode: BackfaceMode; color: string }
 ): {
   plane: Mesh
   material: Material
-  backPlane: Mesh
+  backPlane?: Mesh
   backMaterial?: Material
 } => {
   // Create a front plane
@@ -56,9 +56,19 @@ export const createPlaneAndBackPlane = (
 
   const material = new StandardMaterial(`${namePrefix}Material`, scene)
   material.disableLighting = true
-  material.emissiveTexture = texture
-  material.opacityTexture = texture
+  material.emissiveTexture = textureOption.texture
+  if (textureOption.transparent) {
+    material.opacityTexture = textureOption.texture
+  }
   plane.material = material
+
+  const backfaceMode = backfaceOption?.mode ?? 'none'
+  if (backfaceOption === undefined || backfaceMode === 'none') {
+    return {
+      plane: plane,
+      material: material,
+    }
+  }
 
   // Create a back plane
   const backPlane = MeshBuilder.CreatePlane(`${namePrefix}BackPlane`, {
@@ -67,11 +77,7 @@ export const createPlaneAndBackPlane = (
   })
 
   let backMaterial: StandardMaterial | undefined
-  switch (backfaceOption?.mode) {
-    case 'none':
-    case undefined: {
-      break
-    }
+  switch (backfaceMode) {
     case 'solid': {
       backMaterial = new StandardMaterial(
         `${namePrefix}BackPlaneMaterial`,
