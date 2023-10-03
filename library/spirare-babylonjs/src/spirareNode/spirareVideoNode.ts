@@ -11,12 +11,14 @@ import {
   createPlaneAndBackPlane,
   getFileLoadUrlAsync,
   getMediaDisplaySize,
-  parseAsNumber,
 } from './spirareNodeUtils'
-import { SpirareNodeBase } from './spirareNodeBase'
 import { CreateNodeParams } from './spirareNode'
+import {
+  SpirareMediaNodeBase,
+  mediaElementInspectables,
+} from './spirareMediaNodeBase'
 
-export class SpirareVideoNode extends SpirareNodeBase<PomlVideoElement> {
+export class SpirareVideoNode extends SpirareMediaNodeBase<PomlVideoElement> {
   private videoTexture?: VideoTexture
   private videoMaterial?: Material
   private backMaterial?: Material
@@ -46,17 +48,10 @@ export class SpirareVideoNode extends SpirareNodeBase<PomlVideoElement> {
           propertyName: '',
           type: InspectableType.Tab,
         },
-        {
-          label: 'Width',
-          propertyName: 'width',
-          type: InspectableType.String,
-        },
-        {
-          label: 'Height',
-          propertyName: 'height',
-          type: InspectableType.String,
-        }
+        ...mediaElementInspectables
       )
+
+      this.updateBackfaceColorInspector()
     }
 
     this.onDisposeObservable.add(() => {
@@ -73,7 +68,7 @@ export class SpirareVideoNode extends SpirareNodeBase<PomlVideoElement> {
 
     // In case video playback fails, we don't want to wait for updateVideo() to complete before exiting the create method.
     // Therefore, updateVideo() is called asynchronously and is not awaited.
-    node.updateVideo().then(async () => {
+    node.updateObject().then(async () => {
       try {
         if (node.video) {
           // Mute the video to avoid sudden loud sounds and play it
@@ -88,6 +83,7 @@ export class SpirareVideoNode extends SpirareNodeBase<PomlVideoElement> {
     return node
   }
 
+  /*
   public get width(): string | undefined {
     return this.element.width?.toString()
   }
@@ -119,8 +115,9 @@ export class SpirareVideoNode extends SpirareNodeBase<PomlVideoElement> {
     this.updateVideo()
     this.onChange?.()
   }
+  */
 
-  private async updateVideo(): Promise<void> {
+  protected override async updateObject(): Promise<void> {
     const scene = this.getScene()
     const created = await this.createVideo(scene, this.element)
 
@@ -180,11 +177,25 @@ export class SpirareVideoNode extends SpirareNodeBase<PomlVideoElement> {
       return undefined
     }
 
+    const backfaceOption = {
+      mode: element.backfaceMode ?? 'none',
+      color: element.backfaceColor ?? 'white',
+    }
+
+    // Show backface in editor mode
+    if (this.app.runMode === 'editor') {
+      if (backfaceOption.mode === 'none') {
+        backfaceOption.mode = 'solid'
+        backfaceOption.color = 'black'
+      }
+    }
+
     const created = createPlaneAndBackPlane(
       displaySize,
       scene,
       videoTexture,
-      'video'
+      'video',
+      backfaceOption
     )
 
     return {
