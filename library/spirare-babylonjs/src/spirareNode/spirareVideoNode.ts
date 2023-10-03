@@ -83,40 +83,6 @@ export class SpirareVideoNode extends SpirareMediaNodeBase<PomlVideoElement> {
     return node
   }
 
-  /*
-  public get width(): string | undefined {
-    return this.element.width?.toString()
-  }
-  public set width(value: string | undefined) {
-    const num = parseAsNumber(value?.trim())
-    if (this.element.width === num) {
-      return
-    }
-    this.element.width = num
-    if (num === undefined) {
-      this.element.originalAttrs?.delete('width')
-    }
-    this.updateVideo()
-    this.onChange?.()
-  }
-
-  public get height(): string | undefined {
-    return this.element.height?.toString()
-  }
-  public set height(value: string | undefined) {
-    const num = parseAsNumber(value?.trim())
-    if (this.element.height === num) {
-      return
-    }
-    this.element.height = num
-    if (num === undefined) {
-      this.element.originalAttrs?.delete('height')
-    }
-    this.updateVideo()
-    this.onChange?.()
-  }
-  */
-
   protected override async updateObject(): Promise<void> {
     const scene = this.getScene()
     const created = await this.createVideo(scene, this.element)
