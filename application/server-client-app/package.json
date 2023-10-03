@@ -52,7 +52,7 @@
     "spirare-babylonjs": "file:../../library/spirare-babylonjs",
     "style-loader": "^3.3.1",
     "tempfile": "^4.0.0",
-    "ts-poml": "github:HoloLabInc/ts-poml#feature/image-video-backface",
+    "ts-poml": "github:HoloLabInc/ts-poml#v0.3.0",
     "url-loader": "^4.1.1",
     "webpack": "^5.74.0"
   },
