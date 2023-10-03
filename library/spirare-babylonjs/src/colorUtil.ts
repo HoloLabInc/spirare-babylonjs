@@ -1,4 +1,4 @@
-import { Color4 } from '@babylonjs/core'
+import { Color3, Color4 } from '@babylonjs/core'
 
 export const stringToColor = (colorString: string): Color4 => {
   if (colorString.startsWith('#')) {
@@ -12,6 +12,11 @@ export const stringToColor = (colorString: string): Color4 => {
     return new Color4(0, 0, 0, 0)
   }
   return new Color4(0, 0, 0, 1)
+}
+
+export const stringToColor3 = (colorString: string): Color3 => {
+  const color = stringToColor(colorString)
+  return new Color3(color.r, color.g, color.b)
 }
 
 const webcolors = {

@@ -8,11 +8,12 @@ import {
   StandardMaterial,
   Vector3,
 } from '@babylonjs/core'
-import { Display } from 'ts-poml'
+import { BackfaceMode, Display } from 'ts-poml'
 import { SpirareModelNode } from './spirareModelNode'
 import { SpirareVideoNode } from './spirareVideoNode'
 import { SpirareImageNode } from './spirareImageNode'
 import { SpirareCesium3dTilesNode } from './spirareCesium3dTilesNode'
+import { stringToColor3 } from '../colorUtil'
 
 export type IsNever<T> = [T] extends [never] ? true : false
 export type AssertTrue<T extends true> = never
@@ -49,38 +50,69 @@ export const createPlaneAndBackPlane = (
   size: { width: number; height: number },
   scene: Scene,
   texture: BaseTexture,
-  namePrefix: string
+  namePrefix: string,
+  backfaceOption?: { mode: BackfaceMode; color: string }
 ): {
   plane: Mesh
   material: Material
   backPlane: Mesh
-  backMaterial: Material
+  backMaterial?: Material
 } => {
+  // Create a front plane
   const plane = MeshBuilder.CreatePlane(`${namePrefix}Plane`, {
     width: size.width,
     height: size.height,
     // sideOrientation: Mesh.DOUBLESIDE,
   })
   plane.rotate(Vector3.Up(), Math.PI)
+
   const material = new StandardMaterial(`${namePrefix}Material`, scene)
   material.disableLighting = true
   material.emissiveTexture = texture
   material.opacityTexture = texture
   plane.material = material
 
-  // Create a black back plane mesh
-  const backMaterial = new StandardMaterial(
-    `${namePrefix}BackPlaneMaterial`,
-    scene
-  )
-  backMaterial.disableLighting = true
+  // Create a back plane
   const backPlane = MeshBuilder.CreatePlane(`${namePrefix}BackPlane`, {
     sideOrientation: Mesh.DOUBLESIDE, // Remove this line if you want single-sided rendering
     width: size.width,
     height: size.height,
   })
   backPlane.rotate(Vector3.Up(), Math.PI)
-  backPlane.material = backMaterial
+
+  let backMaterial: StandardMaterial | undefined
+  switch (backfaceOption?.mode) {
+    case 'none':
+    case undefined: {
+      /*
+      backMaterial = new StandardMaterial(
+        `${namePrefix}BackPlaneMaterial`,
+        scene
+      )
+      backMaterial.disableLighting = true
+      backPlane.material = backMaterial
+      */
+      break
+    }
+    case 'solid': {
+      backMaterial = new StandardMaterial(
+        `${namePrefix}BackPlaneMaterial`,
+        scene
+      )
+      backMaterial.disableLighting = true
+      backMaterial.emissiveColor = stringToColor3(backfaceOption.color)
+      backPlane.material = backMaterial
+      break
+    }
+    case 'visible': {
+      backPlane.material = material
+      break
+    }
+    case 'flipped': {
+      backPlane.material = material
+      break
+    }
+  }
 
   return {
     plane: plane,

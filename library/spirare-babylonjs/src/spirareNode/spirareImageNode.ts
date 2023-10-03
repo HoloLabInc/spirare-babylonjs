@@ -10,17 +10,17 @@ import {
 import { PomlImageElement } from 'ts-poml'
 import { AnimatedGifTexture } from '../gif/animatedGifTexture'
 import {
-  AssertTrue,
-  IsNever,
   createPlaneAndBackPlane,
   getFileLoadUrlAsync,
   getMediaDisplaySize,
-  parseAsNumber,
 } from './spirareNodeUtils'
-import { SpirareNodeBase } from './spirareNodeBase'
 import { CreateNodeParams } from './spirareNode'
+import {
+  SpirareMediaNodeBase,
+  mediaElementInspectables,
+} from './spirareMediaNodeBase'
 
-export class SpirareImageNode extends SpirareNodeBase<PomlImageElement> {
+export class SpirareImageNode extends SpirareMediaNodeBase<PomlImageElement> {
   private imageTexture?: BaseTexture
   private imageMaterial?: Material
   private backMaterial?: Material
@@ -45,39 +45,7 @@ export class SpirareImageNode extends SpirareNodeBase<PomlImageElement> {
           propertyName: '',
           type: InspectableType.Tab,
         },
-        {
-          label: 'Width',
-          propertyName: 'width',
-          type: InspectableType.String,
-        },
-        {
-          label: 'Height',
-          propertyName: 'height',
-          type: InspectableType.String,
-        },
-        {
-          label: 'Backface Mode',
-          propertyName: 'backfaceMode',
-          type: InspectableType.Options,
-          options: [
-            {
-              label: 'none',
-              value: 0,
-            },
-            {
-              label: 'solid',
-              value: 1,
-            },
-            {
-              label: 'visible',
-              value: 2,
-            },
-            {
-              label: 'flipped',
-              value: 3,
-            },
-          ],
-        }
+        ...mediaElementInspectables
       )
     }
 
@@ -105,78 +73,11 @@ export class SpirareImageNode extends SpirareNodeBase<PomlImageElement> {
     name?: string
   ): Promise<SpirareImageNode> {
     const node = new SpirareImageNode(imageElement, params, name)
-    await node.updateImage()
+    await node.updateObject()
     return node
   }
 
-  public get width(): string | undefined {
-    return this.element.width?.toString()
-  }
-  public set width(value: string | undefined) {
-    const num = parseAsNumber(value?.trim())
-    if (this.element.width === num) {
-      return
-    }
-    this.element.width = num
-    if (num === undefined) {
-      this.element.originalAttrs?.delete('width')
-    }
-    this.updateImage()
-    this.onChange?.()
-  }
-
-  public get height(): string | undefined {
-    return this.element.height?.toString()
-  }
-  public set height(value: string | undefined) {
-    const num = parseAsNumber(value?.trim())
-    if (this.element.height === num) {
-      return
-    }
-    this.element.height = num
-    if (num === undefined) {
-      this.element.originalAttrs?.delete('height')
-    }
-    this.updateImage()
-    this.onChange?.()
-  }
-
-  // Called from the inspector.
-  private get backfaceMode(): number {
-    const backfaceMode = this.element.backfaceMode
-    console.log({ backfaceMode })
-    switch (backfaceMode) {
-      case undefined:
-      case 'none': {
-        return 0
-      }
-      case 'solid': {
-        return 1
-      }
-      case 'visible': {
-        return 2
-      }
-      case 'flipped': {
-        return 3
-      }
-      default: {
-        let _: AssertTrue<IsNever<typeof backfaceMode>>
-        return 0
-      }
-    }
-  }
-
-  // Called from the inspector.
-  private set backfaceMode(value: number) {
-    const a = [undefined, 'solid', 'visible', 'flipped'] as const
-    if (this.element.backfaceMode !== a[value]) {
-      this.element.backfaceMode = a[value]
-      this.updateImage()
-      this.onChange?.()
-    }
-  }
-
-  private async updateImage(): Promise<void> {
+  protected override async updateObject(): Promise<void> {
     const scene = this.getScene()
     const created = await this.createImage(scene, this.element)
     this.cleanUp()
@@ -228,7 +129,11 @@ export class SpirareImageNode extends SpirareNodeBase<PomlImageElement> {
       displaySize,
       scene,
       texture,
-      'image'
+      'image',
+      {
+        mode: element.backfaceMode ?? 'none',
+        color: element.backfaceColor ?? 'white',
+      }
     )
 
     return {
