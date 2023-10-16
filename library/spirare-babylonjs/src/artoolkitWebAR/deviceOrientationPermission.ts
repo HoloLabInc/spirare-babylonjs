@@ -6,7 +6,7 @@ interface DeviceMotionEventiOS extends DeviceMotionEvent {
   requestPermission?: () => Promise<'granted' | 'denied'>
 }
 
-const requestOrientationPermission = async (): Promise<boolean> => {
+export const requestOrientationPermission = async (): Promise<boolean> => {
   const orientationRequestPermission = (
     DeviceOrientationEvent as unknown as DeviceOrientationEventiOS
   ).requestPermission

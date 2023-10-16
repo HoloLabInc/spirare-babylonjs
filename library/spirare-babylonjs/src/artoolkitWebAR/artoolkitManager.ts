@@ -91,12 +91,12 @@ type DetectedMarker = {
   detectionStartedTime: number
 }
 
-export class ARtoolkitManager {
+export class ARToolkitManager {
   private arController: ARToolkitModule.ARController | undefined
   private markerIdMap = new Map<number, MarkerInfo>()
   private detectionStartedTimeMap = new Map<number, number>()
 
-  public async InitializeAsync(
+  public async initializeAsync(
     width: number,
     height: number,
     cameraParamUrl: string
@@ -111,7 +111,7 @@ export class ARtoolkitManager {
     )
   }
 
-  public async AddMarkersAsync(markerInfoList: MarkerInfo[]) {
+  public async addMarkersAsync(markerInfoList: MarkerInfo[]) {
     if (this.arController === undefined) {
       return
     }
@@ -129,7 +129,7 @@ export class ARtoolkitManager {
     })
   }
 
-  public detectMarker(
+  public detectMarkers(
     // arController: ARController,
     // markerIdMap: Map<number, MarkerInfo>,
     // detectionStartedTimeMap: Map<number, number>,
@@ -146,7 +146,7 @@ export class ARtoolkitManager {
       return []
     }
 
-    const foundMarkerList: DetectedMarker[] = []
+    const detectedMarkers: DetectedMarker[] = []
 
     for (let i = 0; i < this.arController.getMarkerNum(); i++) {
       const markerObj = this.arController.getMarker(i) as { idPatt: number }
@@ -157,7 +157,7 @@ export class ARtoolkitManager {
         this.detectionStartedTimeMap.get(markerId) ?? Date.now()
 
       if (markerInfo !== undefined) {
-        foundMarkerList.push({
+        detectedMarkers.push({
           index: i,
           markerId: markerId,
           markerInfo: markerInfo,
@@ -166,13 +166,18 @@ export class ARtoolkitManager {
       }
     }
 
+    /*
     this.detectionStartedTimeMap.forEach((id, time) => {
       if (foundMarkerList.find((m) => m.markerId === id) === undefined) {
         this.detectionStartedTimeMap.delete(id)
       }
     })
+	*/
+    this.detectionStartedTimeMap = new Map(
+      detectedMarkers.map((m) => [m.markerId, m.detectionStartedTime])
+    )
 
-    return foundMarkerList
+    return detectedMarkers
   }
 }
 
