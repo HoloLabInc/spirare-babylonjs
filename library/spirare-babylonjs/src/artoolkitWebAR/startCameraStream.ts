@@ -3,17 +3,6 @@ export const startCameraStream = async (
   constraints: MediaStreamConstraints
 ): Promise<boolean> => {
   return new Promise(async (resolve) => {
-    /*
-    const constraints = {
-      video: {
-        // facingMode: { exact: 'environment' },
-        facingMode: 'environment',
-        width: { ideal: 1280 },
-        height: { ideal: 720 },
-      },
-    }
-	*/
-
     try {
       videoElement.addEventListener('loadedmetadata', function () {
         resolve(true)

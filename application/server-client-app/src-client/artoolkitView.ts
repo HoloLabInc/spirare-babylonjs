@@ -1,22 +1,12 @@
-import { App, CameraControllerFactory } from 'spirare-babylonjs/src/app'
-import { DeviceOrientationCameraController } from 'spirare-babylonjs/src/artoolkitWebAR/deviceOrientationCameraController'
+import { App } from 'spirare-babylonjs/src/app'
+import { deviceOrientationCameraControllerFactory } from 'spirare-babylonjs/src/artoolkitWebAR/deviceOrientationCameraController'
 import { startCameraStream } from 'spirare-babylonjs/src/artoolkitWebAR/startCameraStream'
 import { requestOrientationPermission } from 'spirare-babylonjs/src/artoolkitWebAR/deviceOrientationPermission'
 import { ARToolkitManager } from 'spirare-babylonjs/src/artoolkitWebAR/artoolkitManager'
 import { LoadPomlOptions } from 'spirare-babylonjs/src/pomlLoader'
 import { getAppLaunchParms } from 'spirare-babylonjs/src/types'
 import { getPomlAsync } from './common/api'
-import { Color4, Quaternion, Vector3 } from '@babylonjs/core'
-
-const cameraControllerFactory: CameraControllerFactory = (
-  app,
-  scene,
-  canvas
-) => {
-  scene.clearColor = new Color4(0, 0, 0, 0)
-  const cameraController = new DeviceOrientationCameraController(scene, canvas)
-  return cameraController
-}
+import { Quaternion, Vector3 } from '@babylonjs/core'
 
 const startScene = async () => {
   const launchParams = getAppLaunchParms(window.location.search)
@@ -29,7 +19,7 @@ const startScene = async () => {
 
   const app = new App({
     launchParams,
-    cameraControllerFactory,
+    cameraControllerFactory: deviceOrientationCameraControllerFactory,
   })
 
   const pomlResult = await getPomlAsync(app.pomlId)
