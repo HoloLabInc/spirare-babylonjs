@@ -6,15 +6,7 @@ import { ARToolkitManager } from 'spirare-babylonjs/src/artoolkitWebAR/artoolkit
 import { LoadPomlOptions } from 'spirare-babylonjs/src/pomlLoader'
 import { getAppLaunchParms } from 'spirare-babylonjs/src/types'
 import { getPomlAsync } from './common/api'
-import {
-  Color4,
-  DeviceOrientationCamera,
-  Quaternion,
-  Vector3,
-} from '@babylonjs/core'
-//import { ArtoolkitCameraController } from './camera/artoolkitCameraController'
-//import ARToolkitModule from '@ar-js-org/artoolkit5-js'
-//import ARController from '@ar-js-org/artoolkit5-js/types/ARController'
+import { Color4, Quaternion, Vector3 } from '@babylonjs/core'
 
 const cameraControllerFactory: CameraControllerFactory = (
   app,
@@ -64,17 +56,6 @@ const startMarkerDetection = async (
     '/dist/artoolkit/camera_para.dat'
   )
 
-  /*
-  const arController = await ARToolkitModule.ARController.initWithDimensions(
-    videoElement.videoWidth,
-    videoElement.videoHeight,
-    '/dist/artoolkit/camera_para.dat'
-  )
-
-  const markerInfoList = [
-    { spaceId: 'markerAR', pattern: '/dist/artoolkit/pattern-AR.patt' },
-  ] as MarkerInfo[]
-  */
   const markerInfoList = [
     { spaceId: 'markerAR', pattern: '/dist/artoolkit/pattern-AR.patt' },
   ]
@@ -83,24 +64,8 @@ const startMarkerDetection = async (
 
   const FPS = 10
 
-  // let detectionStartedTimeMap = new Map<number, number>()
-
   const intervalId = setInterval(() => {
-    /*
-    const detectedMarkers = detectMarker(
-      arController,
-      markerIdMap,
-      detectionStartedTimeMap,
-      videoElement
-    )
-    */
     const detectedMarkers = artoolkitManager.detectMarkers(videoElement)
-
-    /*
-    detectionStartedTimeMap = new Map(
-      detectedMarkers.map((m) => [m.markerId, m.detectionStartedTime])
-    )
-    */
 
     detectedMarkers.forEach((detectedMarker) => {
       const timeFromDetectionStarted =
