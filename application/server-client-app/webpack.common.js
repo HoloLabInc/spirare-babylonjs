@@ -146,7 +146,7 @@ const artoolkitConfig = {
 artoolkitConfig.plugins.push(
   new CopyWebpackPlugin({
     patterns: [
-      { from: path.join(__dirname, 'node_modules', '@ar-js-org', 'artoolkit5-js', 'dist', 'ARToolkit.js') },
+      { from: path.join(__dirname, 'node_modules', 'spirare-babylonjs', 'node_modules', '@ar-js-org', 'artoolkit5-js', 'dist', 'ARToolkit.js') },
       { from: path.join(__dirname, 'data', 'artoolkit'), to: 'artoolkit' },
     ],
   })

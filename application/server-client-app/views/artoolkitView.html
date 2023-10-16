@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Spirare WebAR Viewer</title>
+
+    <style type="text/css">
+      html,
+      body,
+      #ar-view,
+      #spirare_canvas {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+      }
+
+      #spirare_canvas {
+        position: absolute;
+      }
+
+      #ar-view {
+        position: absolute;
+        visibility: hidden;
+      }
+
+      #video {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translateX(-50%) translateY(-50%);
+        min-width: 100%;
+        min-height: 100%;
+      }
+
+      #start-menu-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+
+        visibility: hidden;
+      }
+
+      #start-button {
+        padding: 20px 40px;
+        font-size: 24px;
+        cursor: pointer;
+        background-color: #4c84af;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        transition: background-color 0.3s;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="ar-view">
+      <video id="video" autoplay playsinline></video>
+      <canvas id="spirare_canvas"></canvas>
+    </div>
+
+    <div id="start-menu-container">
+      <button id="start-button">Start AR</button>
+    </div>
+
+    <script src="./dist/ARToolkit.js"></script>
+    <script src="./dist/artoolkitView.js"></script>
+  </body>
+</html>
