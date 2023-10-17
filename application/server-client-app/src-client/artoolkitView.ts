@@ -2,11 +2,13 @@ import { App } from 'spirare-babylonjs/src/app'
 import { deviceOrientationCameraControllerFactory } from 'spirare-babylonjs/src/artoolkitWebAR/deviceOrientationCameraController'
 import { startCameraStream } from 'spirare-babylonjs/src/artoolkitWebAR/startCameraStream'
 import { requestOrientationPermission } from 'spirare-babylonjs/src/artoolkitWebAR/deviceOrientationPermission'
-import { ARToolkitManager } from 'spirare-babylonjs/src/artoolkitWebAR/artoolkitManager'
+import {
+  MarkerAlignmentConfig,
+  startMarkerAlignmentAsync,
+} from 'spirare-babylonjs/src/artoolkitWebAR/artoolkitWebAR'
 import { LoadPomlOptions } from 'spirare-babylonjs/src/pomlLoader'
 import { getAppLaunchParms } from 'spirare-babylonjs/src/types'
 import { getPomlAsync } from './common/api'
-import { Quaternion, Vector3 } from '@babylonjs/core'
 
 const startScene = async () => {
   const launchParams = getAppLaunchParms(window.location.search)
@@ -34,10 +36,10 @@ const startScene = async () => {
   return app
 }
 
-const artoolkitManager = new ARToolkitManager()
-
+/*
 const startMarkerDetection = async (
   app: App,
+  artoolkitManager: ARToolkitManager,
   videoElement: HTMLVideoElement
 ) => {
   await artoolkitManager.initializeAsync(
@@ -52,50 +54,9 @@ const startMarkerDetection = async (
 
   await artoolkitManager.addMarkersAsync(markerInfoList)
 
-  const FPS = 10
-
-  const intervalId = setInterval(() => {
-    const detectedMarkers = artoolkitManager.detectMarkers(videoElement)
-
-    detectedMarkers.forEach((detectedMarker) => {
-      const timeFromDetectionStarted =
-        Date.now() - detectedMarker.detectionStartedTime
-
-      if (timeFromDetectionStarted < 1 * 1000) {
-        return
-      }
-
-      const cameraTarget = app.camera.target
-      const horizontalForward = new Vector3(
-        cameraTarget.x,
-        0,
-        cameraTarget.z
-      ).normalize()
-      const markerDistance = 1
-      const position = horizontalForward.scaleInPlace(markerDistance)
-
-      const lookRotation = Quaternion.FromLookDirectionLH(
-        horizontalForward,
-        Vector3.Up()
-      )
-
-      const markerRotation = Quaternion.RotationAxis(
-        Vector3.Right(),
-        -Math.PI / 2
-      )
-      const rotation = lookRotation.multiply(markerRotation)
-
-      app.updateSpaceStatus({
-        type: 'updated',
-        position: position,
-        rotation: rotation,
-        spaceType: 'Marker',
-        spaceId: detectedMarker.markerInfo.spaceId,
-      })
-      clearInterval(intervalId)
-    })
-  }, 1000 / FPS)
+  startMarkerAlignment(app, artoolkitManager, videoElement)
 }
+*/
 
 const startAR = async () => {
   startMenu.style.visibility = 'hidden'
@@ -112,7 +73,16 @@ const startAR = async () => {
     },
   })
 
-  startMarkerDetection(app, videoElement)
+  // const artoolkitManager = new ARToolkitManager()
+  // startMarkerDetection(app, artoolkitManager, videoElement)
+  const config: MarkerAlignmentConfig = {
+    cameraParamUrl: '/dist/artoolkit/camera_para.dat',
+    markerInfoList: [
+      { spaceId: 'markerAR', pattern: '/dist/artoolkit/pattern-AR.patt' },
+    ],
+    stopDetectionOnMarkerFound: true,
+  }
+  startMarkerAlignmentAsync(app, videoElement, config)
 }
 
 const startMenu = document.getElementById('start-menu-container') as HTMLElement

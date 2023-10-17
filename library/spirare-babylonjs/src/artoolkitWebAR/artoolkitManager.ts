@@ -1,11 +1,11 @@
 import ARToolkitModule from '@ar-js-org/artoolkit5-js'
 
-type MarkerInfo = {
+export type MarkerInfo = {
   spaceId: string
   pattern: string
 }
 
-type DetectedMarker = {
+export type DetectedMarker = {
   index: number
   markerId: number
   markerInfo: MarkerInfo
