@@ -88,16 +88,16 @@ const clientConfig = {
         use: ['url-loader'],
       },
       /*
-			{
-				test: /\.jsx$/,
-				exclude: /node_modules/,
-				loader: 'babel-loader'
-			},
-			{
-				test: /\.scss$/,
-				loader: ['style-loader', 'css-loader', 'sass-loader']
-			}
-			*/
+      {
+        test: /\.jsx$/,
+        exclude: /node_modules/,
+        loader: 'babel-loader'
+      },
+      {
+        test: /\.scss$/,
+        loader: ['style-loader', 'css-loader', 'sass-loader']
+      }
+      */
     ],
   },
   plugins: [
@@ -134,6 +134,24 @@ eighthwallConfig.output = {
   filename: '8thwallView.js',
 }
 
+const artoolkitConfig = {
+  ...clientConfig,
+  entry: './src-client/artoolkitView.ts',
+  output: {
+    path: clientOutputPath,
+    filename: 'artoolkitView.js',
+  }
+}
+
+artoolkitConfig.plugins.push(
+  new CopyWebpackPlugin({
+    patterns: [
+      { from: path.join(__dirname, 'node_modules', 'spirare-babylonjs', 'node_modules', '@ar-js-org', 'artoolkit5-js', 'dist', 'ARToolkit.js') },
+      { from: path.join(__dirname, 'data', 'artoolkit'), to: 'artoolkit' },
+    ],
+  })
+)
+
 const startpageConfig = {
   context: __dirname,
   entry: './src-client/startpage.tsx',
@@ -169,17 +187,17 @@ const startpageConfig = {
         use: ['url-loader'],
       },
       /*
-			{
-				test: /\.jsx$/,
-				exclude: /node_modules/,
-				loader: 'babel-loader'
-			},
-			{
-				test: /\.scss$/,
-				loader: ['style-loader', 'css-loader', 'sass-loader']
-			}
-			*/
+      {
+        test: /\.jsx$/,
+        exclude: /node_modules/,
+        loader: 'babel-loader'
+      },
+      {
+        test: /\.scss$/,
+        loader: ['style-loader', 'css-loader', 'sass-loader']
+      }
+      */
     ],
   },
 }
-module.exports = [serverConfig, clientConfig, eighthwallConfig, startpageConfig]
+module.exports = [serverConfig, clientConfig, eighthwallConfig, startpageConfig, artoolkitConfig]

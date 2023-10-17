@@ -33,4 +33,8 @@ if (eightwallApiKey) {
   })
 }
 
+router.get('/artoolkit', (req, res) => {
+  res.sendFile(path.join(viewsDir, 'artoolkitView.html'))
+})
+
 export { router as pageRouter }
