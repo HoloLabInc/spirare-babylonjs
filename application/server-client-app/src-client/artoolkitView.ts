@@ -36,28 +36,6 @@ const startScene = async () => {
   return app
 }
 
-/*
-const startMarkerDetection = async (
-  app: App,
-  artoolkitManager: ARToolkitManager,
-  videoElement: HTMLVideoElement
-) => {
-  await artoolkitManager.initializeAsync(
-    videoElement.videoWidth,
-    videoElement.videoHeight,
-    '/dist/artoolkit/camera_para.dat'
-  )
-
-  const markerInfoList = [
-    { spaceId: 'markerAR', pattern: '/dist/artoolkit/pattern-AR.patt' },
-  ]
-
-  await artoolkitManager.addMarkersAsync(markerInfoList)
-
-  startMarkerAlignment(app, artoolkitManager, videoElement)
-}
-*/
-
 const startAR = async () => {
   startMenu.style.visibility = 'hidden'
   await requestOrientationPermission()
@@ -73,14 +51,14 @@ const startAR = async () => {
     },
   })
 
-  // const artoolkitManager = new ARToolkitManager()
-  // startMarkerDetection(app, artoolkitManager, videoElement)
   const config: MarkerAlignmentConfig = {
     cameraParamUrl: '/dist/artoolkit/camera_para.dat',
     markerInfoList: [
       { spaceId: 'markerAR', pattern: '/dist/artoolkit/pattern-AR.patt' },
     ],
     stopDetectionOnMarkerFound: true,
+    requiredDetectionDurationMilliseconds: 1000,
+    detectionFps: 10,
   }
   startMarkerAlignmentAsync(app, videoElement, config)
 }

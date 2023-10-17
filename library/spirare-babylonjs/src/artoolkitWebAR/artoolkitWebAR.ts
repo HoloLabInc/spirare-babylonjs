@@ -27,32 +27,24 @@ export type MarkerAlignmentConfig = {
   cameraParamUrl: string
   markerInfoList: MarkerInfo[]
   stopDetectionOnMarkerFound: boolean
+  requiredDetectionDurationMilliseconds: number
+  detectionFps: number
 }
 
 export const startMarkerAlignmentAsync = async (
   app: App,
-  // artoolkitManager: ARToolkitManager,
   videoElement: HTMLVideoElement,
-  markerConfig: MarkerAlignmentConfig
+  config: MarkerAlignmentConfig
 ) => {
   const artoolkitManager = new ARToolkitManager()
 
   await artoolkitManager.initializeAsync(
     videoElement.videoWidth,
     videoElement.videoHeight,
-    markerConfig.cameraParamUrl
-    // '/dist/artoolkit/camera_para.dat'
+    config.cameraParamUrl
   )
 
-  /*
-  const markerInfoList = [
-    { spaceId: 'markerAR', pattern: '/dist/artoolkit/pattern-AR.patt' },
-  ]
-  */
-
-  await artoolkitManager.addMarkersAsync(markerConfig.markerInfoList)
-
-  const FPS = 10
+  await artoolkitManager.addMarkersAsync(config.markerInfoList)
 
   const intervalId = setInterval(() => {
     const detectedMarkers = artoolkitManager.detectMarkers(videoElement)
@@ -61,7 +53,9 @@ export const startMarkerAlignmentAsync = async (
       const timeFromDetectionStarted =
         Date.now() - detectedMarker.detectionStartedTime
 
-      if (timeFromDetectionStarted < 1 * 1000) {
+      if (
+        timeFromDetectionStarted < config.requiredDetectionDurationMilliseconds
+      ) {
         return
       }
 
@@ -74,7 +68,10 @@ export const startMarkerAlignmentAsync = async (
         spaceType: 'Marker',
         spaceId: detectedMarker.markerInfo.spaceId,
       })
-      clearInterval(intervalId)
+
+      if (config.stopDetectionOnMarkerFound) {
+        clearInterval(intervalId)
+      }
     })
-  }, 1000 / FPS)
+  }, 1000 / config.detectionFps)
 }
