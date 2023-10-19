@@ -51,7 +51,10 @@ import {
 import { GizmoController } from './gizmoController'
 import { GeoManager } from './cesium/geoManager'
 import { B3dmLoader } from './cesium/b3dmLoader'
-import { CameraController } from './camera/cameraController'
+import {
+  CameraController,
+  CameraControllerOptions,
+} from './camera/cameraController'
 import { ICameraController } from './camera/iCameraController'
 import { CesiumManager } from './cesiumManager'
 import { HistoryManager } from './historyManager'
@@ -87,9 +90,10 @@ const defaultCameraControllerFactory: CameraControllerFactory = (
 ): ICameraController => {
   const isGeodeticMode = app.isGeodeticMode
 
-  const cameraOptions = {
+  const cameraOptions: CameraControllerOptions = {
     maxZ: isGeodeticMode ? 0 : 10000,
     upperRadiusLimit: isGeodeticMode ? 40000000 : 10000,
+    lowerRadiusLimit: 0.01,
   }
 
   const cameraController = new CameraController(

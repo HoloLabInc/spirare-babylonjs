@@ -143,9 +143,10 @@ const geodeticCameraPositionDefault: GeodeticPosition = {
   ellipsoidalHeight: 20000,
 }
 
-type CameraControllerOptions = {
+export type CameraControllerOptions = {
   maxZ: number
-  upperRadiusLimit: Nullable<number>
+  lowerRadiusLimit?: Nullable<number>
+  upperRadiusLimit?: Nullable<number>
 }
 
 export class CameraController implements ICameraController {
@@ -377,8 +378,8 @@ export class CameraController implements ICameraController {
     )
 
     camera.maxZ = options.maxZ
-    camera.lowerRadiusLimit = 1.5
-    camera.upperRadiusLimit = options.upperRadiusLimit
+    camera.lowerRadiusLimit = options.lowerRadiusLimit ?? null
+    camera.upperRadiusLimit = options.upperRadiusLimit ?? null
 
     camera.wheelDeltaPercentage = 0.15
 
