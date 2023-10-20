@@ -370,7 +370,7 @@ export class CameraController implements ICameraController {
   ): ArcRotateCamera {
     const camera: ArcRotateCamera = new ArcRotateCamera(
       'Camera',
-      Math.PI / 4,
+      (-Math.PI * 5) / 12,
       Math.PI / 3,
       5,
       Vector3.Zero(),
