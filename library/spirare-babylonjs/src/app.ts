@@ -290,7 +290,7 @@ export class App {
 
     this.highlightLayer = new HighlightLayer('highlightLayer', scene, options)
 
-    if (!isGeodeticMode && launchParams.hideOriginAxes !== true) {
+    if (!isGeodeticMode && launchParams.hideOriginAxes === false) {
       this.createWorldAxesViewer()
     }
 
