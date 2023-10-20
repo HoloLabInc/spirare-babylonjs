@@ -6,7 +6,7 @@ import {
   TargetCamera,
   TransformNode,
   Vector3,
-} from '@babylonjs/core'
+} from 'spirare-babylonjs/node_modules/@babylonjs/core'
 
 import { ICameraController } from 'spirare-babylonjs/src/camera/iCameraController'
 

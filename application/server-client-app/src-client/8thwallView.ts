@@ -2,7 +2,7 @@ declare var XR8: any
 declare var XRExtras: any
 declare var window: any
 
-import * as BABYLON from '@babylonjs/core'
+import * as BABYLON from 'spirare-babylonjs/node_modules/@babylonjs/core'
 import { App, CameraControllerFactory } from 'spirare-babylonjs/src/app'
 import { LoadPomlOptions } from 'spirare-babylonjs/src/pomlLoader'
 import { getAppLaunchParms } from 'spirare-babylonjs/src/types'
