@@ -79,7 +79,9 @@ export class PointCloudLoader {
           }
         }
       )
-      meshes.push(pcs.mesh)
+      if (pcs.mesh !== undefined) {
+        meshes.push(pcs.mesh)
+      }
       pointOffset += loadPointCount
     }
 
