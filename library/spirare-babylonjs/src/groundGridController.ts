@@ -11,19 +11,17 @@ import { GridMaterial } from '@babylonjs/materials'
 export class GroundGridController {
   public gridPlane: Mesh
 
-  private gridMaterial: GridMaterial
-
   constructor() {
     const gridMaterial = new GridMaterial('groundGridMaterial')
     gridMaterial.majorUnitFrequency = 10
-    gridMaterial.minorUnitVisibility = 0.45
+    gridMaterial.minorUnitVisibility = 0.3
     gridMaterial.gridRatio = 1
     gridMaterial.backFaceCulling = false
     gridMaterial.mainColor = new Color3(1, 1, 1)
     gridMaterial.lineColor = new Color3(1, 1, 1)
-    gridMaterial.opacity = 0.3
+    gridMaterial.opacity = 0.15
 
-    const gridPlane = MeshBuilder.CreatePlane('plane', {
+    const gridPlane = MeshBuilder.CreatePlane('groundGridPlane', {
       height: 1000,
       width: 1000,
     })
@@ -31,7 +29,6 @@ export class GroundGridController {
     gridPlane.material = gridMaterial
     gridPlane.isPickable = false
 
-    this.gridMaterial = gridMaterial
     this.gridPlane = gridPlane
   }
 
@@ -43,18 +40,17 @@ export class GroundGridController {
     const gridToCameraDistance =
       (cameraDistance * cameraPosition.y) / (cameraPosition.y - cameraTarget.y)
 
-    if (this.gridPlane !== undefined) {
-      let gridPlaceScale = 1
-      if (gridToCameraDistance < 100) {
-        // gridPlane
-      } else if (gridToCameraDistance < 1000) {
-        gridPlaceScale = 10
-      } else if (gridToCameraDistance < 10000) {
-        gridPlaceScale = 100
-      } else {
-        gridPlaceScale = 1000
+    let gridPlaneScale = 1
+    let distanceRangeMax = 100
+    while (true) {
+      if (gridToCameraDistance < distanceRangeMax) {
+        break
       }
-      this.gridPlane.scaling = Vector3.One().scale(gridPlaceScale)
+
+      gridPlaneScale *= 10
+      distanceRangeMax *= 10
     }
+
+    this.gridPlane.scaling = Vector3.One().scale(gridPlaneScale)
   }
 }
