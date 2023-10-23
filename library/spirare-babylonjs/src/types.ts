@@ -47,6 +47,7 @@ export interface AppLaunchParams {
   hideUI?: boolean
   hideInspector?: boolean
   hideOriginAxes?: boolean
+  showGroundGrid?: boolean
 }
 
 export type SpaceStatus =

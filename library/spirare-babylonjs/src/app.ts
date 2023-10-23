@@ -76,6 +76,7 @@ import {
 import { CoordinateConverter } from './coordinateConverter'
 import { openFilePicker } from './filePicker'
 import clone from 'clone'
+import { GroundGridManager } from './groundGridManager'
 
 export type CameraControllerFactory = (
   app: App,
@@ -294,6 +295,10 @@ export class App {
       this.createWorldAxesViewer()
     }
 
+    if (!isGeodeticMode && launchParams.showGroundGrid === true) {
+      this.createGroundGrid()
+    }
+
     if (launchParams.hideInspector !== true) {
       scene.debugLayer.show({
         embedMode: true,
@@ -360,6 +365,32 @@ export class App {
           this.geoManager.changeOrigin(ecefCameraTarget)
         }
       }
+
+      this.groundGridManager?.updateGrid(this.camera)
+
+      /*
+      const cameraPosition = this.cameraController.camera.position
+      const cameraTarget = this.cameraController.camera.target
+      const cameraDistance = cameraPosition.subtract(cameraTarget).length()
+
+      const gridToCameraDistance =
+        (cameraDistance * cameraPosition.y) /
+        (cameraPosition.y - cameraTarget.y)
+
+      if (this.gridPlane !== undefined) {
+        let gridPlaceScale = 1
+        if (gridToCameraDistance < 100) {
+          // gridPlane
+        } else if (gridToCameraDistance < 1000) {
+          gridPlaceScale = 10
+        } else if (gridToCameraDistance < 10000) {
+          gridPlaceScale = 100
+        } else {
+          gridPlaceScale = 1000
+        }
+        this.gridPlane.scaling = Vector3.One().scale(gridPlaceScale)
+      }
+      */
 
       this.scene.render()
 
@@ -759,6 +790,39 @@ export class App {
   // Creates a viewer for world coordinate axes
   private createWorldAxesViewer() {
     new AxesViewer(this.scene, 0.4)
+  }
+
+  // gridPlane: Mesh | undefined
+
+  groundGridManager: GroundGridManager | undefined
+
+  private createGroundGrid() {
+    this.groundGridManager = new GroundGridManager()
+    this.highlightLayer.addExcludedMesh(this.groundGridManager.gridPlane)
+
+    /*
+
+    const groundMaterial = new GridMaterial('groundGridMaterial')
+    groundMaterial.majorUnitFrequency = 10
+    groundMaterial.minorUnitVisibility = 0.45
+    groundMaterial.gridRatio = 1
+    groundMaterial.backFaceCulling = false
+    groundMaterial.mainColor = new Color3(1, 1, 1)
+    groundMaterial.lineColor = new Color3(1, 1, 1)
+    groundMaterial.opacity = 0.3
+
+    const gridPlane = MeshBuilder.CreatePlane('plane', {
+      height: 1000,
+      width: 1000,
+    })
+    gridPlane.rotationQuaternion = Quaternion.FromEulerAngles(Math.PI / 2, 0, 0)
+    gridPlane.material = groundMaterial
+    gridPlane.isPickable = false
+
+    this.highlightLayer.addExcludedMesh(gridPlane)
+
+    this.gridPlane = gridPlane
+    */
   }
 
   private async undoAsync() {
