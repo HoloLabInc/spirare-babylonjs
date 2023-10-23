@@ -8,7 +8,7 @@ import {
 } from '@babylonjs/core'
 import { GridMaterial } from '@babylonjs/materials'
 
-export class GroundGridManager {
+export class GroundGridController {
   public gridPlane: Mesh
 
   private gridMaterial: GridMaterial
