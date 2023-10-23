@@ -63,6 +63,7 @@ import { Streaming3dTiles, TilesetData } from './plateau/streaming3dTiles'
 import { WebSocketComm } from './comm/webSocketComm'
 import { TilesLoader } from './cesium/tilesLoader'
 import { TerrainController } from './cesium/terrainController'
+import { GroundGridController } from './groundGridController'
 import {
   AppRunMode,
   UploadFileResult,
@@ -114,6 +115,7 @@ export class App {
 
   private cesiumManager: CesiumManager | undefined
   private terrainController: TerrainController | undefined
+  private groundGridController: GroundGridController | undefined
 
   private highlightLayer: HighlightLayer
   private ui: AdvancedDynamicTexture | undefined
@@ -294,6 +296,15 @@ export class App {
       this.createWorldAxesViewer()
     }
 
+    if (!isGeodeticMode) {
+      if (
+        launchParams.showGroundGrid === true ||
+        (launchParams.showGroundGrid === undefined && isEditorMode)
+      ) {
+        this.createGroundGrid()
+      }
+    }
+
     if (launchParams.hideInspector !== true) {
       scene.debugLayer.show({
         embedMode: true,
@@ -360,6 +371,8 @@ export class App {
           this.geoManager.changeOrigin(ecefCameraTarget)
         }
       }
+
+      this.groundGridController?.updateGrid(this.camera)
 
       this.scene.render()
 
@@ -759,6 +772,11 @@ export class App {
   // Creates a viewer for world coordinate axes
   private createWorldAxesViewer() {
     new AxesViewer(this.scene, 0.4)
+  }
+
+  private createGroundGrid() {
+    this.groundGridController = new GroundGridController()
+    this.highlightLayer.addExcludedMesh(this.groundGridController.gridPlane)
   }
 
   private async undoAsync() {
