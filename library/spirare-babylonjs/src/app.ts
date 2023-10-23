@@ -296,8 +296,13 @@ export class App {
       this.createWorldAxesViewer()
     }
 
-    if (!isGeodeticMode && launchParams.showGroundGrid === true) {
-      this.createGroundGrid()
+    if (!isGeodeticMode) {
+      if (
+        launchParams.showGroundGrid === true ||
+        (launchParams.showGroundGrid === undefined && isEditorMode)
+      ) {
+        this.createGroundGrid()
+      }
     }
 
     if (launchParams.hideInspector !== true) {

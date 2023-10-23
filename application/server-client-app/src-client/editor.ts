@@ -10,9 +10,6 @@ let latestSavePomlPromise: Promise<void> | undefined
 const startApp = async () => {
   const params = getAppLaunchParms(location.search)
   params.startPageUrl = '/'
-  if (params.showGroundGrid === undefined) {
-    params.showGroundGrid = true
-  }
   const app = new App({ launchParams: params })
 
   if (params.runMode === 'editor') {
