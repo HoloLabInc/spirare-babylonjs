@@ -33,10 +33,6 @@ export class GroundGridController {
 
     this.gridMaterial = gridMaterial
     this.gridPlane = gridPlane
-
-    // this.highlightLayer.addExcludedMesh(gridPlane)
-
-    // this.gridPlane = gridPlane
   }
 
   public updateGrid(camera: TargetCamera) {
