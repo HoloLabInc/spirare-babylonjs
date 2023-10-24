@@ -408,7 +408,6 @@ export class CameraController implements ICameraController {
 
     camera.inertia = 0
     camera.panningInertia = 0.1
-    camera.panningSensibility = 800 // Default value is 1000.
 
     const cameraPointers = camera.inputs.attached.pointers
     if (cameraPointers instanceof ArcRotateCameraPointersInput) {
@@ -426,7 +425,7 @@ export class CameraController implements ICameraController {
     camera.onViewMatrixChangedObservable.add((camera, _eventState) => {
       if (camera instanceof ArcRotateCamera) {
         // The smaller the number, the faster the movement
-        camera.panningSensibility = 3000 * (1 / camera.radius)
+        camera.panningSensibility = 1600 * (1 / camera.radius)
 
         CameraController.calcCameraNearFar(camera)
 
