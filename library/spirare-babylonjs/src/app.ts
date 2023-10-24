@@ -79,8 +79,9 @@ import { CoordinateConverter } from './coordinateConverter'
 import { openFilePicker } from './filePicker'
 import clone from 'clone'
 
-import viewIcon from './images/alarm_clock.png'
-import gizmoScaleIcon from './images/expand.png'
+import gizmoNoneIcon from './images/hand.png'
+import gizmoScaleIcon from './images/scale.png'
+import gizmoRotationIcon from './images/refresh_alt.png'
 import gizmoPositionIcon from './images/move.png'
 
 export type CameraControllerFactory = (
@@ -1216,24 +1217,45 @@ export class App {
   }
 
   private createGizmoModePanel() {
-    const buttonParam = {}
+    const buttonParam = {
+      margin: '14px',
+    }
 
-    const noneButton = UIHelper.createImageButton(viewIcon, buttonParam, () => {
-      this.gizmoController.setGizmoMode('none')
-      this.updateGizmoModePanel()
-    })
+    const buttonAction = (gizmoMode: GizmoMode): (() => void) => {
+      return () => {
+        this.gizmoController.setGizmoMode(gizmoMode)
+        this.updateGizmoModePanel()
+      }
+    }
+
+    const noneButton = UIHelper.createImageButton(
+      gizmoNoneIcon,
+      buttonParam,
+      buttonAction('none')
+    )
 
     const positionButton = UIHelper.createImageButton(
       gizmoPositionIcon,
       buttonParam,
-      () => {
-        this.gizmoController.setGizmoMode('position')
-        this.updateGizmoModePanel()
-      }
+      buttonAction('position')
+    )
+
+    const rotationButton = UIHelper.createImageButton(
+      gizmoRotationIcon,
+      buttonParam,
+      buttonAction('rotation')
+    )
+
+    const scaleButton = UIHelper.createImageButton(
+      gizmoScaleIcon,
+      buttonParam,
+      buttonAction('scale')
     )
 
     this.gizmoModeButtons.set('none', noneButton)
     this.gizmoModeButtons.set('position', positionButton)
+    this.gizmoModeButtons.set('rotation', rotationButton)
+    this.gizmoModeButtons.set('scale', scaleButton)
 
     this.updateGizmoModePanel()
 
@@ -1244,7 +1266,7 @@ export class App {
         height: '30px',
         spacing: 4,
       },
-      [noneButton, positionButton]
+      [noneButton, positionButton, rotationButton, scaleButton]
     )
   }
 

@@ -175,6 +175,7 @@ export class UIHelper {
       verticalAlignment: Button.VERTICAL_ALIGNMENT_TOP,
       width: '28px',
       height: '28px',
+      color: 'black', // border color
       background: 'white',
     }
     const button = Object.assign(Button.CreateImageOnlyButton('', imageUrl), {
