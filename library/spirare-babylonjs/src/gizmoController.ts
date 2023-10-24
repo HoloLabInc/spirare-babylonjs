@@ -14,7 +14,11 @@ export class GizmoController {
   private readonly gizmoManager: GizmoManager
 
   private gizmoCoordinate: GizmoCoordinate = 'world'
-  private gizmoMode: GizmoMode = 'position'
+  private _gizmoMode: GizmoMode = 'position'
+
+  public get gizmoMode(): GizmoMode {
+    return this._gizmoMode
+  }
 
   private validInput: boolean = false
   private gizmoIsHidden: boolean = false
@@ -50,11 +54,11 @@ export class GizmoController {
   }
 
   public setGizmoMode(mode: GizmoMode) {
-    if (this.gizmoMode == mode) {
+    if (this._gizmoMode == mode) {
       return
     }
 
-    this.gizmoMode = mode
+    this._gizmoMode = mode
     if (!this.gizmoIsHidden) {
       this.showGizmo()
     }
@@ -149,7 +153,7 @@ export class GizmoController {
   private showGizmo() {
     const gm = this.gizmoManager
 
-    switch (this.gizmoMode) {
+    switch (this._gizmoMode) {
       case 'none':
         gm.positionGizmoEnabled = false
         gm.rotationGizmoEnabled = false
