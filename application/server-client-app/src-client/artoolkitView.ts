@@ -1,4 +1,4 @@
-import { App } from 'spirare-babylonjs/src/app'
+import { createAppAsync } from 'spirare-babylonjs/src/app'
 import { deviceOrientationCameraControllerFactory } from 'spirare-babylonjs/src/artoolkitWebAR/deviceOrientationCameraController'
 import { startCameraStream } from 'spirare-babylonjs/src/artoolkitWebAR/startCameraStream'
 import { requestOrientationPermission } from 'spirare-babylonjs/src/artoolkitWebAR/deviceOrientationPermission'
@@ -19,7 +19,7 @@ const startScene = async () => {
   launchParams.hideOriginAxes = true
   launchParams.startPageUrl = '/'
 
-  const app = new App({
+  const app = await createAppAsync({
     launchParams,
     cameraControllerFactory: deviceOrientationCameraControllerFactory,
   })
