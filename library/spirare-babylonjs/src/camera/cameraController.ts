@@ -220,18 +220,24 @@ export class CameraController implements ICameraController {
     const targetGeodetic = this.geoManager.babylonPositionToGeodeticPosition(
       this.camera.target
     )
-    targetGeodetic.ellipsoidalHeight = terrainHeight
-    this.camera.target =
-      this.geoManager.geodeticPositionToBabylonPosition(targetGeodetic)
-
     const positionGeodetic = this.geoManager.babylonPositionToGeodeticPosition(
       this.camera.position
     )
-    if (positionGeodetic.ellipsoidalHeight < targetGeodetic.ellipsoidalHeight) {
-      positionGeodetic.ellipsoidalHeight = targetGeodetic.ellipsoidalHeight
-      this.camera.position =
-        this.geoManager.geodeticPositionToBabylonPosition(positionGeodetic)
-    }
+
+    const targetEllipsoidalHeightDifference =
+      terrainHeight - targetGeodetic.ellipsoidalHeight
+
+    // Maintain the camera height when the camera moves.
+    targetGeodetic.ellipsoidalHeight = terrainHeight
+    positionGeodetic.ellipsoidalHeight = Math.max(
+      positionGeodetic.ellipsoidalHeight + targetEllipsoidalHeightDifference,
+      terrainHeight
+    )
+
+    this.camera.target =
+      this.geoManager.geodeticPositionToBabylonPosition(targetGeodetic)
+    this.camera.position =
+      this.geoManager.geodeticPositionToBabylonPosition(positionGeodetic)
   }
 
   public setGeodeticCameraTarget(latitude: number, longitude: number): void {
