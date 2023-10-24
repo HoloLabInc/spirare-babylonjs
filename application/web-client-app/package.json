@@ -29,7 +29,6 @@
     "@babylonjs/core": "^5.22.0",
     "@babylonjs/inspector": "^5.22.0",
     "@loaders.gl/core": "^3.2.8",
-    "cesium": "^1.97.0",
     "i18next": "^22.4.11",
     "i18next-browser-languagedetector": "^7.0.1",
     "i18next-http-backend": "^2.2.0",
