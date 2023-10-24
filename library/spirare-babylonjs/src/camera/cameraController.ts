@@ -213,15 +213,32 @@ export class CameraController implements ICameraController {
    * Adjusts the camera position to avoid going behind the ground.
    */
   public alignWithTerrain(terrainHeight: number): void {
-    if (this.geoManager === undefined) {
+    const geoManager = this.geoManager
+    if (geoManager === undefined) {
       return
     }
 
-    const targetGeodetic = this.geoManager.babylonPositionToGeodeticPosition(
-      this.camera.target
+    const toGeodeticPosition = (position: Vector3) => {
+      return geoManager.babylonPositionToGeodeticPosition(position)
+    }
+
+    const cameraTarget = this.camera.target
+    const cameraPosition = this.camera.position
+    const cameraDirection = cameraPosition.subtract(cameraTarget).normalize()
+
+    const initialTargetGeodetic = toGeodeticPosition(cameraTarget)
+    const initialTargetEllipsoidalHeightDifference =
+      terrainHeight - initialTargetGeodetic.ellipsoidalHeight
+
+    const additionalCameraMovement = cameraDirection.scale(
+      initialTargetEllipsoidalHeightDifference
     )
-    const positionGeodetic = this.geoManager.babylonPositionToGeodeticPosition(
-      this.camera.position
+
+    const targetGeodetic = toGeodeticPosition(
+      cameraTarget.add(additionalCameraMovement)
+    )
+    const positionGeodetic = toGeodeticPosition(
+      cameraPosition.add(additionalCameraMovement)
     )
 
     const targetEllipsoidalHeightDifference =
@@ -235,9 +252,9 @@ export class CameraController implements ICameraController {
     )
 
     this.camera.target =
-      this.geoManager.geodeticPositionToBabylonPosition(targetGeodetic)
+      geoManager.geodeticPositionToBabylonPosition(targetGeodetic)
     this.camera.position =
-      this.geoManager.geodeticPositionToBabylonPosition(positionGeodetic)
+      geoManager.geodeticPositionToBabylonPosition(positionGeodetic)
   }
 
   public setGeodeticCameraTarget(latitude: number, longitude: number): void {
