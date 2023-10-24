@@ -165,6 +165,32 @@ export class UIHelper {
     return button
   }
 
+  public static createImageButton(
+    imageUrl: string,
+    param?: object,
+    onPointerUp?: () => void
+  ) {
+    const defaultParam = {
+      horizontalAlignment: Button.HORIZONTAL_ALIGNMENT_LEFT,
+      verticalAlignment: Button.VERTICAL_ALIGNMENT_TOP,
+      width: '28px',
+      height: '28px',
+      background: 'white',
+    }
+    const button = Object.assign(Button.CreateImageOnlyButton('', imageUrl), {
+      ...defaultParam,
+      ...param,
+    })
+
+    // Invoke onPointerUp only on left-click.
+    button.onPointerUpObservable.add((event) => {
+      if (event.buttonIndex == 0) {
+        onPointerUp?.()
+      }
+    })
+    return button
+  }
+
   public static createInputText(
     text: string,
     param?: object,

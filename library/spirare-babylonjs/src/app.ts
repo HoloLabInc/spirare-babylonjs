@@ -24,6 +24,7 @@ import {
   ScrollViewer,
   Grid,
   TextBlock,
+  Button,
 } from '@babylonjs/gui'
 import { Guid } from 'guid-typescript'
 import { LoadPomlOptions, PomlLoader } from './pomlLoader'
@@ -48,7 +49,7 @@ import {
   MaybeSpirareNode,
   SpirareNode,
 } from './spirareNode/spirareNode'
-import { GizmoController } from './gizmoController'
+import { GizmoController, GizmoMode } from './gizmoController'
 import { GeoManager } from './cesium/geoManager'
 import { B3dmLoader } from './cesium/b3dmLoader'
 import {
@@ -77,6 +78,10 @@ import {
 import { CoordinateConverter } from './coordinateConverter'
 import { openFilePicker } from './filePicker'
 import clone from 'clone'
+
+import viewIcon from './images/alarm_clock.png'
+import gizmoScaleIcon from './images/expand.png'
+import gizmoPositionIcon from './images/move.png'
 
 export type CameraControllerFactory = (
   app: App,
@@ -148,6 +153,8 @@ export class App {
   private terrainType: TerrainType
   private dataAttribution: string[] = []
   private dataAttributionTextBlock: TextBlock | undefined
+
+  private gizmoModeButtons = new Map<GizmoMode, Button>()
 
   public get title(): string | undefined {
     return this._title
@@ -707,22 +714,27 @@ export class App {
 
       if (e.key == 'x') {
         this.gizmoController.switchGizmoCoordinate()
+        this.updateGizmoModePanel()
       }
 
       if (e.key == 'q') {
         this.gizmoController.setGizmoMode('none')
+        this.updateGizmoModePanel()
       }
 
       if (e.key == 'w') {
         this.gizmoController.setGizmoMode('position')
+        this.updateGizmoModePanel()
       }
 
       if (e.key == 'e') {
         this.gizmoController.setGizmoMode('rotation')
+        this.updateGizmoModePanel()
       }
 
       if (e.key == 'r') {
         this.gizmoController.setGizmoMode('scale')
+        this.updateGizmoModePanel()
       }
 
       if (e.key == 'm') {
@@ -1047,6 +1059,10 @@ export class App {
       panelRows.push(this.createNewNodePanel())
     }
 
+    if (isEditor) {
+      panelRows.push(this.createGizmoModePanel())
+    }
+
     // Load poml from URL.
     // This feature is only enabled in Viewer mode.
     if (isViewer) {
@@ -1089,6 +1105,9 @@ export class App {
       {
         width: '100%',
         height: '100%',
+        top: '6px',
+        left: '6px',
+        spacing: 6,
       },
       panelRows
     )
@@ -1183,6 +1202,49 @@ export class App {
           ]
         ),
       ]
+    )
+  }
+
+  private updateGizmoModePanel() {
+    this.gizmoModeButtons.forEach((button, buttonMode) => {
+      if (buttonMode === this.gizmoController.gizmoMode) {
+        button.background = '#778899'
+      } else {
+        button.background = 'gray'
+      }
+    })
+  }
+
+  private createGizmoModePanel() {
+    const buttonParam = {}
+
+    const noneButton = UIHelper.createImageButton(viewIcon, buttonParam, () => {
+      this.gizmoController.setGizmoMode('none')
+      this.updateGizmoModePanel()
+    })
+
+    const positionButton = UIHelper.createImageButton(
+      gizmoPositionIcon,
+      buttonParam,
+      () => {
+        this.gizmoController.setGizmoMode('position')
+        this.updateGizmoModePanel()
+      }
+    )
+
+    this.gizmoModeButtons.set('none', noneButton)
+    this.gizmoModeButtons.set('position', positionButton)
+
+    this.updateGizmoModePanel()
+
+    return UIHelper.createStackPanel(
+      {
+        isVertical: false,
+        width: '400px',
+        height: '30px',
+        spacing: 4,
+      },
+      [noneButton, positionButton]
     )
   }
 
