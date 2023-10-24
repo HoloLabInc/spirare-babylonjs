@@ -8,7 +8,6 @@ import {
   PerspectiveFrustum,
   Ion,
   CesiumTerrainProvider,
-  IonResource,
   UrlTemplateImageryProvider,
   Cartographic,
   TerrainProvider,
@@ -36,22 +35,26 @@ const cartographicToGeodeticPosition = (cartographic: Cartographic) => {
 }
 
 export class CesiumManager {
-  private viewer: Viewer
-  private terrainProvider: TerrainProvider
+  private viewer: Viewer | undefined
+  private terrainProvider: TerrainProvider | undefined
 
   constructor() {
     Ion.defaultAccessToken = CESIUM_ION_TOKEN
+  }
 
-    const { viewer, terrainProvider } = this.initViewer()
+  public async initializeAsync() {
+    const { viewer, terrainProvider } = await this.initViewerAsync()
     this.viewer = viewer
     this.terrainProvider = terrainProvider
   }
 
-  private initViewer() {
+  private async initViewerAsync() {
     // Terrain specification (EGM96, national terrain model generated from the 5m digital elevation data, areas without 5m data are supplemented with 10m data)
-    const terrainProvider = new CesiumTerrainProvider({
-      url: IonResource.fromAssetId(770371),
-      credit: new Credit('地形データは、測量法に基づく国土地理院長承認（使用）R3JHs 778を得て使用'),
+
+    const terrainProvider = await CesiumTerrainProvider.fromIonAssetId(770371, {
+      credit: new Credit(
+        '地形データは、測量法に基づく国土地理院長承認（使用）R3JHs 778を得て使用'
+      ),
     })
 
     const viewer = new Viewer('cesiumContainer', {
@@ -74,12 +77,10 @@ export class CesiumManager {
           failIfMajorPerformanceCaveat: false,
           depth: true,
           stencil: false,
-          anialias: false,
         },
       },
       targetFrameRate: 60,
       orderIndependentTranslucency: true,
-      imageryProvider: undefined,
       baseLayerPicker: false,
       geocoder: false,
       automaticallyTrackDataSourceClocks: false,
@@ -90,7 +91,9 @@ export class CesiumManager {
     const imageProvider = new UrlTemplateImageryProvider({
       url: 'https://gic-plateau.s3.ap-northeast-1.amazonaws.com/2020/ortho/tiles/{z}/{x}/{y}.png',
       maximumLevel: 19,
-      credit: new Credit("Project PLATEAU https://www.mlit.go.jp/plateau/ (Licensed under CC BY 4.0 https://creativecommons.org/licenses/by/4.0/legalcode.ja)")
+      credit: new Credit(
+        'Project PLATEAU https://www.mlit.go.jp/plateau/ (Licensed under CC BY 4.0 https://creativecommons.org/licenses/by/4.0/legalcode.ja)'
+      ),
     })
     viewer.scene.imageryLayers.addImageryProvider(imageProvider)
 
@@ -98,13 +101,17 @@ export class CesiumManager {
   }
 
   public render() {
-    this.viewer.render()
+    this.viewer?.render()
   }
 
   public syncBabylonCameraToCesiumCamera(
     camera: TargetCamera,
     origin: Vector3
   ) {
+    if (this.viewer === undefined) {
+      return
+    }
+
     const fov = camera.fov
     const perspectiveFrustum = this.viewer.camera.frustum as PerspectiveFrustum
     if (perspectiveFrustum.aspectRatio < 1) {
@@ -139,6 +146,10 @@ export class CesiumManager {
   public async sampleTerrainAsync(
     geodeticPositions: GeodeticPosition[]
   ): Promise<GeodeticPosition[]> {
+    if (this.terrainProvider === undefined) {
+      return []
+    }
+
     const cartographic = geodeticPositions.map(geodeticPositionToCartographic)
     const positions = await sampleTerrainMostDetailed(
       this.terrainProvider,
@@ -148,6 +159,10 @@ export class CesiumManager {
   }
 
   public async getTerrainHeightAsync(geodeticPosition: GeodeticPosition) {
+    if (this.terrainProvider === undefined) {
+      return 0
+    }
+
     const cartographic = geodeticPositionToCartographic(geodeticPosition)
     const positions = await sampleTerrainMostDetailed(this.terrainProvider, [
       cartographic,
