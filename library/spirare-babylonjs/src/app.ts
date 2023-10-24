@@ -1264,7 +1264,7 @@ export class App {
         isVertical: false,
         width: '400px',
         height: '30px',
-        spacing: 4,
+        spacing: 1,
       },
       [noneButton, positionButton, rotationButton, scaleButton]
     )
