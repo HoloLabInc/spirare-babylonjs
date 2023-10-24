@@ -1,4 +1,4 @@
-const cesiumSource = 'node_modules/cesium/Source'
+const cesiumSource = 'node_modules/spirare-babylonjs/node_modules/cesium/Source'
 const cesiumWorkers = '../Build/Cesium/Workers'
 const webIfcWasm = 'node_modules/spirare-babylonjs/node_modules/web-ifc/'
 const CopyWebpackPlugin = require('copy-webpack-plugin')

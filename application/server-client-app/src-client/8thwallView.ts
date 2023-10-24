@@ -3,7 +3,10 @@ declare var XRExtras: any
 declare var window: any
 
 import * as BABYLON from 'spirare-babylonjs/node_modules/@babylonjs/core'
-import { App, CameraControllerFactory } from 'spirare-babylonjs/src/app'
+import {
+  CameraControllerFactory,
+  createAppAsync,
+} from 'spirare-babylonjs/src/app'
 import { LoadPomlOptions } from 'spirare-babylonjs/src/pomlLoader'
 import { getAppLaunchParms } from 'spirare-babylonjs/src/types'
 import { ArCameraController } from './camera/arCameraController'
@@ -114,7 +117,7 @@ const startScene = async () => {
   launchParams.hideOriginAxes = true
   launchParams.startPageUrl = '/'
 
-  const app = new App({
+  const app = await createAppAsync({
     launchParams,
     cameraControllerFactory,
   })

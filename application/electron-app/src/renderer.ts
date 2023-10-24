@@ -1,5 +1,5 @@
 import 'cesium/Widgets/widgets.css'
-import { App } from 'spirare-babylonjs/src/app'
+import { createAppAsync } from 'spirare-babylonjs/src/app'
 import {
   FileData,
   getAppLaunchParms,
@@ -12,7 +12,7 @@ const startApp = async () => {
   const params = {
     launchParams,
   }
-  const app = new App(params)
+  const app = await createAppAsync(params)
   app.sourceResolver = new ElectronAppSourceResolver(app.pomlId)
 
   app.uploadFile = async (target: FileData) => {

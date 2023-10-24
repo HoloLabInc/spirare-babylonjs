@@ -1,5 +1,5 @@
 import 'cesium/Widgets/widgets.css'
-import { App } from 'spirare-babylonjs/src/app'
+import { App, createAppAsync } from 'spirare-babylonjs/src/app'
 import { LoadPomlOptions } from 'spirare-babylonjs/src/pomlLoader'
 import { FileData, getAppLaunchParms } from 'spirare-babylonjs/src/types'
 import { UploadResponse } from '../src/types'
@@ -10,7 +10,7 @@ let latestSavePomlPromise: Promise<void> | undefined
 const startApp = async () => {
   const params = getAppLaunchParms(location.search)
   params.startPageUrl = '/'
-  const app = new App({ launchParams: params })
+  const app = await createAppAsync({ launchParams: params })
 
   if (params.runMode === 'editor') {
     app.uploadFile = async (target: FileData) => {

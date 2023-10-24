@@ -1,5 +1,5 @@
 import 'cesium/Widgets/widgets.css'
-import { App } from 'spirare-babylonjs/src/app'
+import { createAppAsync } from 'spirare-babylonjs/src/app'
 import {
   UploadFileResult,
   FileData,
@@ -20,19 +20,20 @@ launchParams.startPageUrl = '/'
 const params = {
   launchParams,
 }
-const app = new App(params)
 
-app.uploadFile = async (target: FileData): Promise<UploadFileResult> => {
-  const name = target.isLocalFile
-    ? target.filepath.split('/').pop()
-    : target.name
+createAppAsync(params).then((app) => {
+  app.uploadFile = async (target: FileData): Promise<UploadFileResult> => {
+    const name = target.isLocalFile
+      ? target.filepath.split('/').pop()
+      : target.name
 
-  const blob = new Blob([target.data])
-  const blobUrl = URL.createObjectURL(blob)
+    const blob = new Blob([target.data])
+    const blobUrl = URL.createObjectURL(blob)
 
-  return {
-    success: true,
-    src: blobUrl,
-    filename: name,
+    return {
+      success: true,
+      src: blobUrl,
+      filename: name,
+    }
   }
-}
+})

@@ -114,6 +114,21 @@ const defaultCameraControllerFactory: CameraControllerFactory = (
 }
 
 type TerrainType = 'Cesium' | '3DTiles'
+type AppParams = {
+  launchParams: AppLaunchParams
+  cameraControllerFactory?: CameraControllerFactory
+}
+
+export const createAppAsync = async (params: AppParams) => {
+  let cesiumManager: CesiumManager | undefined
+  if (params.launchParams.placementMode === 'geodetic') {
+    cesiumManager = new CesiumManager()
+    await cesiumManager.initializeAsync()
+  }
+
+  const app = new App(params, cesiumManager)
+  return app
+}
 
 export class App {
   private engine: Engine
@@ -134,7 +149,7 @@ export class App {
   public readonly placementMode: PlacementMode
 
   private pomlLoader: PomlLoader
-  private readonly pomlBuilder: PomlBuilder
+  private readonly pomlBuilder: PomlBuilder = new PomlBuilder()
   private cameraTargetHeight: number = 0
 
   private selectedNode: SpirareNode | undefined
@@ -193,10 +208,7 @@ export class App {
     return this.placementMode == 'geodetic'
   }
 
-  constructor(params: {
-    launchParams: AppLaunchParams
-    cameraControllerFactory?: CameraControllerFactory
-  }) {
+  constructor(params: AppParams, cesiumManager: CesiumManager | undefined) {
     const launchParams = params.launchParams
     this.startPageUrl = launchParams.startPageUrl
 
@@ -233,7 +245,7 @@ export class App {
     const isGeodeticMode = this.isGeodeticMode
     const isEditorMode = this._runMode === 'editor'
 
-    this.pomlBuilder = new PomlBuilder()
+    this.cesiumManager = cesiumManager
 
     const canvas = document.getElementById('spirare_canvas')
     if (!canvas || !(canvas instanceof HTMLCanvasElement)) {
@@ -260,16 +272,16 @@ export class App {
       switch (this.terrainType) {
         case 'Cesium': {
           scene.clearColor = new Color4(0, 0, 0, 0)
-          this.cesiumManager = new CesiumManager()
-          this.terrainController = new TerrainController(
-            this.cesiumManager,
-            this.geoManager
-          )
+          if (this.cesiumManager !== undefined) {
+            this.terrainController = new TerrainController(
+              this.cesiumManager,
+              this.geoManager
+            )
+          }
           break
         }
         case '3DTiles':
           {
-            this.cesiumManager = new CesiumManager()
             this.tilesLoader.loadAsync(
               TERRAIN_TILESET_URL,
               'Terrain',
