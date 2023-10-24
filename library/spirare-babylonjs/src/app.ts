@@ -376,10 +376,12 @@ export class App {
     this.updateCameraTargetTerrainHeight()
     this.updateTerrainLoop()
 
+    this.scene.registerBeforeRender(() => {
+      this.cameraController.alignWithTerrain(this.cameraTargetHeight)
+    })
+
     this.engine.runRenderLoop(() => {
       this.tilesLoader.update(this.camera)
-
-      this.cameraController.alignWithTerrain(this.cameraTargetHeight)
 
       if (this.isGeodeticMode) {
         // Update the latitude and longitude of the Babylon.js coordinate system's origin

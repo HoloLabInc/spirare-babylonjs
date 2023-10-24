@@ -213,25 +213,48 @@ export class CameraController implements ICameraController {
    * Adjusts the camera position to avoid going behind the ground.
    */
   public alignWithTerrain(terrainHeight: number): void {
-    if (this.geoManager === undefined) {
+    const geoManager = this.geoManager
+    if (geoManager === undefined) {
       return
     }
 
-    const targetGeodetic = this.geoManager.babylonPositionToGeodeticPosition(
-      this.camera.target
-    )
-    targetGeodetic.ellipsoidalHeight = terrainHeight
-    this.camera.target =
-      this.geoManager.geodeticPositionToBabylonPosition(targetGeodetic)
-
-    const positionGeodetic = this.geoManager.babylonPositionToGeodeticPosition(
-      this.camera.position
-    )
-    if (positionGeodetic.ellipsoidalHeight < targetGeodetic.ellipsoidalHeight) {
-      positionGeodetic.ellipsoidalHeight = targetGeodetic.ellipsoidalHeight
-      this.camera.position =
-        this.geoManager.geodeticPositionToBabylonPosition(positionGeodetic)
+    const toGeodeticPosition = (position: Vector3) => {
+      return geoManager.babylonPositionToGeodeticPosition(position)
     }
+
+    const cameraTarget = this.camera.target
+    const cameraPosition = this.camera.position
+    const cameraDirection = cameraPosition.subtract(cameraTarget).normalize()
+
+    const initialTargetGeodetic = toGeodeticPosition(cameraTarget)
+    const initialTargetEllipsoidalHeightDifference =
+      terrainHeight - initialTargetGeodetic.ellipsoidalHeight
+
+    const additionalCameraMovement = cameraDirection.scale(
+      initialTargetEllipsoidalHeightDifference
+    )
+
+    const targetGeodetic = toGeodeticPosition(
+      cameraTarget.add(additionalCameraMovement)
+    )
+    const positionGeodetic = toGeodeticPosition(
+      cameraPosition.add(additionalCameraMovement)
+    )
+
+    const targetEllipsoidalHeightDifference =
+      terrainHeight - targetGeodetic.ellipsoidalHeight
+
+    // Maintain the camera height when the camera moves.
+    targetGeodetic.ellipsoidalHeight = terrainHeight
+    positionGeodetic.ellipsoidalHeight = Math.max(
+      positionGeodetic.ellipsoidalHeight + targetEllipsoidalHeightDifference,
+      terrainHeight
+    )
+
+    this.camera.target =
+      geoManager.geodeticPositionToBabylonPosition(targetGeodetic)
+    this.camera.position =
+      geoManager.geodeticPositionToBabylonPosition(positionGeodetic)
   }
 
   public setGeodeticCameraTarget(latitude: number, longitude: number): void {
@@ -385,7 +408,6 @@ export class CameraController implements ICameraController {
 
     camera.inertia = 0
     camera.panningInertia = 0.1
-    camera.panningSensibility = 800 // Default value is 1000.
 
     const cameraPointers = camera.inputs.attached.pointers
     if (cameraPointers instanceof ArcRotateCameraPointersInput) {
@@ -403,7 +425,7 @@ export class CameraController implements ICameraController {
     camera.onViewMatrixChangedObservable.add((camera, _eventState) => {
       if (camera instanceof ArcRotateCamera) {
         // The smaller the number, the faster the movement
-        camera.panningSensibility = 3000 * (1 / camera.radius)
+        camera.panningSensibility = 1600 * (1 / camera.radius)
 
         CameraController.calcCameraNearFar(camera)
 
