@@ -1106,9 +1106,6 @@ export class App {
       {
         width: '100%',
         height: '100%',
-        top: '6px',
-        left: '6px',
-        spacing: 6,
       },
       panelRows
     )
