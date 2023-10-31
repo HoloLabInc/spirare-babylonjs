@@ -2,9 +2,7 @@ const { merge } = require('webpack-merge')
 const [
   serverConfigCommon,
   clientConfigCommon,
-  eighthwallConfigCommon,
   startpageConfigCommon,
-  artoolkitConfigCommon,
 ] = require('./webpack.common.js')
 
 const serverConfig = merge(serverConfigCommon, {
@@ -16,19 +14,9 @@ const clientConfig = merge(clientConfigCommon, {
   mode: 'development',
 })
 
-const eighthwallConfig = merge(eighthwallConfigCommon, {
-  devtool: 'eval-source-map',
-  mode: 'development',
-})
-
 const startpageConfig = merge(startpageConfigCommon, {
   devtool: 'eval-source-map',
   mode: 'development',
 })
 
-const artoolkitConfig = merge(artoolkitConfigCommon, {
-  devtool: 'eval-source-map',
-  mode: 'development',
-})
-
-module.exports = [serverConfig, clientConfig, eighthwallConfig, startpageConfig, artoolkitConfig]
+module.exports = [serverConfig, clientConfig, startpageConfig]
