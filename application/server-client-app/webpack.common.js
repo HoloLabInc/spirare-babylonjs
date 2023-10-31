@@ -41,10 +41,20 @@ const serverConfig = {
 
 const clientConfig = {
   context: __dirname,
-  entry: './src-client/editor.ts',
+  entry: {
+    editor: './src-client/editor.ts',
+    eighthwallView: './src-client/8thwallView.ts',
+    artoolkitView: './src-client/artoolkitView.ts',
+  },
   output: {
     path: clientOutputPath,
-    filename: 'editor.js',
+    filename: '[name].js',
+  },
+  optimization: {
+    splitChunks: {
+      name: 'vendor',
+      chunks: 'initial',
+    }
   },
   amd: {
     // Enable webpack-friendly use of require in Cesium
@@ -124,33 +134,15 @@ const clientConfig = {
       /spirare-babylonjs[\/\\]node_modules[\/\\]web-ifc/,
       /^$/
     ),
+    // for ARToolkit
+    new CopyWebpackPlugin({
+      patterns: [
+        { from: path.join(__dirname, 'node_modules', 'spirare-babylonjs', 'node_modules', '@ar-js-org', 'artoolkit5-js', 'dist', 'ARToolkit.js') },
+        { from: path.join(__dirname, 'data', 'artoolkit'), to: 'artoolkit' },
+      ],
+    })
   ],
 }
-
-const eighthwallConfig = { ...clientConfig }
-eighthwallConfig.entry = './src-client/8thwallView.ts'
-eighthwallConfig.output = {
-  path: clientOutputPath,
-  filename: '8thwallView.js',
-}
-
-const artoolkitConfig = {
-  ...clientConfig,
-  entry: './src-client/artoolkitView.ts',
-  output: {
-    path: clientOutputPath,
-    filename: 'artoolkitView.js',
-  }
-}
-
-artoolkitConfig.plugins.push(
-  new CopyWebpackPlugin({
-    patterns: [
-      { from: path.join(__dirname, 'node_modules', 'spirare-babylonjs', 'node_modules', '@ar-js-org', 'artoolkit5-js', 'dist', 'ARToolkit.js') },
-      { from: path.join(__dirname, 'data', 'artoolkit'), to: 'artoolkit' },
-    ],
-  })
-)
 
 const startpageConfig = {
   context: __dirname,
@@ -200,4 +192,5 @@ const startpageConfig = {
     ],
   },
 }
-module.exports = [serverConfig, clientConfig, eighthwallConfig, startpageConfig, artoolkitConfig]
+
+module.exports = [serverConfig, clientConfig, startpageConfig]
