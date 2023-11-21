@@ -47,6 +47,7 @@ type CustomProperty = {
     spaceId?: string
     spaceType?: string
   }
+  visibleInEditor?: boolean
 }
 
 const parseQuaternion = (str: string | undefined): Rotation | undefined => {
@@ -174,6 +175,10 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
     return this._pomlElement.arDisplay === 'none'
   }
 
+  protected get isEditorMode(): boolean {
+    return this.app.runMode === 'editor'
+  }
+
   protected get isViewerMode(): boolean {
     return this.app.runMode === 'viewer'
   }
@@ -208,6 +213,25 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
       case 'screen-space':
         return 0x10000000
     }
+  }
+
+  // called from the inspector.
+  private get visibleInEditorInspector(): boolean {
+    const visibleInEditor = this.customProperty.visibleInEditor ?? true
+    return visibleInEditor
+  }
+
+  // called from the inspector.
+  private set visibleInEditorInspector(value: boolean) {
+    this.updateCustomProperty(() => {
+      if (value) {
+        this.customProperty.visibleInEditor = undefined
+      } else {
+        this.customProperty.visibleInEditor = false
+      }
+    })
+    this.updateDisplay()
+    this.onChange?.()
   }
 
   // Called from the inspector.
@@ -507,6 +531,7 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
       pomlElement.customAttributes.get(customAttributeKey)
     if (customAttributeValue !== undefined) {
       try {
+        // TODO: check property type
         this.customProperty = JSON.parse(customAttributeValue)
       } catch {}
     }
@@ -622,31 +647,54 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
     })
 
     // Custom inspector
-    this.inspectableCustomProperties = [
-      {
-        label: '==== Settings for Editor ====',
-        propertyName: '',
-        type: InspectableType.Tab,
+    if (this.inspectableCustomProperties === undefined) {
+      this.inspectableCustomProperties = []
+    }
+
+    // Action buttons for editor mode and viewer mode
+    this.inspectableCustomProperties.push({
+      label: 'Focus',
+      propertyName: '',
+      type: InspectableType.Button,
+      callback: () => {
+        this.app.cameraController.adjust(this, true)
       },
-      {
-        label: 'Focus',
+    })
+
+    if (this.app.runMode === 'editor') {
+      // Action buttons for editor mode
+      this.inspectableCustomProperties.push({
+        label: 'Select',
         propertyName: '',
         type: InspectableType.Button,
         callback: () => {
-          this.app.cameraController.adjust(this, true)
+          this.app.selectElement(this.asSpirareNode)
         },
-      },
-    ]
-    if (this.app.runMode === 'editor') {
+      })
+
+      // Settings for Editor
       this.inspectableCustomProperties.push(
         {
-          label: 'Select',
+          label: '==== Settings for Editor ====',
           propertyName: '',
-          type: InspectableType.Button,
-          callback: () => {
-            this.app.selectElement(this.asSpirareNode)
-          },
+          type: InspectableType.Tab,
         },
+        {
+          label: 'Visible in Editor',
+          propertyName: 'visibleInEditorInspector',
+          type: InspectableType.Checkbox,
+        }
+        /*
+        {
+          label: 'Clickable in Editor',
+          propertyName: 'clickableInEditorInspector',
+          type: InspectableType.Checkbox,
+        }
+        */
+      )
+
+      // Settings for generic element
+      this.inspectableCustomProperties.push(
         {
           label: '==== Generic Element Settings ====',
           propertyName: '',
@@ -951,6 +999,10 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
     // - AR mode: hidden
     // - Normal mode: displayed
 
+    if (this.isEditorMode) {
+      display = this.visibleInEditorInspector ? 'visible' : 'none'
+    }
+
     if (this.isViewerMode) {
       if (this.app.isArMode) {
         display = this.arDisplayInHierarchy
@@ -1218,6 +1270,7 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
     const value = JSON.stringify(this.customProperty)
     if (value === '{}') {
       this._pomlElement.customAttributes.delete(customAttributeKey)
+      this._pomlElement.originalAttrs?.delete(`_${customAttributeKey}`)
     } else {
       this._pomlElement.customAttributes.set(customAttributeKey, value)
     }
