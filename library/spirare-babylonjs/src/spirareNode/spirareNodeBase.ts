@@ -520,23 +520,13 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
       this.scriptComponents = []
     }
 
-    this.actionManager = new ActionManager(scene)
-
-    // If Hidden in AR is set, prevent selection by click.
-    const clickActionCondition = new PredicateCondition(
-      this.actionManager,
-      () => {
-        return this.isArDisplayNone == false
-      }
-    )
-
     const clickAction = new ExecuteCodeAction(
       ActionManager.OnPickTrigger,
       (e) => {
         this.onClick?.(this.asSpirareNode)
-      },
-      clickActionCondition
+      }
     )
+    this.actionManager = new ActionManager(scene)
     this.actionManager.registerAction(clickAction)
 
     const onOriginChangedEventListener: OnOriginChangedEventListener = (_) => {
@@ -925,6 +915,7 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
 
   protected updateNodeObjectStatus(): void {
     this.updateSelectable()
+    this.updateActionManager()
     this.updateDisplay()
     this.updateLayerMask()
   }
@@ -934,6 +925,14 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
     this.meshes.forEach((mesh) => {
       if (mesh) {
         mesh.isPickable = pickable
+      }
+    })
+  }
+
+  private updateActionManager(): void {
+    this.meshes.forEach((mesh) => {
+      if (mesh) {
+        mesh.actionManager = this.actionManager
       }
     })
   }
