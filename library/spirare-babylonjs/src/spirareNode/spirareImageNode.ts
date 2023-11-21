@@ -44,7 +44,7 @@ export class SpirareImageNode extends SpirareMediaNodeBase<PomlImageElement> {
     if (this.app.runMode === 'editor') {
       this.inspectableCustomProperties.push(
         {
-          label: '==== PomlImageElement ====',
+          label: '==== Image Element Settings ====',
           propertyName: '',
           type: InspectableType.Tab,
         },

@@ -47,7 +47,7 @@ export class SpirareVideoNode extends SpirareMediaNodeBase<PomlVideoElement> {
     if (this.app.runMode === 'editor') {
       this.inspectableCustomProperties.push(
         {
-          label: '==== PomlVideoElement ====',
+          label: '==== Video Element Settings ====',
           propertyName: '',
           type: InspectableType.Tab,
         },
