@@ -183,9 +183,8 @@ export class SpirareModelNode extends SpirareNodeBase<PomlModelElement> {
         }
       }
 
-      this.updateDisplay()
-      this.updateLayerMask()
       this.name += ` (${loaded.modelName})`
+      this.updateNodeObjectStatus()
     }
   }
 

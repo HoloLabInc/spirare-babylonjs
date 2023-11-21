@@ -266,6 +266,7 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
   private set arDisplayInspector(value: number) {
     const a = ['visible', 'none', 'occlusion', undefined] as const
     this._pomlElement.arDisplay = a[value]
+    this.updateSelectable()
     this.onChange?.()
   }
 
@@ -922,7 +923,22 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
     }
   }
 
-  protected updateDisplay(): void {
+  protected updateNodeObjectStatus(): void {
+    this.updateSelectable()
+    this.updateDisplay()
+    this.updateLayerMask()
+  }
+
+  private updateSelectable(): void {
+    const pickable = !this.isArDisplayNone
+    this.meshes.forEach((mesh) => {
+      if (mesh) {
+        mesh.isPickable = pickable
+      }
+    })
+  }
+
+  private updateDisplay(): void {
     let display: Display = 'visible'
 
     // TODO: Support occlusion

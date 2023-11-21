@@ -126,8 +126,7 @@ export class SpirareImageNode extends SpirareMediaNodeBase<PomlImageElement> {
         this.backPlane.actionManager = this.actionManager
       }
 
-      this.updateDisplay()
-      this.updateLayerMask()
+      this.updateNodeObjectStatus()
     }
   }
 

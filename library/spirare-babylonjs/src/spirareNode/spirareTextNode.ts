@@ -198,8 +198,7 @@ export class SpirareTextNode extends SpirareNodeBase<PomlTextElement> {
         this.backPlane.actionManager = this.actionManager
       }
 
-      this.updateDisplay()
-      this.updateLayerMask()
+      this.updateNodeObjectStatus()
     }
   }
 
