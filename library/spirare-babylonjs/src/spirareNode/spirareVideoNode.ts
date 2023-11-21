@@ -31,8 +31,10 @@ export class SpirareVideoNode extends SpirareMediaNodeBase<PomlVideoElement> {
     return this._video
   }
 
-  protected override get meshes(): (AbstractMesh | undefined)[] {
-    return [this.plane, this.backPlane]
+  protected override get meshes(): AbstractMesh[] {
+    return [this.plane, this.backPlane].filter(
+      (x): x is Mesh => x !== undefined
+    )
   }
 
   private constructor(

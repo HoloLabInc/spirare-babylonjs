@@ -30,8 +30,10 @@ export class SpirareTextNode extends SpirareNodeBase<PomlTextElement> {
     fontSize: { value: 1, unit: 'm' },
   } as const
 
-  protected override get meshes(): (AbstractMesh | undefined)[] {
-    return [this.plane, this.backPlane]
+  protected override get meshes(): AbstractMesh[] {
+    return [this.plane, this.backPlane].filter(
+      (x): x is Mesh => x !== undefined
+    )
   }
 
   private constructor(

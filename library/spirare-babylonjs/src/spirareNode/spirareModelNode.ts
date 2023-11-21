@@ -22,7 +22,7 @@ export class SpirareModelNode extends SpirareNodeBase<PomlModelElement> {
 
   private disposes: { dispose: () => void }[] = []
 
-  protected override get meshes(): (AbstractMesh | undefined)[] {
+  protected override get meshes(): AbstractMesh[] {
     return this.modelMeshes
   }
 
