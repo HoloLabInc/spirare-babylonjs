@@ -48,6 +48,7 @@ type CustomProperty = {
     spaceType?: string
   }
   visibleInEditor?: boolean
+  clickableInEditor?: boolean
 }
 
 const parseQuaternion = (str: string | undefined): Rotation | undefined => {
@@ -217,8 +218,7 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
 
   // called from the inspector.
   private get visibleInEditorInspector(): boolean {
-    const visibleInEditor = this.customProperty.visibleInEditor ?? true
-    return visibleInEditor
+    return this.customProperty.visibleInEditor ?? true
   }
 
   // called from the inspector.
@@ -231,6 +231,24 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
       }
     })
     this.updateDisplay()
+    this.onChange?.()
+  }
+
+  // called from the inspector.
+  private get clickableInEditorInspector(): boolean {
+    return this.customProperty.clickableInEditor ?? true
+  }
+
+  // called from the inspector.
+  private set clickableInEditorInspector(value: boolean) {
+    this.updateCustomProperty(() => {
+      if (value) {
+        this.customProperty.clickableInEditor = undefined
+      } else {
+        this.customProperty.clickableInEditor = false
+      }
+    })
+    this.updateSelectable()
     this.onChange?.()
   }
 
@@ -683,14 +701,12 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
           label: 'Visible in Editor',
           propertyName: 'visibleInEditorInspector',
           type: InspectableType.Checkbox,
-        }
-        /*
+        },
         {
           label: 'Clickable in Editor',
           propertyName: 'clickableInEditorInspector',
           type: InspectableType.Checkbox,
         }
-        */
       )
 
       // Settings for generic element
@@ -979,10 +995,15 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
   }
 
   private updateSelectable(): void {
-    const pickable = !this.isArDisplayNone
+    const pickable = this.clickableInEditorInspector
     this.meshes.forEach((mesh) => {
       mesh.isPickable = pickable
     })
+    if (pickable === false) {
+      if (this.gizmoController.attachedNode === this) {
+        this.gizmoController.detach()
+      }
+    }
   }
 
   private updateActionManager(): void {
