@@ -266,6 +266,7 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
   private set arDisplayInspector(value: number) {
     const a = ['visible', 'none', 'occlusion', undefined] as const
     this._pomlElement.arDisplay = a[value]
+    this.updateSelectable()
     this.onChange?.()
   }
 
@@ -519,23 +520,13 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
       this.scriptComponents = []
     }
 
-    this.actionManager = new ActionManager(scene)
-
-    // If Hidden in AR is set, prevent selection by click.
-    const clickActionCondition = new PredicateCondition(
-      this.actionManager,
-      () => {
-        return this.isArDisplayNone == false
-      }
-    )
-
     const clickAction = new ExecuteCodeAction(
       ActionManager.OnPickTrigger,
       (e) => {
         this.onClick?.(this.asSpirareNode)
-      },
-      clickActionCondition
+      }
     )
+    this.actionManager = new ActionManager(scene)
     this.actionManager.registerAction(clickAction)
 
     const onOriginChangedEventListener: OnOriginChangedEventListener = (_) => {
@@ -922,7 +913,31 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
     }
   }
 
-  protected updateDisplay(): void {
+  protected updateNodeObjectStatus(): void {
+    this.updateSelectable()
+    this.updateActionManager()
+    this.updateDisplay()
+    this.updateLayerMask()
+  }
+
+  private updateSelectable(): void {
+    const pickable = !this.isArDisplayNone
+    this.meshes.forEach((mesh) => {
+      if (mesh) {
+        mesh.isPickable = pickable
+      }
+    })
+  }
+
+  private updateActionManager(): void {
+    this.meshes.forEach((mesh) => {
+      if (mesh) {
+        mesh.actionManager = this.actionManager
+      }
+    })
+  }
+
+  private updateDisplay(): void {
     let display: Display = 'visible'
 
     // TODO: Support occlusion

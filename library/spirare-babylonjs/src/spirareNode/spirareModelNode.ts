@@ -173,7 +173,6 @@ export class SpirareModelNode extends SpirareNodeBase<PomlModelElement> {
         if (mesh.parent === null) {
           mesh.parent = this
         }
-        mesh.actionManager = this.actionManager
       })
 
       if ('animationGroups' in loaded) {
@@ -183,9 +182,8 @@ export class SpirareModelNode extends SpirareNodeBase<PomlModelElement> {
         }
       }
 
-      this.updateDisplay()
-      this.updateLayerMask()
       this.name += ` (${loaded.modelName})`
+      this.updateNodeObjectStatus()
     }
   }
 

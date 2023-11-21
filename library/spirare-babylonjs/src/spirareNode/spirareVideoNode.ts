@@ -102,13 +102,7 @@ export class SpirareVideoNode extends SpirareMediaNodeBase<PomlVideoElement> {
         this.backPlane.parent = this
       }
 
-      this.plane.actionManager = this.actionManager
-      if (this.backPlane !== undefined) {
-        this.backPlane.actionManager = this.actionManager
-      }
-
-      this.updateDisplay()
-      this.updateLayerMask()
+      this.updateNodeObjectStatus()
     }
   }
 
