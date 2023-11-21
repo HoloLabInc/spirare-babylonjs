@@ -197,7 +197,7 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
     return 'world-space'
   }
 
-  protected get meshes(): (AbstractMesh | undefined)[] {
+  protected get meshes(): AbstractMesh[] {
     return []
   }
 
