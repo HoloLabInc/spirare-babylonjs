@@ -1023,6 +1023,9 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
         return
       case 'none':
         hideMeshes(this.meshes)
+        if (this.gizmoController.attachedNode === this) {
+          this.gizmoController.detach()
+        }
         return
       default:
         const unreachable: never = display
