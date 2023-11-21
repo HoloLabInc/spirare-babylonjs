@@ -923,17 +923,13 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
   private updateSelectable(): void {
     const pickable = !this.isArDisplayNone
     this.meshes.forEach((mesh) => {
-      if (mesh) {
-        mesh.isPickable = pickable
-      }
+      mesh.isPickable = pickable
     })
   }
 
   private updateActionManager(): void {
     this.meshes.forEach((mesh) => {
-      if (mesh) {
-        mesh.actionManager = this.actionManager
-      }
+      mesh.actionManager = this.actionManager
     })
   }
 
@@ -974,9 +970,7 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
 
   protected updateLayerMask(): void {
     this.meshes.forEach((mesh) => {
-      if (mesh !== undefined) {
-        mesh.layerMask = this.layerMask
-      }
+      mesh.layerMask = this.layerMask
     })
   }
 
