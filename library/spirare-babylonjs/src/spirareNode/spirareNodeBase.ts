@@ -248,7 +248,7 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
         this.customProperty.clickableInEditor = false
       }
     })
-    this.updateSelectable()
+    this.updatePickable()
     this.onChange?.()
   }
 
@@ -308,7 +308,6 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
   private set arDisplayInspector(value: number) {
     const a = ['visible', 'none', 'occlusion', undefined] as const
     this._pomlElement.arDisplay = a[value]
-    this.updateSelectable()
     this.onChange?.()
   }
 
@@ -988,13 +987,13 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
   }
 
   protected updateNodeObjectStatus(): void {
-    this.updateSelectable()
+    this.updatePickable()
     this.updateActionManager()
     this.updateDisplay()
     this.updateLayerMask()
   }
 
-  private updateSelectable(): void {
+  private updatePickable(): void {
     const pickable = this.clickableInEditorInspector
     this.meshes.forEach((mesh) => {
       mesh.isPickable = pickable
