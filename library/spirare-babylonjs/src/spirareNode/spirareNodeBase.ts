@@ -624,6 +624,11 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
     // Custom inspector
     this.inspectableCustomProperties = [
       {
+        label: '==== Settings for Editor ====',
+        propertyName: '',
+        type: InspectableType.Tab,
+      },
+      {
         label: 'Focus',
         propertyName: '',
         type: InspectableType.Button,
@@ -641,6 +646,11 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
           callback: () => {
             this.app.selectElement(this.asSpirareNode)
           },
+        },
+        {
+          label: '==== Generic Element Settings ====',
+          propertyName: '',
+          type: InspectableType.Tab,
         },
         {
           label: 'Poml Element Id',

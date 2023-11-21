@@ -46,7 +46,7 @@ export class SpirareTextNode extends SpirareNodeBase<PomlTextElement> {
     if (this.app.runMode === 'editor') {
       this.inspectableCustomProperties.push(
         {
-          label: '==== PomlTextElement ====',
+          label: '==== Text Element Settings ====',
           propertyName: '',
           type: InspectableType.Tab,
         },
