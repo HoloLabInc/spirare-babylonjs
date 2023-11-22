@@ -47,6 +47,8 @@ type CustomProperty = {
     spaceId?: string
     spaceType?: string
   }
+  visibleInEditor?: boolean
+  clickableInEditor?: boolean
 }
 
 const parseQuaternion = (str: string | undefined): Rotation | undefined => {
@@ -174,6 +176,10 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
     return this._pomlElement.arDisplay === 'none'
   }
 
+  protected get isEditorMode(): boolean {
+    return this.app.runMode === 'editor'
+  }
+
   protected get isViewerMode(): boolean {
     return this.app.runMode === 'viewer'
   }
@@ -208,6 +214,42 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
       case 'screen-space':
         return 0x10000000
     }
+  }
+
+  // called from the inspector.
+  private get visibleInEditorInspector(): boolean {
+    return this.customProperty.visibleInEditor ?? true
+  }
+
+  // called from the inspector.
+  private set visibleInEditorInspector(value: boolean) {
+    this.updateCustomProperty(() => {
+      if (value) {
+        this.customProperty.visibleInEditor = undefined
+      } else {
+        this.customProperty.visibleInEditor = false
+      }
+    })
+    this.updateDisplay()
+    this.onChange?.()
+  }
+
+  // called from the inspector.
+  private get clickableInEditorInspector(): boolean {
+    return this.customProperty.clickableInEditor ?? true
+  }
+
+  // called from the inspector.
+  private set clickableInEditorInspector(value: boolean) {
+    this.updateCustomProperty(() => {
+      if (value) {
+        this.customProperty.clickableInEditor = undefined
+      } else {
+        this.customProperty.clickableInEditor = false
+      }
+    })
+    this.updatePickable()
+    this.onChange?.()
   }
 
   // Called from the inspector.
@@ -266,7 +308,6 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
   private set arDisplayInspector(value: number) {
     const a = ['visible', 'none', 'occlusion', undefined] as const
     this._pomlElement.arDisplay = a[value]
-    this.updateSelectable()
     this.onChange?.()
   }
 
@@ -507,6 +548,7 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
       pomlElement.customAttributes.get(customAttributeKey)
     if (customAttributeValue !== undefined) {
       try {
+        // TODO: check property type
         this.customProperty = JSON.parse(customAttributeValue)
       } catch {}
     }
@@ -622,25 +664,56 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
     })
 
     // Custom inspector
-    this.inspectableCustomProperties = [
-      {
-        label: 'Focus',
+    if (this.inspectableCustomProperties === undefined) {
+      this.inspectableCustomProperties = []
+    }
+
+    // Action buttons for editor mode and viewer mode
+    this.inspectableCustomProperties.push({
+      label: 'Focus',
+      propertyName: '',
+      type: InspectableType.Button,
+      callback: () => {
+        this.app.cameraController.adjust(this, true)
+      },
+    })
+
+    if (this.app.runMode === 'editor') {
+      // Action buttons for editor mode
+      this.inspectableCustomProperties.push({
+        label: 'Select',
         propertyName: '',
         type: InspectableType.Button,
         callback: () => {
-          this.app.cameraController.adjust(this, true)
+          this.app.selectElement(this.asSpirareNode)
         },
-      },
-    ]
-    if (this.app.runMode === 'editor') {
+      })
+
+      // Settings for Editor
       this.inspectableCustomProperties.push(
         {
-          label: 'Select',
+          label: '==== Settings for Editor ====',
           propertyName: '',
-          type: InspectableType.Button,
-          callback: () => {
-            this.app.selectElement(this.asSpirareNode)
-          },
+          type: InspectableType.Tab,
+        },
+        {
+          label: 'Visible in Editor',
+          propertyName: 'visibleInEditorInspector',
+          type: InspectableType.Checkbox,
+        },
+        {
+          label: 'Clickable in Editor',
+          propertyName: 'clickableInEditorInspector',
+          type: InspectableType.Checkbox,
+        }
+      )
+
+      // Settings for generic element
+      this.inspectableCustomProperties.push(
+        {
+          label: '==== Generic Element Settings ====',
+          propertyName: '',
+          type: InspectableType.Tab,
         },
         {
           label: 'Poml Element Id',
@@ -914,17 +987,22 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
   }
 
   protected updateNodeObjectStatus(): void {
-    this.updateSelectable()
+    this.updatePickable()
     this.updateActionManager()
     this.updateDisplay()
     this.updateLayerMask()
   }
 
-  private updateSelectable(): void {
-    const pickable = !this.isArDisplayNone
+  private updatePickable(): void {
+    const pickable = this.clickableInEditorInspector
     this.meshes.forEach((mesh) => {
       mesh.isPickable = pickable
     })
+    if (pickable === false) {
+      if (this.gizmoController.attachedNode === this) {
+        this.gizmoController.detach()
+      }
+    }
   }
 
   private updateActionManager(): void {
@@ -940,6 +1018,10 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
     // As a temporary measure, handle the following cases when occlusion is set:
     // - AR mode: hidden
     // - Normal mode: displayed
+
+    if (this.isEditorMode) {
+      display = this.visibleInEditorInspector ? 'visible' : 'none'
+    }
 
     if (this.isViewerMode) {
       if (this.app.isArMode) {
@@ -961,6 +1043,9 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
         return
       case 'none':
         hideMeshes(this.meshes)
+        if (this.gizmoController.attachedNode === this) {
+          this.gizmoController.detach()
+        }
         return
       default:
         const unreachable: never = display
@@ -1208,6 +1293,7 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
     const value = JSON.stringify(this.customProperty)
     if (value === '{}') {
       this._pomlElement.customAttributes.delete(customAttributeKey)
+      this._pomlElement.originalAttrs?.delete(`_${customAttributeKey}`)
     } else {
       this._pomlElement.customAttributes.set(customAttributeKey, value)
     }
