@@ -38,14 +38,17 @@ const vertexShaderSource = `
   varying vec2 vPosition;
   void main () {
     vec4 modelOrigin = world * vec4(0.0, 0.0, 0.0, 1.0);
-    float scale = (world * vec4(1.0, 0.0, 0.0, 0.0)).x;
+    //float scale = (world * vec4(1.0, 0.0, 0.0, 0.0)).x;
+    float scale = 1.0;
 
-    vec3 center = world0.xyz * scale + modelOrigin.xyz;
+    // vec3 center = world0.xyz * scale + modelOrigin.xyz;
+    // vec3 center = world0.xyz * scale;
+    vec3 center = world0.xyz;
     vec4 color = world1;
     vec3 covA = world2.xyz;
     vec3 covB = world3.xyz;
 
-    vec4 camspace = view * vec4(center, 1);
+    vec4 camspace = view * world * vec4(center, 1);
     vec4 pos2d = projection * camspace;
 
     float bounds = 1.2 * pos2d.w;
@@ -69,7 +72,7 @@ const vertexShaderSource = `
 
     mat3 invy = mat3(1,0,0, 0,-1,0,0,0,1);
 
-    mat3 T = invy * transpose(mat3(view)) * J;
+    mat3 T = invy * transpose(mat3(view * world)) * J;
     mat3 cov2d = transpose(T) * Vrk * T;
 
     float mid = (cov2d[0][0] + cov2d[1][1]) / 2.0;
@@ -336,8 +339,10 @@ export class GaussianSplatLoader {
     }
     scene.onBeforeRenderObservable.add(() => {
       const camera = scene._activeCamera as Camera
+      // const view: camera.getViewMatrix().m
+      const view = camera.getViewMatrix().multiply(quad._worldMatrix).m
       worker.postMessage({
-        view: camera.getViewMatrix().m,
+        view: view,
         positions: positions,
       })
     })
