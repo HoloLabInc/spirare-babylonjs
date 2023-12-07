@@ -243,8 +243,7 @@ export class SpirareModelNode extends SpirareNodeBase<PomlModelElement> {
           )
           return {
             modelName,
-            meshes: [],
-            // meshes: loaded.meshes,
+            meshes: loaded.meshes,
           }
         }
         default: {

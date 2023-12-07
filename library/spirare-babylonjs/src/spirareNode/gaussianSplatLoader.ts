@@ -29,6 +29,7 @@ const vertexShaderSource = `
   attribute vec4 world2;
   attribute vec4 world3;
 
+  uniform mat4 world;
   uniform mat4 projection, view;
   uniform vec2 focal;
   uniform vec2 viewport;
@@ -36,7 +37,10 @@ const vertexShaderSource = `
   varying vec4 vColor;
   varying vec2 vPosition;
   void main () {
-    vec3 center = world0.xyz;
+    vec4 modelOrigin = world * vec4(0.0, 0.0, 0.0, 1.0);
+    float scale = (world * vec4(1.0, 0.0, 0.0, 0.0)).x;
+
+    vec3 center = world0.xyz * scale + modelOrigin.xyz;
     vec4 color = world1;
     vec3 covA = world2.xyz;
     vec3 covB = world3.xyz;
@@ -74,16 +78,12 @@ const vertexShaderSource = `
 
     if(lambda2 < 0.0) return;
     vec2 diagonalVector = normalize(vec2(cov2d[0][1], lambda1 - cov2d[0][0]));
-    vec2 majorAxis = min(sqrt(2.0 * lambda1), 1024.0) * diagonalVector;
-    vec2 minorAxis = min(sqrt(2.0 * lambda2), 1024.0) * vec2(diagonalVector.y, -diagonalVector.x);
+    vec2 majorAxis = scale * min(sqrt(2.0 * lambda1), 1024.0) * diagonalVector;
+    vec2 minorAxis = scale * min(sqrt(2.0 * lambda2), 1024.0) * vec2(diagonalVector.y, -diagonalVector.x);
 
     vColor = color;
     vPosition = position;
     vec2 vCenter = vec2(pos2d);
-    // gl_Position = vec4(
-    //    vCenter 
-    //     + (position.x * majorAxis * 1. / viewport 
-    //    + position.y * minorAxis * 1. / viewport) * pos2d.w, pos2d.zw);
     gl_Position = vec4(
         vCenter 
         + (position.x * majorAxis * 1. / viewport 

@@ -505,7 +505,8 @@ export class App {
         if (mesh.material?.pointsCloud) {
           return
         }
-        this.highlightLayer.addMesh(mesh, Color3.FromHexString('#FF6600'))
+
+        // this.highlightLayer.addMesh(mesh, Color3.FromHexString('#FF6600'))
       }
     })
   }
