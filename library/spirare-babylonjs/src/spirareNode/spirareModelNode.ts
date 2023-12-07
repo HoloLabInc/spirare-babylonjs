@@ -12,6 +12,7 @@ import { getFileLoadUrlAsync } from './spirareNodeUtils'
 import { CreateNodeParams } from './spirareNode'
 import { SpirareNodeBase } from './spirareNodeBase'
 import { AnimationState, AnimationWrap } from '../wasm/spirare/spirareTypes'
+import { GaussianSplatLoader } from './gaussianSplatLoader'
 
 export class SpirareModelNode extends SpirareNodeBase<PomlModelElement> {
   private modelMeshes: (Mesh | AbstractMesh)[] = []
@@ -233,6 +234,17 @@ export class SpirareModelNode extends SpirareNodeBase<PomlModelElement> {
           return {
             modelName,
             meshes: [mesh],
+          }
+        }
+        case 'splat': {
+          const loaded = await GaussianSplatLoader.importWithUrlAsync(
+            url,
+            scene
+          )
+          return {
+            modelName,
+            meshes: [],
+            // meshes: loaded.meshes,
           }
         }
         default: {

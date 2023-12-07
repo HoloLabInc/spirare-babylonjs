@@ -658,7 +658,8 @@ export class App {
           switch (fileExt) {
             case 'glb':
             case 'ifc':
-            case 'ply': {
+            case 'ply':
+            case 'splat': {
               return PomlModelElement
             }
             case 'png':
