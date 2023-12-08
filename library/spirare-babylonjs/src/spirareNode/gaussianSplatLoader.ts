@@ -2,7 +2,6 @@ import {
   Camera,
   DeepImmutable,
   Effect,
-  HemisphericLight,
   Matrix,
   Mesh,
   Quaternion,
@@ -12,13 +11,6 @@ import {
   Vector2,
   VertexData,
 } from '@babylonjs/core'
-
-/*
-var vertexCount
-var positions
-var u_buffer
-var covA, covB
-*/
 
 const vertexShaderSource = `
   precision mediump float;
@@ -38,11 +30,7 @@ const vertexShaderSource = `
   varying vec2 vPosition;
   void main () {
     vec4 modelOrigin = world * vec4(0.0, 0.0, 0.0, 1.0);
-    //float scale = (world * vec4(1.0, 0.0, 0.0, 0.0)).x;
-    float scale = 1.0;
 
-    // vec3 center = world0.xyz * scale + modelOrigin.xyz;
-    // vec3 center = world0.xyz * scale;
     vec3 center = world0.xyz;
     vec4 color = world1;
     vec3 covA = world2.xyz;
@@ -81,8 +69,8 @@ const vertexShaderSource = `
 
     if(lambda2 < 0.0) return;
     vec2 diagonalVector = normalize(vec2(cov2d[0][1], lambda1 - cov2d[0][0]));
-    vec2 majorAxis = scale * min(sqrt(2.0 * lambda1), 1024.0) * diagonalVector;
-    vec2 minorAxis = scale * min(sqrt(2.0 * lambda2), 1024.0) * vec2(diagonalVector.y, -diagonalVector.x);
+    vec2 majorAxis = min(sqrt(2.0 * lambda1), 1024.0) * diagonalVector;
+    vec2 minorAxis = min(sqrt(2.0 * lambda2), 1024.0) * vec2(diagonalVector.y, -diagonalVector.x);
 
     vColor = color;
     vPosition = position;
@@ -114,7 +102,6 @@ function createWorker(self: Worker) {
   let positions: Float32Array
 
   const runSort = (viewProj: DeepImmutable<Float32Array | Array<number>>) => {
-    // console.log(viewProj)
     vertexCount = positions.length
     if (depthMix.length !== vertexCount) {
       depthMix = new BigInt64Array(vertexCount)
@@ -224,11 +211,7 @@ function setData(binaryData: Uint8Array) {
 
 export class GaussianSplatLoader {
   public static async importWithUrlAsync(url: string, scene: Scene) {
-    const data = (await Tools.LoadFileAsync(
-      url,
-      // 'https://raw.githubusercontent.com/CedricGuillemet/dump/master/Halo_Believe.splat',
-      true
-    )) as ArrayBuffer
+    const data = (await Tools.LoadFileAsync(url, true)) as ArrayBuffer
     const { vertexCount, positions, u_buffer, covA, covB } = setData(
       new Uint8Array(data)
     )
@@ -304,27 +287,6 @@ export class GaussianSplatLoader {
       firstTime = false
     }
 
-    /*
-    // polygonal meshes
-    var light = new HemisphericLight('light', new Vector3(0, 1, 0), scene)
-    light.intensity = 0.7
-    var sphere = BABYLON.MeshBuilder.CreateSphere(
-      'sphere',
-      { diameter: 1.5, segments: 32 },
-      scene
-    )
-    sphere.position.y = -1.5
-    sphere.position.z = -1
-    var ground = BABYLON.MeshBuilder.CreateGround(
-      'ground',
-      { width: 6, height: 6 },
-      scene
-    )
-    ground.position.y = -1.7
-	*/
-
-    console.log('ready')
-
     const worker = new Worker(
       URL.createObjectURL(
         new Blob(['(', createWorker.toString(), ')(self)'], {
@@ -339,7 +301,6 @@ export class GaussianSplatLoader {
     }
     scene.onBeforeRenderObservable.add(() => {
       const camera = scene._activeCamera as Camera
-      // const view: camera.getViewMatrix().m
       const view = camera.getViewMatrix().multiply(quad._worldMatrix).m
       worker.postMessage({
         view: view,
