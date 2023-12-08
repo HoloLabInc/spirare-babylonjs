@@ -23,6 +23,11 @@ export class SpirareModelNode extends SpirareNodeBase<PomlModelElement> {
 
   private disposes: { dispose: () => void }[] = []
 
+  private _highlightable: boolean = true
+  public override get highlightable(): boolean {
+    return this._highlightable
+  }
+
   protected override get meshes(): AbstractMesh[] {
     return this.modelMeshes
   }
@@ -241,6 +246,7 @@ export class SpirareModelNode extends SpirareNodeBase<PomlModelElement> {
             url,
             scene
           )
+          this._highlightable = false
           return {
             modelName,
             meshes: loaded.meshes,

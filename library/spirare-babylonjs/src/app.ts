@@ -498,6 +498,10 @@ export class App {
     // Highlight the selected model
     this.highlightLayer.removeAllMeshes()
 
+    if (node.highlightable === false) {
+      return
+    }
+
     const meshes = node.getChildMeshes()
     meshes.forEach((mesh) => {
       if (mesh instanceof Mesh) {
@@ -506,7 +510,7 @@ export class App {
           return
         }
 
-        // this.highlightLayer.addMesh(mesh, Color3.FromHexString('#FF6600'))
+        this.highlightLayer.addMesh(mesh, Color3.FromHexString('#FF6600'))
       }
     })
   }
@@ -867,6 +871,13 @@ export class App {
     }
 
     node.onClick = this.onElementClicked.bind(this)
+    if (node.highlightable === false) {
+      node.getChildMeshes().forEach((mesh) => {
+        if (mesh instanceof Mesh) {
+          this.highlightLayer.addExcludedMesh(mesh)
+        }
+      })
+    }
 
     // If the geodetic placement mode is enabled, set the node's geoPlacement property to true for exporting geodetic coordinates.
     if (this.placementMode == 'geodetic') {
