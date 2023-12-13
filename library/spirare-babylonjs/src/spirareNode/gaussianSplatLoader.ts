@@ -301,7 +301,7 @@ export class GaussianSplatLoader {
     }
     scene.onBeforeRenderObservable.add(() => {
       const camera = scene._activeCamera as Camera
-      const view = camera.getViewMatrix().multiply(quad._worldMatrix).m
+      const view = quad._worldMatrix.multiply(camera.getViewMatrix()).m
       worker.postMessage({
         view: view,
         positions: positions,
