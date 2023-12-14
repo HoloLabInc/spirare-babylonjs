@@ -165,9 +165,10 @@ export class SpirareModelNode extends SpirareNodeBase<PomlModelElement> {
   }
 
   private async updateModel(name: string) {
+    this.cleanUp()
+
     const scene = this.getScene()
     const loaded = await this.createModel(scene, this.element, name)
-    this.cleanUp()
     if (loaded) {
       this.modelMeshes = loaded.meshes
       this.modelMeshes.forEach((mesh) => {
@@ -248,6 +249,7 @@ export class SpirareModelNode extends SpirareNodeBase<PomlModelElement> {
         case 'splat': {
           this._highlightable = false
           const gs = new GaussianSplatting('GaussianSplatting', scene)
+          this.disposes.push(gs)
           await gs.loadFileAsync(url)
           return {
             modelName,
