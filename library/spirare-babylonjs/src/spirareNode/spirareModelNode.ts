@@ -251,6 +251,20 @@ export class SpirareModelNode extends SpirareNodeBase<PomlModelElement> {
           const gs = new GaussianSplatting('GaussianSplatting', scene)
           this.disposes.push(gs)
           await gs.loadFileAsync(url)
+
+          if (gs.mesh !== null) {
+            gs.mesh.parent = this
+          }
+
+          // Wait a few frames in order that focus works correctly
+          for (let i = 0; i < 2; i++) {
+            await new Promise<void>((resolve) => {
+              scene.onAfterRenderObservable.addOnce(() => {
+                resolve()
+              })
+            })
+          }
+
           return {
             modelName,
             meshes: [gs.mesh],
