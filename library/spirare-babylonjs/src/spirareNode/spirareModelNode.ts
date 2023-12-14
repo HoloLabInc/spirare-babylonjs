@@ -4,6 +4,7 @@ import {
   SceneLoader,
   AbstractMesh,
   AnimationGroup,
+  Nullable,
 } from '@babylonjs/core'
 import { PomlModelElement } from 'ts-poml'
 import { PointCloudLoader } from './pointCloudLoader'
@@ -14,7 +15,7 @@ import { SpirareNodeBase } from './spirareNodeBase'
 import { AnimationState, AnimationWrap } from '../wasm/spirare/spirareTypes'
 
 export class SpirareModelNode extends SpirareNodeBase<PomlModelElement> {
-  private modelMeshes: (Mesh | AbstractMesh)[] = []
+  private modelMeshes: (Nullable<Mesh> | AbstractMesh)[] = []
 
   private currentAnimationGroup: AnimationGroup | undefined
 
@@ -23,7 +24,7 @@ export class SpirareModelNode extends SpirareNodeBase<PomlModelElement> {
   private disposes: { dispose: () => void }[] = []
 
   protected override get meshes(): AbstractMesh[] {
-    return this.modelMeshes
+    return this.modelMeshes.filter((x): x is Mesh | AbstractMesh => x !== null)
   }
 
   private constructor(
@@ -164,6 +165,9 @@ export class SpirareModelNode extends SpirareNodeBase<PomlModelElement> {
     if (loaded) {
       this.modelMeshes = loaded.meshes
       this.modelMeshes.forEach((mesh) => {
+        if (mesh === null) {
+          return
+        }
         if (mesh.material) {
           this.disposes.push(mesh.material)
           mesh.material
