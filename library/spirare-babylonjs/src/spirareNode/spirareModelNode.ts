@@ -4,6 +4,7 @@ import {
   SceneLoader,
   AbstractMesh,
   AnimationGroup,
+  GaussianSplatting,
   Nullable,
 } from '@babylonjs/core'
 import { PomlModelElement } from 'ts-poml'
@@ -23,7 +24,12 @@ export class SpirareModelNode extends SpirareNodeBase<PomlModelElement> {
 
   private disposes: { dispose: () => void }[] = []
 
-  protected override get meshes(): AbstractMesh[] {
+  private _highlightable: boolean = true
+  public override get highlightable(): boolean {
+    return this._highlightable
+  }
+
+  public override get meshes(): AbstractMesh[] {
     return this.modelMeshes.filter((x): x is Mesh | AbstractMesh => x !== null)
   }
 
@@ -237,6 +243,15 @@ export class SpirareModelNode extends SpirareNodeBase<PomlModelElement> {
           return {
             modelName,
             meshes: [mesh],
+          }
+        }
+        case 'splat': {
+          this._highlightable = false
+          const gs = new GaussianSplatting('GaussianSplatting', scene)
+          await gs.loadFileAsync(url)
+          return {
+            modelName,
+            meshes: [gs.mesh],
           }
         }
         default: {
