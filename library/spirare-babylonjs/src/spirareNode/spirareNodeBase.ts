@@ -203,8 +203,12 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
     return 'world-space'
   }
 
-  protected get meshes(): AbstractMesh[] {
+  public get meshes(): AbstractMesh[] {
     return []
+  }
+
+  public get highlightable(): boolean {
+    return true
   }
 
   protected get layerMask(): number {

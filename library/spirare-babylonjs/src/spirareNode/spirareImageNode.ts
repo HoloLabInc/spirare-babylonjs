@@ -28,7 +28,7 @@ export class SpirareImageNode extends SpirareMediaNodeBase<PomlImageElement> {
   private plane?: Mesh
   private backPlane?: Mesh
 
-  protected override get meshes(): AbstractMesh[] {
+  public override get meshes(): AbstractMesh[] {
     return [this.plane, this.backPlane].filter(
       (x): x is Mesh => x !== undefined
     )
