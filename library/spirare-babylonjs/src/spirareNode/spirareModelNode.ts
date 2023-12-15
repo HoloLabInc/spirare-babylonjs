@@ -4,6 +4,7 @@ import {
   SceneLoader,
   AbstractMesh,
   AnimationGroup,
+  GaussianSplatting,
   Nullable,
 } from '@babylonjs/core'
 import { PomlModelElement } from 'ts-poml'
@@ -23,7 +24,12 @@ export class SpirareModelNode extends SpirareNodeBase<PomlModelElement> {
 
   private disposes: { dispose: () => void }[] = []
 
-  protected override get meshes(): AbstractMesh[] {
+  private _highlightable: boolean = true
+  public override get highlightable(): boolean {
+    return this._highlightable
+  }
+
+  public override get meshes(): AbstractMesh[] {
     return this.modelMeshes.filter((x): x is Mesh | AbstractMesh => x !== null)
   }
 
@@ -159,9 +165,10 @@ export class SpirareModelNode extends SpirareNodeBase<PomlModelElement> {
   }
 
   private async updateModel(name: string) {
+    this.cleanUp()
+
     const scene = this.getScene()
     const loaded = await this.createModel(scene, this.element, name)
-    this.cleanUp()
     if (loaded) {
       this.modelMeshes = loaded.meshes
       this.modelMeshes.forEach((mesh) => {
@@ -237,6 +244,30 @@ export class SpirareModelNode extends SpirareNodeBase<PomlModelElement> {
           return {
             modelName,
             meshes: [mesh],
+          }
+        }
+        case 'splat': {
+          this._highlightable = false
+          const gs = new GaussianSplatting('GaussianSplatting', scene)
+          this.disposes.push(gs)
+          await gs.loadFileAsync(url)
+
+          if (gs.mesh !== null) {
+            gs.mesh.parent = this
+          }
+
+          // Wait a few frames in order that focus works correctly
+          for (let i = 0; i < 2; i++) {
+            await new Promise<void>((resolve) => {
+              scene.onAfterRenderObservable.addOnce(() => {
+                resolve()
+              })
+            })
+          }
+
+          return {
+            modelName,
+            meshes: [gs.mesh],
           }
         }
         default: {

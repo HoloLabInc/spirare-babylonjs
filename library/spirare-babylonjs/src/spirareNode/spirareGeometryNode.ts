@@ -24,7 +24,7 @@ export class SpirareGeometryNode extends SpirareNodeBase<PomlGeometryElement> {
   private geometryMeshes: Mesh[] = []
   private disposes: { dispose: () => void }[] = []
 
-  protected override get meshes(): AbstractMesh[] {
+  public override get meshes(): AbstractMesh[] {
     return this.geometryMeshes
   }
 
