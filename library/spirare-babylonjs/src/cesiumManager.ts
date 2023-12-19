@@ -112,6 +112,14 @@ export class CesiumManager {
         break
     }
 
+    // Hide logo and data attribution link
+    const viewerAny = viewer as any
+    try {
+      viewerAny._cesiumWidget._creditContainer.style.display = 'none'
+    } catch (e) {
+      console.log(e)
+    }
+
     return { viewer, terrainProvider }
   }
 
