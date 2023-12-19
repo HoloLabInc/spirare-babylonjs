@@ -1386,7 +1386,7 @@ export class App {
   }
 
   private createCesiumIonLogo(): Control {
-    const logoUrl = '/dist/Assets/Images/ion-credit.png'
+    const logoUrl = './dist/Assets/Images/ion-credit.png'
     const logoWidth = 138
     const logoHeight = 28
     const logo = UIHelper.createImage(logoUrl, {
