@@ -57,7 +57,7 @@ import {
   CameraControllerOptions,
 } from './camera/cameraController'
 import { ICameraController } from './camera/iCameraController'
-import { CesiumManager } from './cesiumManager'
+import { CesiumManager, CesiumManagerOptions } from './cesiumManager'
 import { HistoryManager } from './historyManager'
 import AsyncLock from 'async-lock'
 import { Streaming3dTiles, TilesetData } from './plateau/streaming3dTiles'
@@ -123,7 +123,10 @@ export const createAppAsync = async (params: AppParams) => {
   let cesiumManager: CesiumManager | undefined
   if (params.launchParams.placementMode === 'geodetic') {
     cesiumManager = new CesiumManager()
-    await cesiumManager.initializeAsync()
+    const options: CesiumManagerOptions = {
+      imageryType: TERRAIN_TILESET_URL ? 'None' : 'PLATEAU',
+    }
+    await cesiumManager.initializeAsync(options)
   }
 
   const app = new App(params, cesiumManager)
@@ -350,12 +353,13 @@ export class App {
 
       // Create Cesium.js data attibution UI
       if (isGeodeticMode) {
+        const cesiumIonLogo = this.createCesiumIonLogo()
+        this.ui.addControl(cesiumIonLogo)
+
+        const dataAttributionUI = this.createCesiumJsDataAttributionUI()
+        this.ui.addControl(dataAttributionUI)
+
         switch (this.terrainType) {
-          case 'Cesium': {
-            const dataAttributionUI = this.createCesiumJsDataAttributionUI()
-            this.ui.addControl(dataAttributionUI)
-            break
-          }
           case '3DTiles': {
             this.dataAttributionTextBlock = this.createDataAttributionText()
             this.updateDataAttributionText()
@@ -1381,6 +1385,19 @@ export class App {
     console.log(result.pomlText)
   }
 
+  private createCesiumIonLogo(): Control {
+    const logoUrl = './dist/Assets/Images/ion-credit.png'
+    const logoWidth = 138
+    const logoHeight = 28
+    const logo = UIHelper.createImage(logoUrl, {
+      width: `${logoWidth}px`,
+      height: `${logoHeight}px`,
+      paddingBottom: '6px',
+      verticalAlignment: Control.VERTICAL_ALIGNMENT_BOTTOM,
+    })
+    return logo
+  }
+
   // create data attribution ui
   private createCesiumJsDataAttributionUI(): Control {
     const buttonWidth = 130
@@ -1408,7 +1425,8 @@ export class App {
 
   private createDataAttributionText(): TextBlock {
     const text = UIHelper.createTextBlock('', {
-      width: '50%',
+      paddingLeft: '280px',
+      width: '60%',
       height: '40px',
       color: 'white',
       fontSize: '10px',

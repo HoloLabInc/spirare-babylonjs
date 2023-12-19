@@ -13,6 +13,7 @@ import {
   TerrainProvider,
   sampleTerrainMostDetailed,
   Credit,
+  Color,
 } from 'cesium'
 import { GeodeticPosition } from './cesium/geoManager'
 
@@ -34,6 +35,11 @@ const cartographicToGeodeticPosition = (cartographic: Cartographic) => {
   return geodeticPosition
 }
 
+export type ImageryProviderType = 'None' | 'PLATEAU'
+export type CesiumManagerOptions = {
+  imageryType?: ImageryProviderType
+}
+
 export class CesiumManager {
   private viewer: Viewer | undefined
   private terrainProvider: TerrainProvider | undefined
@@ -42,13 +48,13 @@ export class CesiumManager {
     Ion.defaultAccessToken = CESIUM_ION_TOKEN
   }
 
-  public async initializeAsync() {
-    const { viewer, terrainProvider } = await this.initViewerAsync()
+  public async initializeAsync(options: CesiumManagerOptions = {}) {
+    const { viewer, terrainProvider } = await this.initViewerAsync(options)
     this.viewer = viewer
     this.terrainProvider = terrainProvider
   }
 
-  private async initViewerAsync() {
+  private async initViewerAsync(options: CesiumManagerOptions) {
     // Terrain specification (EGM96, national terrain model generated from the 5m digital elevation data, areas without 5m data are supplemented with 10m data)
 
     const terrainProvider = await CesiumTerrainProvider.fromIonAssetId(770371, {
@@ -87,15 +93,32 @@ export class CesiumManager {
       dataSources: undefined,
     })
 
-    // Reference to orthophoto tiles created by Project PLATEAU, hosted by Geospatial Information Authority of Japan
-    const imageProvider = new UrlTemplateImageryProvider({
-      url: 'https://gic-plateau.s3.ap-northeast-1.amazonaws.com/2020/ortho/tiles/{z}/{x}/{y}.png',
-      maximumLevel: 19,
-      credit: new Credit(
-        'Project PLATEAU https://www.mlit.go.jp/plateau/ (Licensed under CC BY 4.0 https://creativecommons.org/licenses/by/4.0/legalcode.ja)'
-      ),
-    })
-    viewer.scene.imageryLayers.addImageryProvider(imageProvider)
+    const imageryType = options.imageryType ?? 'None'
+    switch (imageryType) {
+      case 'None':
+        viewer.scene.imageryLayers.removeAll()
+        viewer.scene.globe.baseColor = Color.BLACK
+        break
+      case 'PLATEAU':
+        // Reference to orthophoto tiles created by Project PLATEAU, hosted by Geospatial Information Authority of Japan
+        const imageProvider = new UrlTemplateImageryProvider({
+          url: 'https://gic-plateau.s3.ap-northeast-1.amazonaws.com/2020/ortho/tiles/{z}/{x}/{y}.png',
+          maximumLevel: 19,
+          credit: new Credit(
+            'Project PLATEAU https://www.mlit.go.jp/plateau/ (Licensed under CC BY 4.0 https://creativecommons.org/licenses/by/4.0/legalcode.ja)'
+          ),
+        })
+        viewer.scene.imageryLayers.addImageryProvider(imageProvider)
+        break
+    }
+
+    // Hide logo and data attribution link
+    const viewerAny = viewer as any
+    try {
+      viewerAny._cesiumWidget._creditContainer.style.display = 'none'
+    } catch (e) {
+      console.log(e)
+    }
 
     return { viewer, terrainProvider }
   }

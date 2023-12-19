@@ -1,6 +1,7 @@
 import { EventState } from '@babylonjs/core'
 import {
   Button,
+  Image,
   InputText,
   Checkbox,
   TextBlock,
@@ -134,6 +135,19 @@ export class UIHelper {
       checkbox.onIsCheckedChangedObservable.add(isCheckedChanged)
     }
     return checkbox
+  }
+
+  public static createImage(url: string, param?: object) {
+    const defaultParam = {
+      horizontalAlignment: Image.HORIZONTAL_ALIGNMENT_LEFT,
+      verticalAlignment: Image.VERTICAL_ALIGNMENT_TOP,
+    }
+    const image = Object.assign(new Image('', url), {
+      ...defaultParam,
+      ...param,
+    })
+
+    return image
   }
 
   public static createButton(
