@@ -109,6 +109,7 @@ export class CesiumManager {
           ),
         })
         viewer.scene.imageryLayers.addImageryProvider(imageProvider)
+        break
     }
 
     return { viewer, terrainProvider }
