@@ -57,7 +57,7 @@ import {
   CameraControllerOptions,
 } from './camera/cameraController'
 import { ICameraController } from './camera/iCameraController'
-import { CesiumManager } from './cesiumManager'
+import { CesiumManager, CesiumManagerOptions } from './cesiumManager'
 import { HistoryManager } from './historyManager'
 import AsyncLock from 'async-lock'
 import { Streaming3dTiles, TilesetData } from './plateau/streaming3dTiles'
@@ -123,7 +123,10 @@ export const createAppAsync = async (params: AppParams) => {
   let cesiumManager: CesiumManager | undefined
   if (params.launchParams.placementMode === 'geodetic') {
     cesiumManager = new CesiumManager()
-    await cesiumManager.initializeAsync()
+    const options: CesiumManagerOptions = {
+      imageryType: TERRAIN_TILESET_URL ? 'None' : 'PLATEAU',
+    }
+    await cesiumManager.initializeAsync(options)
   }
 
   const app = new App(params, cesiumManager)
