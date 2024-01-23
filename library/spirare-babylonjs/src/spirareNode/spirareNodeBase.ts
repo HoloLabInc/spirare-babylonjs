@@ -281,6 +281,9 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
   private set displayInspector(value: number) {
     const a = [undefined, 'none', 'occlusion'] as const
     this._pomlElement.display = a[value]
+    if (a[value] === undefined) {
+      this._pomlElement.originalAttrs?.delete('display')
+    }
     this.onChange?.()
   }
 
@@ -312,6 +315,9 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
   private set arDisplayInspector(value: number) {
     const a = ['visible', 'none', 'occlusion', undefined] as const
     this._pomlElement.arDisplay = a[value]
+    if (a[value] === undefined) {
+      this._pomlElement.originalAttrs?.delete('ar-display')
+    }
     this.onChange?.()
   }
 
@@ -399,6 +405,9 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
   private set rotationModeInspector(value: number) {
     const a = [undefined, 'billboard', 'vertical-billboard'] as const
     this._pomlElement.rotationMode = a[value]
+    if (a[value] === undefined) {
+      this._pomlElement.originalAttrs?.delete('rotation-mode')
+    }
     this.onChange?.()
   }
 
