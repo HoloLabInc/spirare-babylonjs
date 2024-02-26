@@ -416,6 +416,19 @@ function createWindow() {
 
   const url = `file://${path.join(__dirname, '../startpage.html')}`
   mainWindow.loadURL(url)
+
+  // Open filer when file download completed.
+  mainWindow.webContents.session.on(
+    'will-download',
+    (event, item, webContents) => {
+      item.once('done', (event, state) => {
+        if (state === 'completed') {
+          const filePath = item.getSavePath()
+          shell.showItemInFolder(filePath)
+        }
+      })
+    }
+  )
 }
 
 // This method will be called when Electron has finished
