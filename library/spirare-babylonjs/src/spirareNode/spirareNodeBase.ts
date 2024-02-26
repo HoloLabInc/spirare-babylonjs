@@ -999,9 +999,20 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
     }
   }
 
+  protected registerActionManager(): void {
+    this.meshes.forEach((mesh) => {
+      mesh.actionManager = this.actionManager
+    })
+  }
+
+  protected unregisterActionManager(): void {
+    this.meshes.forEach((mesh) => {
+      mesh.actionManager = null
+    })
+  }
+
   protected updateNodeObjectStatus(): void {
     this.updatePickable()
-    this.updateActionManager()
     this.updateDisplay()
     this.updateLayerMask()
   }
@@ -1016,12 +1027,6 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
         this.gizmoController.detach()
       }
     }
-  }
-
-  private updateActionManager(): void {
-    this.meshes.forEach((mesh) => {
-      mesh.actionManager = this.actionManager
-    })
   }
 
   private updateDisplay(): void {

@@ -71,7 +71,10 @@ export class SpirareImageNode extends SpirareMediaNodeBase<PomlImageElement> {
       | undefined
   ): void {
     if (this.plane !== newResource?.plane) {
-      this.plane?.dispose()
+      if (this.plane) {
+        this.plane.actionManager = null
+        this.plane.dispose()
+      }
       this.plane = undefined
     }
 
@@ -81,7 +84,10 @@ export class SpirareImageNode extends SpirareMediaNodeBase<PomlImageElement> {
     }
 
     if (this.backPlane !== newResource?.backPlane) {
-      this.backPlane?.dispose()
+      if (this.backPlane) {
+        this.backPlane.actionManager = null
+        this.backPlane.dispose()
+      }
       this.backPlane = undefined
     }
 
@@ -123,6 +129,7 @@ export class SpirareImageNode extends SpirareMediaNodeBase<PomlImageElement> {
         this.backPlane.parent = this
       }
 
+      this.registerActionManager()
       this.updateNodeObjectStatus()
     }
   }

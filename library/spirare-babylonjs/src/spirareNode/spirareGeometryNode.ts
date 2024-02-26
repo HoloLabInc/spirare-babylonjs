@@ -68,6 +68,7 @@ export class SpirareGeometryNode extends SpirareNodeBase<PomlGeometryElement> {
       this.disposes.push(m)
     })
 
+    this.registerActionManager()
     this.updateNodeObjectStatus()
   }
 
