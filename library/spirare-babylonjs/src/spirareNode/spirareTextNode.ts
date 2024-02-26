@@ -174,12 +174,14 @@ export class SpirareTextNode extends SpirareNodeBase<PomlTextElement> {
   }
 
   private updateText(): void {
+    this.cleanUp()
+
     const created = SpirareTextNode.createText(
       this.getScene(),
       this.element,
       this.app.runMode
     )
-    this.cleanUp()
+
     if (created) {
       this.plane = created.plane
       this.backPlane = created.backPlane
@@ -195,11 +197,14 @@ export class SpirareTextNode extends SpirareNodeBase<PomlTextElement> {
         this.backPlane.parent = this
       }
 
+      this.registerActionManager()
       this.updateNodeObjectStatus()
     }
   }
 
   private cleanUp() {
+    this.unregisterActionManager()
+
     this.plane?.dispose()
     this.backPlane?.dispose()
     this.textTexture?.dispose()

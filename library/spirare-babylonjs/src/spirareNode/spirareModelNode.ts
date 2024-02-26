@@ -45,6 +45,8 @@ export class SpirareModelNode extends SpirareNodeBase<PomlModelElement> {
   }
 
   private cleanUp(): void {
+    this.unregisterActionManager()
+
     this.disposes.forEach((x) => x.dispose())
     this.disposes.length = 0
 
@@ -194,6 +196,7 @@ export class SpirareModelNode extends SpirareNodeBase<PomlModelElement> {
       }
 
       this.name += ` (${loaded.modelName})`
+      this.registerActionManager()
       this.updateNodeObjectStatus()
     }
   }
