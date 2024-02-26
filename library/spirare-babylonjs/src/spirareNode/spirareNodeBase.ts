@@ -394,6 +394,9 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
       case 'vertical-billboard': {
         return 2
       }
+      case 'plane-billboard': {
+        return 3
+      }
       default: {
         let _: AssertTrue<IsNever<typeof m>>
         return 0
@@ -403,7 +406,12 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
 
   // Called from the inspector.
   private set rotationModeInspector(value: number) {
-    const a = [undefined, 'billboard', 'vertical-billboard'] as const
+    const a = [
+      undefined,
+      'billboard',
+      'vertical-billboard',
+      'plane-billboard',
+    ] as const
     this._pomlElement.rotationMode = a[value]
     if (a[value] === undefined) {
       this._pomlElement.originalAttrs?.delete('rotation-mode')
@@ -622,16 +630,21 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
         if (this._pomlElement.rotationMode !== undefined) {
           switch (this._pomlElement.rotationMode) {
             case 'billboard': {
-              const cameraBackward = this.app.camera.getDirection(
-                new Vector3(0, 0, -1)
-              )
-              const target = this.absolutePosition.add(cameraBackward)
+              const target = this.app.camera.position
               this.lookAt(target, undefined, undefined, undefined, Space.WORLD)
               break
             }
             case 'vertical-billboard': {
               const target = this.app.camera.position
               target.y = this.absolutePosition.y
+              this.lookAt(target, undefined, undefined, undefined, Space.WORLD)
+              break
+            }
+            case 'plane-billboard': {
+              const cameraBackward = this.app.camera.getDirection(
+                new Vector3(0, 0, -1)
+              )
+              const target = this.absolutePosition.add(cameraBackward)
               this.lookAt(target, undefined, undefined, undefined, Space.WORLD)
               break
             }
@@ -791,6 +804,10 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
             {
               label: 'vertical-billboard',
               value: 2,
+            },
+            {
+              label: 'plane-billboard',
+              value: 3,
             },
           ],
         }
