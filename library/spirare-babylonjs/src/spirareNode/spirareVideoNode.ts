@@ -121,7 +121,10 @@ export class SpirareVideoNode extends SpirareMediaNodeBase<PomlVideoElement> {
       | undefined
   ): void {
     if (this.plane !== newResource?.plane) {
-      this.plane?.dispose()
+      if (this.plane) {
+        this.plane.actionManager = null
+        this.plane.dispose()
+      }
       this.plane = undefined
     }
 
@@ -131,7 +134,10 @@ export class SpirareVideoNode extends SpirareMediaNodeBase<PomlVideoElement> {
     }
 
     if (this.backPlane !== newResource?.backPlane) {
-      this.backPlane?.dispose()
+      if (this.backPlane) {
+        this.backPlane.actionManager = null
+        this.backPlane.dispose()
+      }
       this.backPlane = undefined
     }
 
