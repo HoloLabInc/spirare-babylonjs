@@ -624,14 +624,18 @@ export class App {
   }
 
   private async loadFilesAsync(files: FileList | null | undefined) {
-    if (files && files.length > 0) {
-      const useCameraAdjustAnimation = files.length === 1
-      await Promise.all(
-        Array.from(files).map((file) =>
-          this.loadDroppedFileAsync(file, useCameraAdjustAnimation)
-        )
-      )
+    if (files === null || files === undefined) {
+      return
     }
+
+    const validFiles = Array.from(files).filter((file) => file.size > 0)
+    const useCameraAdjustAnimation = validFiles.length === 1
+
+    await Promise.all(
+      validFiles.map((file) =>
+        this.loadDroppedFileAsync(file, useCameraAdjustAnimation)
+      )
+    )
   }
 
   private async loadDroppedFileAsync(
