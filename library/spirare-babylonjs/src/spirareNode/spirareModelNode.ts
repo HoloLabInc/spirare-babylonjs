@@ -4,7 +4,7 @@ import {
   SceneLoader,
   AbstractMesh,
   AnimationGroup,
-  GaussianSplatting,
+  GaussianSplattingMesh,
   Nullable,
   Node,
 } from '@babylonjs/core'
@@ -229,7 +229,7 @@ export class SpirareModelNode extends SpirareNodeBase<PomlModelElement> {
       let loadFuncion: LoadFunction
       switch (fileExt) {
         case 'ply':
-          loadFuncion = loadPointCloudAsync
+          loadFuncion = loadGaussianSplattingOrPointCloudAsync
           break
         case 'splat':
           loadFuncion = loadGaussianSplattingAsync
@@ -241,7 +241,7 @@ export class SpirareModelNode extends SpirareNodeBase<PomlModelElement> {
           loadFuncion = loadGlbAsync
       }
 
-      const result = await loadFuncion(url, fileExt, scene, this)
+      const result = await loadFuncion(url, fileExt, scene)
 
       if (result.success) {
         this.disposes.push(...result.disposes)
@@ -264,8 +264,7 @@ export class SpirareModelNode extends SpirareNodeBase<PomlModelElement> {
 type LoadFunction = (
   url: string,
   fileExtention: string,
-  scene: Scene,
-  parentNode: Node
+  scene: Scene
 ) => Promise<{
   success: boolean
   disposes: { dispose: () => void }[]
@@ -277,8 +276,7 @@ type LoadFunction = (
 const loadGlbAsync: LoadFunction = async (
   url: string,
   fileExtention: string,
-  scene: Scene,
-  parentNode: Node
+  scene: Scene
 ) => {
   const loaded = await SceneLoader.ImportMeshAsync(
     '',
@@ -301,8 +299,7 @@ const loadGlbAsync: LoadFunction = async (
 const loadPointCloudAsync: LoadFunction = async (
   url: string,
   fileExtention: string,
-  scene: Scene,
-  parentNode: Node
+  scene: Scene
 ) => {
   const loaded = await PointCloudLoader.importWithUrlAsync(
     url,
@@ -332,39 +329,60 @@ const loadPointCloudAsync: LoadFunction = async (
 const loadGaussianSplattingAsync: LoadFunction = async (
   url: string,
   fileExtention: string,
-  scene: Scene,
-  parentNode: Node
+  scene: Scene
 ) => {
-  const gs = new GaussianSplatting('GaussianSplatting', scene)
-  await gs.loadFileAsync(url)
+  const gs = new GaussianSplattingMesh('GaussianSplatting', null, scene)
+  try {
+    await gs.loadFileAsync(url)
 
-  if (gs.mesh !== null) {
-    gs.mesh.parent = parentNode
-  }
-
-  // Wait a few frames in order that focus works correctly
-  for (let i = 0; i < 2; i++) {
-    await new Promise<void>((resolve) => {
-      scene.onAfterRenderObservable.addOnce(() => {
-        resolve()
+    // Wait a few frames in order that focus works correctly
+    for (let i = 0; i < 2; i++) {
+      await new Promise<void>((resolve) => {
+        scene.onAfterRenderObservable.addOnce(() => {
+          resolve()
+        })
       })
-    })
-  }
+    }
 
-  return {
-    success: true,
-    disposes: [gs],
-    meshes: [gs.mesh],
-    highlightable: false,
-    animationGroups: undefined,
+    return {
+      success: true,
+      disposes: [gs],
+      meshes: [gs],
+      highlightable: false,
+      animationGroups: undefined,
+    }
+  } catch (e) {
+    gs.dispose()
+    console.log(e)
+
+    return {
+      success: false,
+      disposes: [],
+      highlightable: false,
+      meshes: [],
+      animationGroups: undefined,
+    }
+  }
+}
+
+const loadGaussianSplattingOrPointCloudAsync: LoadFunction = async (
+  url: string,
+  fileExtention: string,
+  scene: Scene
+) => {
+  const gsResult = await loadGaussianSplattingAsync(url, fileExtention, scene)
+
+  if (gsResult.success) {
+    return gsResult
+  } else {
+    return await loadPointCloudAsync(url, fileExtention, scene)
   }
 }
 
 const loadIfcAsync: LoadFunction = async (
   url: string,
   fileExtention: string,
-  scene: Scene,
-  parentNode: Node
+  scene: Scene
 ) => {
   const ifc = new IfcLoader()
   await ifc.initialize()
