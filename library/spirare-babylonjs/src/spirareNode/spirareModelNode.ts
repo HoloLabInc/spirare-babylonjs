@@ -6,7 +6,6 @@ import {
   AnimationGroup,
   GaussianSplattingMesh,
   Nullable,
-  Node,
 } from '@babylonjs/core'
 import { PomlModelElement } from 'ts-poml'
 import { PointCloudLoader } from './pointCloudLoader'
