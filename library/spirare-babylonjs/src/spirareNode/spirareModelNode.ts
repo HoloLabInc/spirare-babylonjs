@@ -6,6 +6,7 @@ import {
   AnimationGroup,
   GaussianSplatting,
   Nullable,
+  Node,
 } from '@babylonjs/core'
 import { PomlModelElement } from 'ts-poml'
 import { PointCloudLoader } from './pointCloudLoader'
@@ -188,11 +189,9 @@ export class SpirareModelNode extends SpirareNodeBase<PomlModelElement> {
         }
       })
 
-      if ('animationGroups' in loaded) {
-        this.animationGroups = loaded.animationGroups
-        if (this.animationGroups.length > 0) {
-          this.currentAnimationGroup = this.animationGroups[0]
-        }
+      this.animationGroups = loaded.animationGroups
+      if (this.animationGroups && this.animationGroups.length > 0) {
+        this.currentAnimationGroup = this.animationGroups[0]
       }
 
       this.name += ` (${loaded.modelName})`
@@ -205,7 +204,14 @@ export class SpirareModelNode extends SpirareNodeBase<PomlModelElement> {
     scene: Scene,
     element: PomlModelElement,
     name: string
-  ) {
+  ): Promise<
+    | {
+        modelName: string
+        meshes: (AbstractMesh | Nullable<Mesh>)[]
+        animationGroups: AnimationGroup[] | undefined
+      }
+    | undefined
+  > {
     try {
       const src = element.src
       const url = await getFileLoadUrlAsync(this)
@@ -218,78 +224,159 @@ export class SpirareModelNode extends SpirareNodeBase<PomlModelElement> {
 
       // Get the file extension
       // If the filename is set, prioritize the extension of the filename
-      const fileExt = (element.filename || src).split('.').pop()
+      const fileExt = (element.filename || src).split('.').pop() ?? ''
 
-      // Switch loaders depending on the file extension
+      let loadFuncion: LoadFunction
       switch (fileExt) {
-        case 'ply': {
-          const loaded = await PointCloudLoader.importWithUrlAsync(
-            url,
-            fileExt,
-            scene
-          )
-          if (loaded) {
-            return {
-              modelName,
-              ...loaded,
-            }
-          } else {
-            return undefined
-          }
-        }
-        case 'ifc': {
-          var ifc = new IfcLoader()
-          await ifc.initialize()
-          const response = await fetch(url)
-          const blob = await response.blob()
-          const arrayBuffer = await blob.arrayBuffer()
-          const mesh = await ifc.load(new Uint8Array(arrayBuffer), scene, true)
-          return {
-            modelName,
-            meshes: [mesh],
-          }
-        }
-        case 'splat': {
-          this._highlightable = false
-          const gs = new GaussianSplatting('GaussianSplatting', scene)
-          this.disposes.push(gs)
-          await gs.loadFileAsync(url)
+        case 'ply':
+          loadFuncion = loadPointCloudAsync
+          break
+        case 'splat':
+          loadFuncion = loadGaussianSplattingAsync
+          break
+        case 'ifc':
+          loadFuncion = loadIfcAsync
+          break
+        default:
+          loadFuncion = loadGlbAsync
+      }
 
-          if (gs.mesh !== null) {
-            gs.mesh.parent = this
-          }
+      const result = await loadFuncion(url, fileExt, scene, this)
 
-          // Wait a few frames in order that focus works correctly
-          for (let i = 0; i < 2; i++) {
-            await new Promise<void>((resolve) => {
-              scene.onAfterRenderObservable.addOnce(() => {
-                resolve()
-              })
-            })
-          }
+      if (result.success) {
+        this.disposes.push(...result.disposes)
+        this._highlightable = result.highlightable
 
-          return {
-            modelName,
-            meshes: [gs.mesh],
-          }
+        return {
+          modelName,
+          meshes: result.meshes,
+          animationGroups: result.animationGroups,
         }
-        default: {
-          const loaded = await SceneLoader.ImportMeshAsync(
-            '',
-            url,
-            undefined,
-            scene,
-            undefined,
-            '.glb'
-          )
-          return {
-            modelName,
-            ...loaded,
-          }
-        }
+      } else {
+        return undefined
       }
     } catch (e) {
       console.log(e)
     }
+  }
+}
+
+type LoadFunction = (
+  url: string,
+  fileExtention: string,
+  scene: Scene,
+  parentNode: Node
+) => Promise<{
+  success: boolean
+  disposes: { dispose: () => void }[]
+  meshes: (AbstractMesh | Nullable<Mesh>)[]
+  highlightable: boolean
+  animationGroups: AnimationGroup[] | undefined
+}>
+
+const loadGlbAsync: LoadFunction = async (
+  url: string,
+  fileExtention: string,
+  scene: Scene,
+  parentNode: Node
+) => {
+  const loaded = await SceneLoader.ImportMeshAsync(
+    '',
+    url,
+    undefined,
+    scene,
+    undefined,
+    '.glb'
+  )
+
+  return {
+    success: true,
+    disposes: [],
+    meshes: loaded.meshes,
+    highlightable: true,
+    animationGroups: loaded.animationGroups,
+  }
+}
+
+const loadPointCloudAsync: LoadFunction = async (
+  url: string,
+  fileExtention: string,
+  scene: Scene,
+  parentNode: Node
+) => {
+  const loaded = await PointCloudLoader.importWithUrlAsync(
+    url,
+    fileExtention,
+    scene
+  )
+
+  if (loaded) {
+    return {
+      success: true,
+      disposes: [],
+      meshes: loaded.meshes,
+      highlightable: false,
+      animationGroups: undefined,
+    }
+  } else {
+    return {
+      success: false,
+      disposes: [],
+      highlightable: false,
+      meshes: [],
+      animationGroups: undefined,
+    }
+  }
+}
+
+const loadGaussianSplattingAsync: LoadFunction = async (
+  url: string,
+  fileExtention: string,
+  scene: Scene,
+  parentNode: Node
+) => {
+  const gs = new GaussianSplatting('GaussianSplatting', scene)
+  await gs.loadFileAsync(url)
+
+  if (gs.mesh !== null) {
+    gs.mesh.parent = parentNode
+  }
+
+  // Wait a few frames in order that focus works correctly
+  for (let i = 0; i < 2; i++) {
+    await new Promise<void>((resolve) => {
+      scene.onAfterRenderObservable.addOnce(() => {
+        resolve()
+      })
+    })
+  }
+
+  return {
+    success: true,
+    disposes: [gs],
+    meshes: [gs.mesh],
+    highlightable: false,
+    animationGroups: undefined,
+  }
+}
+
+const loadIfcAsync: LoadFunction = async (
+  url: string,
+  fileExtention: string,
+  scene: Scene,
+  parentNode: Node
+) => {
+  const ifc = new IfcLoader()
+  await ifc.initialize()
+  const response = await fetch(url)
+  const blob = await response.blob()
+  const arrayBuffer = await blob.arrayBuffer()
+  const mesh = await ifc.load(new Uint8Array(arrayBuffer), scene, true)
+  return {
+    success: true,
+    disposes: [],
+    meshes: [mesh],
+    highlightable: true,
+    animationGroups: undefined,
   }
 }
