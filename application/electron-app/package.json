@@ -1,7 +1,7 @@
 {
   "name": "spirare-editor",
   "productName": "SpirareEditorDesktop",
-  "version": "1.6.1",
+  "version": "1.7.0",
   "description": "Spirare content editor with Babylon.js",
   "main": "./dist/main.js",
   "scripts": {
