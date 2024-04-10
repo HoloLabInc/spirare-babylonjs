@@ -331,6 +331,7 @@ const loadGaussianSplattingAsync: LoadFunction = async (
   scene: Scene
 ) => {
   const gs = new GaussianSplattingMesh('GaussianSplatting', null, scene)
+  gs.alwaysSelectAsActiveMesh = true
   try {
     await gs.loadFileAsync(url)
 
