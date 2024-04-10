@@ -4,6 +4,7 @@ import {
   Camera,
   Color4,
   Engine,
+  GaussianSplattingMesh,
   Mesh,
   MeshBuilder,
   Nullable,
@@ -310,7 +311,19 @@ export class CameraController implements ICameraController {
     useAnimation: boolean
   ): Promise<boolean> {
     // Adjusts the camera position to roughly fit within its field of view (not accurate).
-    const { min, max } = node.getHierarchyBoundingVectors()
+    let { min, max } = node.getHierarchyBoundingVectors()
+
+    // If the node has a GaussianSplattingMesh, adjust the bounding box to the world coordinates.
+    const meshes = node.getChildMeshes()
+    if (meshes.length >= 1) {
+      const firstMesh = meshes[0]
+      if (firstMesh instanceof GaussianSplattingMesh) {
+        const worldMatrix = firstMesh.getWorldMatrix()
+        min = Vector3.TransformCoordinates(min, worldMatrix)
+        max = Vector3.TransformCoordinates(max, worldMatrix)
+      }
+    }
+
     const len = Vector3.Distance(min, max)
     if (len < 0.01 || Number.isFinite(len) == false) {
       return false
