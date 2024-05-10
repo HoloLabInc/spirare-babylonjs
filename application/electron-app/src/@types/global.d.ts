@@ -21,4 +21,6 @@ export interface ElectronAPI {
   getAbsoluteFilePath: (pomlId: string, relativePath: string) => Promise<string>
 
   getRecentScenes: () => Promise<SceneInfo[]>
+
+  getServerUrl: () => Promise<{ name: string; url: string }[]>
 }

@@ -37,6 +37,10 @@ export type SceneInfo = {
   placementMode: PlacementMode
 }
 
+export type ServerUrlResult =
+  | { success: false }
+  | { success: true; servers: { name: string; url: string }[] }
+
 export interface AppLaunchParams {
   placementMode: PlacementMode
   runMode: AppRunMode
