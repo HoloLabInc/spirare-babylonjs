@@ -74,6 +74,7 @@ import {
   AppLaunchParams,
   SpaceStatus,
   AppDisplayMode,
+  ServerUrlResult,
 } from './types'
 import { CoordinateConverter } from './coordinateConverter'
 import { openFilePicker } from './filePicker'
@@ -580,6 +581,13 @@ export class App {
    */
   public async uploadFile(target: FileData): Promise<UploadFileResult> {
     // The default behavior is not to upload
+    return { success: false }
+  }
+
+  /**
+   * Override this method to get POML server url
+   */
+  public async getServerUrl(pomlId: string): Promise<ServerUrlResult> {
     return { success: false }
   }
 
@@ -1139,6 +1147,25 @@ export class App {
       )
     }
 
+    // Right top menu
+    //const firstRow: Control[] = []
+    //firstRow.push(
+    const externalLinkButton = UIHelper.createButton(
+      'Show IP',
+      undefined,
+      async () => await this.getServerUrl(this.pomlId)
+    )
+    //)
+    const rightTopMenu = UIHelper.createStackPanel(
+      {
+        isVertical: false,
+        width: '1000px',
+        height: '30px',
+        alignment: Control.HORIZONTAL_ALIGNMENT_RIGHT,
+      },
+      [externalLinkButton]
+    )
+
     const panel = UIHelper.createStackPanel(
       {
         width: '100%',
@@ -1146,6 +1173,7 @@ export class App {
       },
       panelRows
     )
+    panel.addControl(rightTopMenu)
     return panel
   }
 
