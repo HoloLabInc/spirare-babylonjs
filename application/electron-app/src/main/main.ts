@@ -16,8 +16,12 @@ import * as http from 'http'
 import * as fs from 'fs'
 const fsPromises = fs.promises
 
+import { networkInterfaces } from 'os'
+
 import AsyncLock from 'async-lock'
 const lock = new AsyncLock()
+
+const serverPort = 8080
 
 let latestPomlId: string
 const pomlFilepathMap: Map<string, string> = new Map()
@@ -400,6 +404,39 @@ const handleGetRecentScenes = async (
   return await getScenesAndUpdateMap()
 }
 
+const handleGetServerUrl = async (
+  event: IpcMainInvokeEvent
+): Promise<{ name: string; url: string }[]> => {
+  const servers: { name: string; url: string }[] = []
+
+  const ignoreNames = [/^vEthernet/]
+
+  const nets = networkInterfaces()
+  Object.keys(nets).forEach((name) => {
+    const net = nets[name]
+    if (net === undefined) {
+      return
+    }
+
+    if (ignoreNames.some((ignoreName) => ignoreName.test(name))) {
+      return
+    }
+
+    net.forEach((netInfo) => {
+      if (netInfo.internal) {
+        return
+      }
+      if (netInfo.family !== 'IPv4') {
+        return
+      }
+      const url = `http://${netInfo.address}:${serverPort}`
+      servers.push({ name, url: url })
+    })
+  })
+
+  return servers
+}
+
 function createWindow() {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
@@ -437,7 +474,7 @@ function createWindow() {
 app.on('ready', async () => {
   await getScenesAndUpdateMap()
 
-  server.listen(8080)
+  server.listen(serverPort)
 
   ipcMain.handle('upload-file', handleUploadFile)
   ipcMain.handle('download-file', handleDownloadFile)
@@ -447,6 +484,7 @@ app.on('ready', async () => {
   ipcMain.handle('load-poml', handleLoadPoml)
   ipcMain.handle('get-absolute-file-path', handleGetAbsoluteFilePath)
   ipcMain.handle('get-recent-scenes', handleGetRecentScenes)
+  ipcMain.handle('get-server-url', handleGetServerUrl)
 
   createWindow()
 
