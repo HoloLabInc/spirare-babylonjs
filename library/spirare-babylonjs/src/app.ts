@@ -1432,10 +1432,10 @@ export class App {
   private createDataAttributionText(): TextBlock {
     const text = UIHelper.createTextBlock('', {
       paddingLeft: '280px',
-      width: '60%',
-      height: '40px',
+      width: '100%',
       color: 'white',
       fontSize: '10px',
+      lineSpacing: '-4px',
       textWrapping: true,
       horizontalAlignment: Control.HORIZONTAL_ALIGNMENT_LEFT,
       verticalAlignment: Control.VERTICAL_ALIGNMENT_BOTTOM,
