@@ -14,6 +14,7 @@ import {
   sampleTerrainMostDetailed,
   Credit,
   Color,
+  BingMapsImageryProvider,
 } from 'cesium'
 import { GeodeticPosition } from './cesium/geoManager'
 
@@ -46,6 +47,7 @@ export class CesiumManager {
 
   constructor() {
     Ion.defaultAccessToken = CESIUM_ION_TOKEN
+    BingMapsImageryProvider.logoUrl = `${CESIUM_BASE_URL}/Assets/Images/bing_maps_credit.png`
   }
 
   public async initializeAsync(options: CesiumManagerOptions = {}) {
