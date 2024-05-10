@@ -331,6 +331,8 @@ export class App {
     if (launchParams.hideInspector !== true) {
       scene.debugLayer.show({
         embedMode: true,
+        enablePopup: false,
+        enableClose: false,
       })
     }
 
