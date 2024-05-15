@@ -300,8 +300,6 @@ export class FirstPersonCameraController implements ICameraController {
   }
 
   public setGeodeticCameraPov(heading: number, pitch: number): void {
-    console.log({ heading })
-    console.log({ pitch })
     this.camera.rotation = new Vector3(pitch, heading, 0)
   }
 

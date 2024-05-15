@@ -42,82 +42,7 @@ const firstPersonCameraControllerFactory: CameraControllerFactory = (
   return cameraController
 }
 
-function initialize() {
-  const initialPosition = { lat: 35.562732879289804, lng: 139.71717142633142 }
-  /*
-  const map = new google.maps.Map(
-    document.getElementById("map") as HTMLElement,
-    {
-      center: fenway,
-      zoom: 14,
-    }
-  );
-  */
-  const panorama = new google.maps.StreetViewPanorama(
-    document.getElementById('streetview_minimap') as HTMLElement,
-    {
-      position: initialPosition,
-      pov: {
-        heading: 34,
-        pitch: 10,
-      },
-    }
-  )
-
-  const panorama_background = new google.maps.StreetViewPanorama(
-    document.getElementById('streetview_background') as HTMLElement,
-    {
-      position: initialPosition,
-      pov: {
-        heading: 34,
-        pitch: 10,
-      },
-    }
-  )
-
-  synchronizePanoramas(panorama, panorama_background)
-
-  function synchronizePanoramas(
-    panorama1: google.maps.StreetViewPanorama,
-    panorama2: google.maps.StreetViewPanorama
-  ) {
-    panorama1.addListener('pov_changed', () => {
-      console.log('pov_changed')
-      panorama2.setPov(panorama1.getPov())
-      if (firstPersonCameraController != undefined) {
-        const pov = panorama1.getPov()
-        const deg2rad = Math.PI / 180
-        firstPersonCameraController.setGeodeticCameraPov(
-          pov.heading * deg2rad,
-          -pov.pitch * deg2rad
-        )
-      }
-    })
-
-    panorama1.addListener('position_changed', () => {
-      panorama2.setPosition(panorama1.getPosition() as google.maps.LatLng)
-      if (firstPersonCameraController != undefined) {
-        const position = panorama1.getPosition()
-        console.log(position)
-        /*
-        firstPersonCameraController.setGeodeticCameraTarget(
-          position.lat(),
-          position.lng()
-        )
-        */
-      }
-    })
-  }
-}
-
 let firstPersonCameraController: FirstPersonCameraController | undefined
-
-declare global {
-  interface Window {
-    initialize: () => void
-  }
-}
-window.initialize = initialize
 
 let latestSavePomlPromise: Promise<void> | undefined
 
@@ -257,17 +182,87 @@ const initGoogleMapsAsync = async () => {
   const streetView = await loader.importLibrary('streetView')
 
   const initialPosition = { lat: 35.562732879289804, lng: 139.71717142633142 }
+  const initialPov = { heading: 34, pitch: 10 }
 
   const panorama = new streetView.StreetViewPanorama(
     document.getElementById('streetview_minimap') as HTMLElement,
     {
       position: initialPosition,
-      pov: {
-        heading: 34,
-        pitch: 10,
-      },
+      pov: initialPov,
     }
   )
+
+  const panorama_background = new streetView.StreetViewPanorama(
+    document.getElementById('streetview_background') as HTMLElement,
+    {
+      position: initialPosition,
+      pov: initialPov,
+    }
+  )
+
+  const synchoronizePov = () => {
+    synchronizePovToStreetView(panorama, panorama_background)
+    if (firstPersonCameraController !== undefined) {
+      synchronizePovToFirstPersonCamera(panorama, firstPersonCameraController)
+    }
+  }
+
+  const synchoronizePosition = () => {
+    synchronizePositionToStreetView(panorama, panorama_background)
+    if (firstPersonCameraController !== undefined) {
+      synchronizePositionToFirstPersonCamera(
+        panorama,
+        firstPersonCameraController
+      )
+    }
+  }
+
+  synchoronizePov()
+  synchoronizePosition()
+
+  panorama.addListener('pov_changed', () => {
+    synchoronizePov()
+  })
+
+  panorama.addListener('position_changed', () => {
+    synchoronizePosition()
+  })
+}
+
+const synchronizePovToStreetView = (
+  src: google.maps.StreetViewPanorama,
+  dst: google.maps.StreetViewPanorama
+) => {
+  dst.setPov(src.getPov())
+}
+
+const synchronizePovToFirstPersonCamera = (
+  src: google.maps.StreetViewPanorama,
+  dst: FirstPersonCameraController
+) => {
+  const pov = src.getPov()
+  const deg2rad = Math.PI / 180
+  dst.setGeodeticCameraPov(pov.heading * deg2rad, -pov.pitch * deg2rad)
+}
+
+const synchronizePositionToStreetView = (
+  src: google.maps.StreetViewPanorama,
+  dst: google.maps.StreetViewPanorama
+) => {
+  const position = src.getPosition()
+  if (position !== null) {
+    dst.setPosition(position)
+  }
+}
+
+const synchronizePositionToFirstPersonCamera = (
+  src: google.maps.StreetViewPanorama,
+  dst: FirstPersonCameraController
+) => {
+  const position = src.getPosition()
+  if (position !== null) {
+    dst.setGeodeticCameraTarget(position.lat(), position.lng())
+  }
 }
 
 startApp()
