@@ -1,9 +1,72 @@
 import 'cesium/Widgets/widgets.css'
-import { App, createAppAsync } from 'spirare-babylonjs/src/app'
+import {
+  App,
+  CameraControllerFactory,
+  createAppAsync,
+} from 'spirare-babylonjs/src/app'
 import { LoadPomlOptions } from 'spirare-babylonjs/src/pomlLoader'
 import { FileData, getAppLaunchParms } from 'spirare-babylonjs/src/types'
 import { UploadResponse } from '../src/types'
 import { getPomlAsync } from './common/api'
+import { ICameraController } from 'spirare-babylonjs/src/camera/iCameraController'
+
+//import { StreetViewPanorama } from 'google.maps'
+
+function initialize() {
+  const fenway = { lat: 42.345573, lng: -71.098326 }
+  /*
+  const map = new google.maps.Map(
+    document.getElementById("map") as HTMLElement,
+    {
+      center: fenway,
+      zoom: 14,
+    }
+  );
+  */
+  const panorama = new google.maps.StreetViewPanorama(
+    document.getElementById('streetview_minimap') as HTMLElement,
+    {
+      position: fenway,
+      pov: {
+        heading: 34,
+        pitch: 10,
+      },
+    }
+  )
+
+  const panorama_background = new google.maps.StreetViewPanorama(
+    document.getElementById('streetview_background') as HTMLElement,
+    {
+      position: fenway,
+      pov: {
+        heading: 34,
+        pitch: 10,
+      },
+    }
+  )
+
+  synchronizePanoramas(panorama, panorama_background)
+
+  function synchronizePanoramas(
+    panorama1: google.maps.StreetViewPanorama,
+    panorama2: google.maps.StreetViewPanorama
+  ) {
+    panorama1.addListener('pov_changed', () => {
+      panorama2.setPov(panorama1.getPov())
+    })
+
+    panorama1.addListener('position_changed', () => {
+      panorama2.setPosition(panorama1.getPosition() as google.maps.LatLng)
+    })
+  }
+}
+
+declare global {
+  interface Window {
+    initialize: () => void
+  }
+}
+window.initialize = initialize
 
 let latestSavePomlPromise: Promise<void> | undefined
 
