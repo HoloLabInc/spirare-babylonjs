@@ -126,6 +126,7 @@ const clientConfig = {
       TERRAIN_TILESET_URL: JSON.stringify(process.env.TERRAIN_TILESET_URL ?? ''),
       // Define relative base path in cesium for loading assets
       CESIUM_BASE_URL: JSON.stringify('dist'),
+      GOOGLE_MAPS_API_KEY: JSON.stringify(process.env.GOOGLE_MAPS_API_KEY ?? ''),
     }),
     // Suppress the following error:
     // WARNING in ../../library/spirare-babylonjs/node_modules/web-ifc/web-ifc-api.js 19:11-21
