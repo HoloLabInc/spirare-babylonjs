@@ -1,5 +1,5 @@
 import 'cesium/Widgets/widgets.css'
-import { Scene } from 'spirare-babylonjs/node_modules/@babylonjs/core'
+import { Scene, Camera } from 'spirare-babylonjs/node_modules/@babylonjs/core'
 import {
   App,
   CameraControllerFactory,
@@ -17,7 +17,7 @@ import {
 
 import { Loader } from '@googlemaps/js-api-loader'
 
-const streetViewMode = true
+let streetViewMode = true
 
 const firstPersonCameraControllerFactory: CameraControllerFactory = (
   app: App,
@@ -48,6 +48,10 @@ let latestSavePomlPromise: Promise<void> | undefined
 
 const startApp = async () => {
   const params = getAppLaunchParms(location.search)
+
+  const searchParams = new URLSearchParams(location.search)
+  streetViewMode = !!searchParams.get('streetViewMode')
+
   params.startPageUrl = '/'
 
   const app = await createAppAsync({
@@ -147,6 +151,12 @@ const startApp = async () => {
   }
 
   if (streetViewMode) {
+    const cesiumContainer = document.getElementById('cesiumContainer')
+    if (cesiumContainer) {
+      cesiumContainer.style.visibility = 'hidden'
+    }
+  }
+  if (streetViewMode) {
     await initGoogleMapsAsync()
   }
 }
@@ -181,7 +191,9 @@ const initGoogleMapsAsync = async () => {
   })
   const streetView = await loader.importLibrary('streetView')
 
-  const initialPosition = { lat: 35.562732879289804, lng: 139.71717142633142 }
+  //const initialPosition = { lat: 35.562732879289804, lng: 139.71717142633142 }
+  const initialPosition = { lat: 35.10193976594054, lng: 138.85846935585596 }
+
   const initialPov = { heading: 34, pitch: 10 }
 
   const panorama = new streetView.StreetViewPanorama(
@@ -217,8 +229,16 @@ const initGoogleMapsAsync = async () => {
     }
   }
 
+  const synchronizeZoom = () => {
+    synchronizeZoomToStreetView(panorama, panorama_background)
+    if (firstPersonCameraController !== undefined) {
+      synchronizeZoomToFirstPersonCamera(panorama, firstPersonCameraController)
+    }
+  }
+
   synchoronizePov()
   synchoronizePosition()
+  synchronizeZoom()
 
   panorama.addListener('pov_changed', () => {
     synchoronizePov()
@@ -226,6 +246,11 @@ const initGoogleMapsAsync = async () => {
 
   panorama.addListener('position_changed', () => {
     synchoronizePosition()
+  })
+
+  panorama.addListener('zoom_changed', () => {
+    console.log('zoom_changed')
+    synchronizeZoom()
   })
 }
 
@@ -263,6 +288,30 @@ const synchronizePositionToFirstPersonCamera = (
   if (position !== null) {
     dst.setGeodeticCameraTarget(position.lat(), position.lng())
   }
+}
+
+const synchronizeZoomToStreetView = (
+  src: google.maps.StreetViewPanorama,
+  dst: google.maps.StreetViewPanorama
+) => {
+  dst.setZoom(src.getZoom())
+}
+
+const synchronizeZoomToFirstPersonCamera = (
+  src: google.maps.StreetViewPanorama,
+  dst: FirstPersonCameraController
+) => {
+  const horizontalFov = Math.PI / Math.pow(2, src.getZoom())
+
+  if (Number.isNaN(horizontalFov)) {
+    return
+  }
+
+  // TODO: deal with portait aspect ratio
+
+  const verticalFov = 2 * Math.atan(Math.tan(horizontalFov / 2) / (4 / 3))
+  dst.camera.fovMode = Camera.FOVMODE_VERTICAL_FIXED
+  dst.camera.fov = verticalFov
 }
 
 startApp()
