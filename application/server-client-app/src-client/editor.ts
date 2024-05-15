@@ -15,9 +15,9 @@ import {
   FirstPersonCameraController,
 } from 'spirare-babylonjs/src/camera/firstPersonCameraController'
 
-//import { StreetViewPanorama } from 'google.maps'
+import { Loader } from '@googlemaps/js-api-loader'
 
-const streetViewMode = false
+const streetViewMode = true
 
 const firstPersonCameraControllerFactory: CameraControllerFactory = (
   app: App,
@@ -99,10 +99,12 @@ function initialize() {
       if (firstPersonCameraController != undefined) {
         const position = panorama1.getPosition()
         console.log(position)
+        /*
         firstPersonCameraController.setGeodeticCameraTarget(
           position.lat(),
           position.lng()
         )
+        */
       }
     })
   }
@@ -129,9 +131,12 @@ const startApp = async () => {
       ? firstPersonCameraControllerFactory
       : undefined,
   })
-  firstPersonCameraController =
-    app.cameraController as FirstPersonCameraController
-  firstPersonCameraController?.setCameraHeight(2.5)
+
+  if (streetViewMode) {
+    firstPersonCameraController =
+      app.cameraController as FirstPersonCameraController
+    firstPersonCameraController?.setCameraHeight(2.5)
+  }
 
   if (params.runMode === 'editor') {
     app.uploadFile = async (target: FileData) => {
@@ -215,6 +220,10 @@ const startApp = async () => {
       await app.loadPomlAsync({ text: pomlResult.poml }, options)
     }
   }
+
+  if (streetViewMode) {
+    await initGoogleMapsAsync()
+  }
 }
 
 const savePomlAsync = async (pomlId: string, poml: string) => {
@@ -238,6 +247,27 @@ const savePomlCoreAsync = async (pomlId: string, poml: string) => {
   } catch (ex) {
     console.log(ex)
   }
+}
+
+const initGoogleMapsAsync = async () => {
+  const loader = new Loader({
+    apiKey: GOOGLE_MAPS_API_KEY,
+    version: 'weekly',
+  })
+  const streetView = await loader.importLibrary('streetView')
+
+  const initialPosition = { lat: 35.562732879289804, lng: 139.71717142633142 }
+
+  const panorama = new streetView.StreetViewPanorama(
+    document.getElementById('streetview_minimap') as HTMLElement,
+    {
+      position: initialPosition,
+      pov: {
+        heading: 34,
+        pitch: 10,
+      },
+    }
+  )
 }
 
 startApp()
