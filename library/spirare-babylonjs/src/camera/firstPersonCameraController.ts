@@ -299,6 +299,12 @@ export class FirstPersonCameraController implements ICameraController {
     this.height = height
   }
 
+  public setGeodeticCameraPov(heading: number, pitch: number): void {
+    console.log({ heading })
+    console.log({ pitch })
+    this.camera.rotation = new Vector3(pitch, heading, 0)
+  }
+
   public restoreCameraPose(): void {
     /*
     const isGeodeticMode = this.geoManager !== undefined

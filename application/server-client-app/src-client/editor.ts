@@ -1,4 +1,5 @@
 import 'cesium/Widgets/widgets.css'
+import { Scene } from 'spirare-babylonjs/node_modules/@babylonjs/core'
 import {
   App,
   CameraControllerFactory,
@@ -9,11 +10,40 @@ import { FileData, getAppLaunchParms } from 'spirare-babylonjs/src/types'
 import { UploadResponse } from '../src/types'
 import { getPomlAsync } from './common/api'
 import { ICameraController } from 'spirare-babylonjs/src/camera/iCameraController'
+import {
+  CameraControllerOptions,
+  FirstPersonCameraController,
+} from 'spirare-babylonjs/src/camera/firstPersonCameraController'
 
 //import { StreetViewPanorama } from 'google.maps'
 
+const streetViewMode = false
+
+const firstPersonCameraControllerFactory: CameraControllerFactory = (
+  app: App,
+  scene: Scene,
+  canvas: HTMLCanvasElement
+): ICameraController => {
+  const isGeodeticMode = app.isGeodeticMode
+
+  const cameraOptions: CameraControllerOptions = {
+    maxZ: isGeodeticMode ? 0 : 10000,
+    upperRadiusLimit: isGeodeticMode ? 40000000 : 10000,
+    lowerRadiusLimit: 0.01,
+  }
+
+  const cameraController = new FirstPersonCameraController(
+    scene,
+    canvas,
+    app.isGeodeticMode ? app.geoManager : undefined,
+    cameraOptions
+  )
+
+  return cameraController
+}
+
 function initialize() {
-  const fenway = { lat: 42.345573, lng: -71.098326 }
+  const initialPosition = { lat: 35.562732879289804, lng: 139.71717142633142 }
   /*
   const map = new google.maps.Map(
     document.getElementById("map") as HTMLElement,
@@ -26,7 +56,7 @@ function initialize() {
   const panorama = new google.maps.StreetViewPanorama(
     document.getElementById('streetview_minimap') as HTMLElement,
     {
-      position: fenway,
+      position: initialPosition,
       pov: {
         heading: 34,
         pitch: 10,
@@ -37,7 +67,7 @@ function initialize() {
   const panorama_background = new google.maps.StreetViewPanorama(
     document.getElementById('streetview_background') as HTMLElement,
     {
-      position: fenway,
+      position: initialPosition,
       pov: {
         heading: 34,
         pitch: 10,
@@ -52,14 +82,33 @@ function initialize() {
     panorama2: google.maps.StreetViewPanorama
   ) {
     panorama1.addListener('pov_changed', () => {
+      console.log('pov_changed')
       panorama2.setPov(panorama1.getPov())
+      if (firstPersonCameraController != undefined) {
+        const pov = panorama1.getPov()
+        const deg2rad = Math.PI / 180
+        firstPersonCameraController.setGeodeticCameraPov(
+          pov.heading * deg2rad,
+          -pov.pitch * deg2rad
+        )
+      }
     })
 
     panorama1.addListener('position_changed', () => {
       panorama2.setPosition(panorama1.getPosition() as google.maps.LatLng)
+      if (firstPersonCameraController != undefined) {
+        const position = panorama1.getPosition()
+        console.log(position)
+        firstPersonCameraController.setGeodeticCameraTarget(
+          position.lat(),
+          position.lng()
+        )
+      }
     })
   }
 }
+
+let firstPersonCameraController: FirstPersonCameraController | undefined
 
 declare global {
   interface Window {
@@ -73,7 +122,16 @@ let latestSavePomlPromise: Promise<void> | undefined
 const startApp = async () => {
   const params = getAppLaunchParms(location.search)
   params.startPageUrl = '/'
-  const app = await createAppAsync({ launchParams: params })
+
+  const app = await createAppAsync({
+    launchParams: params,
+    cameraControllerFactory: streetViewMode
+      ? firstPersonCameraControllerFactory
+      : undefined,
+  })
+  firstPersonCameraController =
+    app.cameraController as FirstPersonCameraController
+  firstPersonCameraController?.setCameraHeight(2.5)
 
   if (params.runMode === 'editor') {
     app.uploadFile = async (target: FileData) => {
