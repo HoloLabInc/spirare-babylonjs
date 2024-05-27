@@ -1110,7 +1110,15 @@ export class App {
                   })
                   .join('\n')
               }
+
               urlText.text = serverUrlText
+
+              const linkMenuNetwork = UIHelper.getControl(
+                this.ui,
+                'externalLinkMenuNetwork',
+                Control
+              ) as Control
+              linkMenuNetwork.isVisible = serverUrlResult.success
             }
           }
         )
@@ -1215,6 +1223,8 @@ export class App {
       cornerRadius: 8,
     })
 
+    rectanglePanel.isVisible = false
+
     const horizontalStackPanel = UIHelper.createStackPanel({
       horizontalAlignment: Control.HORIZONTAL_ALIGNMENT_LEFT,
       verticalAlignment: Control.VERTICAL_ALIGNMENT_TOP,
@@ -1227,7 +1237,6 @@ export class App {
 
     const verticalStackPanel = UIHelper.createStackPanel({
       width: '220px',
-      cornerRadius: 4,
       horizontalAlignment: Control.HORIZONTAL_ALIGNMENT_LEFT,
       verticalAlignment: Control.VERTICAL_ALIGNMENT_TOP,
       adaptHeightToChildren: true,
@@ -1269,27 +1278,36 @@ export class App {
       exportPomlButton.background = 'white'
     })
 
-    const margin = UIHelper.createMargin({ height: '12px' })
+    const networkStackPanel = UIHelper.createStackPanel(
+      {
+        name: 'externalLinkMenuNetwork',
+        horizontalAlignment: Control.HORIZONTAL_ALIGNMENT_LEFT,
+        verticalAlignment: Control.VERTICAL_ALIGNMENT_TOP,
+        width: '100%',
+        adaptHeightToChildren: true,
+      },
+      [
+        UIHelper.createMargin({ height: '12px' }),
 
-    const networkLabelText = UIHelper.createTextBlock('Network', labelTextParam)
-    const networkLabelMargin = UIHelper.createMargin({ height: '4px' })
+        UIHelper.createTextBlock('Network', labelTextParam),
+        UIHelper.createMargin({ height: '4px' }),
 
-    const urlText = UIHelper.createTextBlock(undefined, {
-      name: 'urlText',
-      width: '100%',
-      left: '20px',
-      color: 'black',
-      resizeToFit: true,
-    })
+        UIHelper.createTextBlock(undefined, {
+          name: 'urlText',
+          width: '100%',
+          left: '20px',
+          color: 'black',
+          resizeToFit: true,
+        }),
+      ]
+    )
 
     verticalStackPanel.addControl(paddingTop)
     verticalStackPanel.addControl(fileLabelText)
     verticalStackPanel.addControl(fileLabelMargin)
     verticalStackPanel.addControl(exportPomlButton)
-    verticalStackPanel.addControl(margin)
-    verticalStackPanel.addControl(networkLabelText)
-    verticalStackPanel.addControl(networkLabelMargin)
-    verticalStackPanel.addControl(urlText)
+
+    verticalStackPanel.addControl(networkStackPanel)
     verticalStackPanel.addControl(paddingBottom)
 
     return rectanglePanel
