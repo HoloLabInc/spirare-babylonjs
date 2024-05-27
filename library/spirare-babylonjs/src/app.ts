@@ -1210,64 +1210,66 @@ export class App {
   }
 
   private createExternalLinkMenu(): Control {
-    /*
-    const panel = UIHelper.createRectangle({
-      name: 'externalLinkMenu',
-      width: '300px',
-      height: '200px',
-      top: '30px',
-      left: '300px',
-      background: 'gray',
-      horizontalAlignment: Control.HORIZONTAL_ALIGNMENT_LEFT,
-      verticalAlignment: Control.VERTICAL_ALIGNMENT_TOP,
-    })
-    */
     const rectanglePanel = UIHelper.createRectangle({
+      name: 'externalLinkMenu',
       horizontalAlignment: Control.HORIZONTAL_ALIGNMENT_LEFT,
       verticalAlignment: Control.VERTICAL_ALIGNMENT_TOP,
       top: '30px',
       left: '300px',
+      adaptHeightToChildren: true,
+      adaptWidthToChildren: true,
+      background: '#DDDDDD',
+      color: 'black',
+      cornerRadius: 8,
     })
-    rectanglePanel.adaptHeightToChildren = true
-    rectanglePanel.adaptWidthToChildren = true
-    //rectanglePanel.background = '#202020'
-    rectanglePanel.background = '#DDDDDD'
-    rectanglePanel.color = 'black'
-    //rectanglePanel.color = '#202020'
-    rectanglePanel.cornerRadius = 8
 
-    const panel = UIHelper.createStackPanel({
-      name: 'externalLinkMenu',
-      width: '300px',
-      cornerRadius: 4,
-      //paddingTop: '10px',
-      //height: '200px',
-      //background: 'gray',
+    const horizontalStackPanel = UIHelper.createStackPanel({
       horizontalAlignment: Control.HORIZONTAL_ALIGNMENT_LEFT,
       verticalAlignment: Control.VERTICAL_ALIGNMENT_TOP,
       adaptHeightToChildren: true,
-      spacing: 0,
+      adaptWidthToChildren: true,
+      isVertical: false,
     })
 
-    rectanglePanel.addControl(panel)
-    //panel.corner
-    //panel.paddingLeft = '200px'
-    //panel.adaptHeightToChildren = true
+    rectanglePanel.addControl(horizontalStackPanel)
+
+    const verticalStackPanel = UIHelper.createStackPanel({
+      width: '300px',
+      cornerRadius: 4,
+      horizontalAlignment: Control.HORIZONTAL_ALIGNMENT_LEFT,
+      verticalAlignment: Control.VERTICAL_ALIGNMENT_TOP,
+      adaptHeightToChildren: true,
+      spacing: 8,
+    })
+
+    const paddingLeft = UIHelper.createRectangle({
+      width: '12px',
+      color: 'transparent',
+    })
+
+    const paddingRight = UIHelper.createRectangle({
+      height: '12px',
+      color: 'transparent',
+    })
+
+    horizontalStackPanel.addControl(paddingLeft)
+    horizontalStackPanel.addControl(verticalStackPanel)
+    horizontalStackPanel.addControl(paddingRight)
 
     const paddingTop = UIHelper.createRectangle({
-      height: '20px',
+      height: '4px',
       color: 'transparent',
     })
 
     const paddingBottom = UIHelper.createRectangle({
-      height: '20px',
+      height: '12px',
       color: 'transparent',
     })
 
     const exportPomlButton = UIHelper.createButton(
       'Export POML',
       {
-        //top: '10px',
+        width: '160px',
       },
       async () => await this.exportClicked()
     )
@@ -1278,16 +1280,14 @@ export class App {
         name: 'urlText',
         width: '100%',
         color: 'black',
-        // height: '20px',
       }
     )
 
-    panel.addControl(paddingTop)
-    panel.addControl(exportPomlButton)
-    panel.addControl(urlText)
-    panel.addControl(paddingBottom)
+    verticalStackPanel.addControl(paddingTop)
+    verticalStackPanel.addControl(exportPomlButton)
+    verticalStackPanel.addControl(urlText)
+    verticalStackPanel.addControl(paddingBottom)
 
-    //return panel
     return rectanglePanel
   }
 
