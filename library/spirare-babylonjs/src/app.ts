@@ -350,9 +350,10 @@ export class App {
     }
 
     if (launchParams.hideUI !== true) {
-      this.ui = AdvancedDynamicTexture.CreateFullscreenUI('UI')
-        .addControl(this.createUI())
-        .addControl(this.createRightTopUI())
+      this.ui = AdvancedDynamicTexture.CreateFullscreenUI('UI').addControl(
+        this.createUI()
+      )
+      //.addControl(this.createRightTopUI())
 
       // Create Cesium.js data attibution UI
       if (isGeodeticMode) {
@@ -1083,6 +1084,22 @@ export class App {
         height: '30px',
       })
     )
+
+    if (isEditor) {
+      firstRow.push(
+        UIHelper.createButton('ExternalLink', undefined, async () => {
+          const linkMenu = UIHelper.getControl(
+            this.ui,
+            'externalLinkMenu',
+            Control
+          )
+          if (linkMenu) {
+            linkMenu.isVisible = !linkMenu.isVisible
+          }
+        })
+      )
+    }
+
     panelRows.push(
       UIHelper.createStackPanel(
         {
@@ -1147,80 +1164,46 @@ export class App {
       )
     }
 
-    /*
-    if (isEditor) {
-      // Right top menu
-      //const firstRow: Control[] = []
-      //firstRow.push(
-      const externalLinkButton = UIHelper.createButton(
-        'Show IP',
-        undefined,
-        async () => await this.getServerUrl(this.pomlId)
-      )
-      //)
-      const rightTopMenu = UIHelper.createStackPanel(
-        {
-          isVertical: false,
-          width: '1000px',
-          height: '30px',
-          alignment: Control.HORIZONTAL_ALIGNMENT_RIGHT,
-        },
-        [externalLinkButton]
-      )
-      //panel.addControl(rightTopMenu)
-    }
-    */
-
-    const panel = UIHelper.createStackPanel(
+    const leftStackPanel = UIHelper.createStackPanel(
       {
         width: '100%',
         height: '100%',
       },
       panelRows
     )
+
+    const extenralLinkMenu = this.createExternalLinkMenu()
+
+    const panel = UIHelper.createRectangle({
+      width: '100%',
+      height: '100%',
+    })
+    panel.addControl(leftStackPanel)
+    panel.addControl(extenralLinkMenu)
+
     return panel
   }
 
-  private createRightTopUI(): Control {
-    const isEditor = this.runMode === 'editor'
-    const isViewer = this.runMode === 'viewer'
+  private createExternalLinkMenu(): Control {
+    const panel = UIHelper.createRectangle({
+      name: 'externalLinkMenu',
+      width: '300px',
+      height: '200px',
+      top: '30px',
+      left: '300px',
+      background: 'gray',
+      horizontalAlignment: Control.HORIZONTAL_ALIGNMENT_LEFT,
+      verticalAlignment: Control.VERTICAL_ALIGNMENT_TOP,
+    })
 
-    const panelRows: Control[] = []
-
-    if (isEditor) {
-      // Right top menu
-      //const firstRow: Control[] = []
-      //firstRow.push(
-      const externalLinkButton = UIHelper.createButton(
-        'Show IP',
-        {
-          horizontalAlignment: Control.HORIZONTAL_ALIGNMENT_RIGHT,
-        },
-        async () => await this.getServerUrl(this.pomlId)
-      )
-      //)
-      const rightTopMenu = UIHelper.createStackPanel(
-        {
-          isVertical: false,
-          width: '100px',
-          height: '30px',
-          horizontalAlignment: Control.HORIZONTAL_ALIGNMENT_RIGHT,
-        },
-        [externalLinkButton]
-      )
-      //panel.addControl(rightTopMenu)
-
-      panelRows.push(rightTopMenu)
-    }
-
-    const panel = UIHelper.createStackPanel(
-      {
-        width: '100%',
-        height: '100%',
-        horizontalAlignment: Control.HORIZONTAL_ALIGNMENT_RIGHT,
-      },
-      panelRows
+    const exportPomlButton = UIHelper.createButton(
+      'Export POML',
+      undefined,
+      async () => await this.exportClicked()
     )
+
+    panel.addControl(exportPomlButton)
+
     return panel
   }
 
