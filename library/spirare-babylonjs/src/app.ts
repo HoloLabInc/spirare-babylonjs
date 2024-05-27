@@ -1092,33 +1092,28 @@ export class App {
             this.ui,
             'externalLinkMenu',
             Control
-          )
-          if (linkMenu) {
-            linkMenu.isVisible = !linkMenu.isVisible
-          }
+          ) as Control
 
-          const serverUrlResult = await this.getServerUrl(this.pomlId)
+          linkMenu.isVisible = !linkMenu.isVisible
 
-          console.log(serverUrlResult)
-          const urlText = UIHelper.getControl(this.ui, 'urlText', TextBlock)
+          if (linkMenu.isVisible) {
+            const serverUrlResult = await this.getServerUrl(this.pomlId)
 
-          let serverUrlText = ''
-          if (serverUrlResult.success) {
-            serverUrlText = serverUrlResult.servers
-              .map((server) => {
-                return `${server.name}: ${server.url}`
-              })
-              .join('\n')
+            const urlText = UIHelper.getControl(
+              this.ui,
+              'urlText',
+              TextBlock
+            ) as TextBlock
 
-            console.log(serverUrlResult)
-            /*
-            serverUrlResult.servers.forEach((server) => {
-              serverUrlText += `${server.name}: ${server.url}\n`
-            })
-            */
-          }
+            let serverUrlText = ''
+            if (serverUrlResult.success) {
+              serverUrlText = serverUrlResult.servers
+                .map((server) => {
+                  return `- ${server.url}`
+                })
+                .join('\n')
+            }
 
-          if (urlText) {
             urlText.text = serverUrlText
           }
         })
@@ -1234,7 +1229,7 @@ export class App {
     rectanglePanel.addControl(horizontalStackPanel)
 
     const verticalStackPanel = UIHelper.createStackPanel({
-      width: '300px',
+      width: '220px',
       cornerRadius: 4,
       horizontalAlignment: Control.HORIZONTAL_ALIGNMENT_LEFT,
       verticalAlignment: Control.VERTICAL_ALIGNMENT_TOP,
@@ -1248,7 +1243,7 @@ export class App {
     })
 
     const paddingRight = UIHelper.createRectangle({
-      height: '12px',
+      width: '12px',
       color: 'transparent',
     })
 
@@ -1269,19 +1264,16 @@ export class App {
     const exportPomlButton = UIHelper.createButton(
       'Export POML',
       {
-        width: '160px',
+        width: '130px',
       },
       async () => await this.exportClicked()
     )
 
-    const urlText = UIHelper.createTextBlock(
-      'ttttttttttttttttttttttttttttt tttttttttttttt ttttttttttest',
-      {
-        name: 'urlText',
-        width: '100%',
-        color: 'black',
-      }
-    )
+    const urlText = UIHelper.createTextBlock('', {
+      name: 'urlText',
+      width: '100%',
+      color: 'black',
+    })
 
     verticalStackPanel.addControl(paddingTop)
     verticalStackPanel.addControl(exportPomlButton)
