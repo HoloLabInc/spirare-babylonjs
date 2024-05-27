@@ -1104,13 +1104,11 @@ export class App {
 
               let serverUrlText = ''
               if (serverUrlResult.success) {
-                serverUrlText =
-                  'POML URL\n' +
-                  serverUrlResult.servers
-                    .map((server) => {
-                      return `- ${server.url}`
-                    })
-                    .join('\n')
+                serverUrlText = serverUrlResult.servers
+                  .map((server) => {
+                    return `- ${server.url}`
+                  })
+                  .join('\n')
               }
               urlText.text = serverUrlText
             }
@@ -1235,33 +1233,29 @@ export class App {
       adaptHeightToChildren: true,
     })
 
-    const paddingLeft = UIHelper.createRectangle({
-      width: '12px',
-      color: 'transparent',
-    })
-
-    const paddingRight = UIHelper.createRectangle({
-      width: '12px',
-      color: 'transparent',
-    })
+    const paddingLeft = UIHelper.createMargin({ width: '12px' })
+    const paddingRight = UIHelper.createMargin({ width: '12px' })
 
     horizontalStackPanel.addControl(paddingLeft)
     horizontalStackPanel.addControl(verticalStackPanel)
     horizontalStackPanel.addControl(paddingRight)
 
-    const paddingTop = UIHelper.createRectangle({
-      height: '12px',
-      color: 'transparent',
-    })
+    const paddingTop = UIHelper.createMargin({ height: '12px' })
+    const paddingBottom = UIHelper.createMargin({ height: '12px' })
 
-    const paddingBottom = UIHelper.createRectangle({
-      height: '12px',
-      color: 'transparent',
-    })
+    const labelTextParam = {
+      color: 'black',
+      resizeToFit: true,
+      fontSize: 14,
+    }
+
+    const fileLabelText = UIHelper.createTextBlock('File', labelTextParam)
+    const fileLabelMargin = UIHelper.createMargin({ height: '4px' })
 
     const exportPomlButton = UIHelper.createButton(
       'Export POML',
       {
+        left: '20px',
         width: '130px',
       },
       async () => await this.exportClicked()
@@ -1275,21 +1269,26 @@ export class App {
       exportPomlButton.background = 'white'
     })
 
-    const margin = UIHelper.createRectangle({
-      height: '12px',
-      color: 'transparent',
-    })
+    const margin = UIHelper.createMargin({ height: '12px' })
+
+    const networkLabelText = UIHelper.createTextBlock('Network', labelTextParam)
+    const networkLabelMargin = UIHelper.createMargin({ height: '4px' })
 
     const urlText = UIHelper.createTextBlock(undefined, {
       name: 'urlText',
       width: '100%',
+      left: '20px',
       color: 'black',
       resizeToFit: true,
     })
 
     verticalStackPanel.addControl(paddingTop)
+    verticalStackPanel.addControl(fileLabelText)
+    verticalStackPanel.addControl(fileLabelMargin)
     verticalStackPanel.addControl(exportPomlButton)
     verticalStackPanel.addControl(margin)
+    verticalStackPanel.addControl(networkLabelText)
+    verticalStackPanel.addControl(networkLabelMargin)
     verticalStackPanel.addControl(urlText)
     verticalStackPanel.addControl(paddingBottom)
 
