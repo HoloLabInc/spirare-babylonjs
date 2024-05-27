@@ -1096,6 +1096,31 @@ export class App {
           if (linkMenu) {
             linkMenu.isVisible = !linkMenu.isVisible
           }
+
+          const serverUrlResult = await this.getServerUrl(this.pomlId)
+
+          console.log(serverUrlResult)
+          const urlText = UIHelper.getControl(this.ui, 'urlText', TextBlock)
+
+          let serverUrlText = ''
+          if (serverUrlResult.success) {
+            serverUrlText = serverUrlResult.servers
+              .map((server) => {
+                return `${server.name}: ${server.url}`
+              })
+              .join('\n')
+
+            console.log(serverUrlResult)
+            /*
+            serverUrlResult.servers.forEach((server) => {
+              serverUrlText += `${server.name}: ${server.url}\n`
+            })
+            */
+          }
+
+          if (urlText) {
+            urlText.text = serverUrlText
+          }
         })
       )
     }
@@ -1185,6 +1210,7 @@ export class App {
   }
 
   private createExternalLinkMenu(): Control {
+    /*
     const panel = UIHelper.createRectangle({
       name: 'externalLinkMenu',
       width: '300px',
@@ -1195,16 +1221,74 @@ export class App {
       horizontalAlignment: Control.HORIZONTAL_ALIGNMENT_LEFT,
       verticalAlignment: Control.VERTICAL_ALIGNMENT_TOP,
     })
+    */
+    const rectanglePanel = UIHelper.createRectangle({
+      horizontalAlignment: Control.HORIZONTAL_ALIGNMENT_LEFT,
+      verticalAlignment: Control.VERTICAL_ALIGNMENT_TOP,
+      top: '30px',
+      left: '300px',
+    })
+    rectanglePanel.adaptHeightToChildren = true
+    rectanglePanel.adaptWidthToChildren = true
+    //rectanglePanel.background = '#202020'
+    rectanglePanel.background = '#DDDDDD'
+    rectanglePanel.color = 'black'
+    //rectanglePanel.color = '#202020'
+    rectanglePanel.cornerRadius = 8
+
+    const panel = UIHelper.createStackPanel({
+      name: 'externalLinkMenu',
+      width: '300px',
+      cornerRadius: 4,
+      //paddingTop: '10px',
+      //height: '200px',
+      //background: 'gray',
+      horizontalAlignment: Control.HORIZONTAL_ALIGNMENT_LEFT,
+      verticalAlignment: Control.VERTICAL_ALIGNMENT_TOP,
+      adaptHeightToChildren: true,
+      spacing: 0,
+    })
+
+    rectanglePanel.addControl(panel)
+    //panel.corner
+    //panel.paddingLeft = '200px'
+    //panel.adaptHeightToChildren = true
+
+    const paddingTop = UIHelper.createRectangle({
+      height: '20px',
+      color: 'transparent',
+    })
+
+    const paddingBottom = UIHelper.createRectangle({
+      height: '20px',
+      color: 'transparent',
+    })
 
     const exportPomlButton = UIHelper.createButton(
       'Export POML',
-      undefined,
+      {
+        //top: '10px',
+      },
       async () => await this.exportClicked()
     )
 
-    panel.addControl(exportPomlButton)
+    const urlText = UIHelper.createTextBlock(
+      'ttttttttttttttttttttttttttttt tttttttttttttt ttttttttttest',
+      {
+        name: 'urlText',
+        width: '100%',
+        color: 'black',
+        // height: '20px',
+      }
+    )
 
-    return panel
+    panel.addControl(paddingTop)
+    panel.addControl(exportPomlButton)
+    panel.addControl(urlText)
+    panel.addControl(paddingBottom)
+
+    //return panel
+    return rectanglePanel
   }
 
   private createGeoModeCameraTargetPanel(): Control {
