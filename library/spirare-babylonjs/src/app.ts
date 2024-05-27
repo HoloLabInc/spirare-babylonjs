@@ -1107,13 +1107,14 @@ export class App {
 
             let serverUrlText = ''
             if (serverUrlResult.success) {
-              serverUrlText = serverUrlResult.servers
-                .map((server) => {
-                  return `- ${server.url}`
-                })
-                .join('\n')
+              serverUrlText =
+                'POML URL\n' +
+                serverUrlResult.servers
+                  .map((server) => {
+                    return `- ${server.url}`
+                  })
+                  .join('\n')
             }
-
             urlText.text = serverUrlText
           }
         })
@@ -1234,7 +1235,6 @@ export class App {
       horizontalAlignment: Control.HORIZONTAL_ALIGNMENT_LEFT,
       verticalAlignment: Control.VERTICAL_ALIGNMENT_TOP,
       adaptHeightToChildren: true,
-      spacing: 8,
     })
 
     const paddingLeft = UIHelper.createRectangle({
@@ -1252,7 +1252,7 @@ export class App {
     horizontalStackPanel.addControl(paddingRight)
 
     const paddingTop = UIHelper.createRectangle({
-      height: '4px',
+      height: '12px',
       color: 'transparent',
     })
 
@@ -1269,14 +1269,29 @@ export class App {
       async () => await this.exportClicked()
     )
 
-    const urlText = UIHelper.createTextBlock('', {
+    exportPomlButton.onPointerEnterObservable.add(() => {
+      exportPomlButton.background = '#EEEEEE'
+    })
+
+    exportPomlButton.onPointerOutObservable.add(() => {
+      exportPomlButton.background = 'white'
+    })
+
+    const margin = UIHelper.createRectangle({
+      height: '12px',
+      color: 'transparent',
+    })
+
+    const urlText = UIHelper.createTextBlock(undefined, {
       name: 'urlText',
       width: '100%',
       color: 'black',
+      resizeToFit: true,
     })
 
     verticalStackPanel.addControl(paddingTop)
     verticalStackPanel.addControl(exportPomlButton)
+    verticalStackPanel.addControl(margin)
     verticalStackPanel.addControl(urlText)
     verticalStackPanel.addControl(paddingBottom)
 
