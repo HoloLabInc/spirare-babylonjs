@@ -84,6 +84,7 @@ import gizmoNoneIcon from './images/hand.png'
 import gizmoScaleIcon from './images/scale.png'
 import gizmoRotationIcon from './images/refresh_alt.png'
 import gizmoPositionIcon from './images/move.png'
+import shareIcon from './images/share_alt.svg'
 
 export type CameraControllerFactory = (
   app: App,
@@ -1069,13 +1070,6 @@ export class App {
           }
         )
       )
-      firstRow.push(
-        UIHelper.createButton(
-          'Export',
-          undefined,
-          async () => await this.exportClicked()
-        )
-      )
     }
 
     firstRow.push(
@@ -1087,37 +1081,41 @@ export class App {
 
     if (isEditor) {
       firstRow.push(
-        UIHelper.createButton('ExternalLink', undefined, async () => {
-          const linkMenu = UIHelper.getControl(
-            this.ui,
-            'externalLinkMenu',
-            Control
-          ) as Control
-
-          linkMenu.isVisible = !linkMenu.isVisible
-
-          if (linkMenu.isVisible) {
-            const serverUrlResult = await this.getServerUrl(this.pomlId)
-
-            const urlText = UIHelper.getControl(
+        UIHelper.createImageButton(
+          shareIcon,
+          { margin: '4px', background: 'white', color: 'black' },
+          async () => {
+            const linkMenu = UIHelper.getControl(
               this.ui,
-              'urlText',
-              TextBlock
-            ) as TextBlock
+              'externalLinkMenu',
+              Control
+            ) as Control
 
-            let serverUrlText = ''
-            if (serverUrlResult.success) {
-              serverUrlText =
-                'POML URL\n' +
-                serverUrlResult.servers
-                  .map((server) => {
-                    return `- ${server.url}`
-                  })
-                  .join('\n')
+            linkMenu.isVisible = !linkMenu.isVisible
+
+            if (linkMenu.isVisible) {
+              const serverUrlResult = await this.getServerUrl(this.pomlId)
+
+              const urlText = UIHelper.getControl(
+                this.ui,
+                'urlText',
+                TextBlock
+              ) as TextBlock
+
+              let serverUrlText = ''
+              if (serverUrlResult.success) {
+                serverUrlText =
+                  'POML URL\n' +
+                  serverUrlResult.servers
+                    .map((server) => {
+                      return `- ${server.url}`
+                    })
+                    .join('\n')
+              }
+              urlText.text = serverUrlText
             }
-            urlText.text = serverUrlText
           }
-        })
+        )
       )
     }
 
@@ -1211,7 +1209,7 @@ export class App {
       horizontalAlignment: Control.HORIZONTAL_ALIGNMENT_LEFT,
       verticalAlignment: Control.VERTICAL_ALIGNMENT_TOP,
       top: '30px',
-      left: '300px',
+      left: '176px',
       adaptHeightToChildren: true,
       adaptWidthToChildren: true,
       background: '#DDDDDD',
