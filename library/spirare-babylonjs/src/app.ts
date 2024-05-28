@@ -1463,13 +1463,19 @@ export class App {
 
     const positionButton = UIHelper.createImageButton(
       gizmoPositionIcon,
-      buttonParam,
+      {
+        ...buttonParam,
+        imagePadding: '3px',
+      },
       buttonAction('position')
     )
 
     const rotationButton = UIHelper.createImageButton(
       gizmoRotationIcon,
-      buttonParam,
+      {
+        ...buttonParam,
+        imagePadding: '3px',
+      },
       buttonAction('rotation')
     )
 
