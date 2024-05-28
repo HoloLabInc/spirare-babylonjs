@@ -1053,25 +1053,6 @@ export class App {
           }
         )
       )
-
-      /*
-      firstRow.push(
-        UIHelper.createButton(
-          'Go back',
-          {
-            width: '70px',
-            height: '30px',
-            background: '#3E8ED0',
-            color: 'white',
-          },
-          () => {
-            const a = document.createElement('a')
-            a.href = this.startPageUrl ?? '/'
-            a.click()
-          }
-        )
-      )
-      */
     }
     if (isEditor) {
       firstRow.push(
