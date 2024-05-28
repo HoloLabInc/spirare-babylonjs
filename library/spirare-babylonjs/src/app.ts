@@ -354,7 +354,6 @@ export class App {
       this.ui = AdvancedDynamicTexture.CreateFullscreenUI('UI').addControl(
         this.createUI()
       )
-      //.addControl(this.createRightTopUI())
 
       // Create Cesium.js data attibution UI
       if (isGeodeticMode) {
