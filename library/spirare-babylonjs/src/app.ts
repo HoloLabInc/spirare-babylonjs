@@ -1275,7 +1275,22 @@ export class App {
         left: '20px',
         width: '130px',
       },
-      async () => await this.exportClicked()
+      async () => {
+        exportPomlButton.isEnabled = false
+        const textBlock = exportPomlButton.textBlock
+        const buttonText = textBlock?.text ?? ''
+        if (textBlock) {
+          textBlock.text = 'Exporting...'
+        }
+        try {
+          await this.exportClicked()
+        } finally {
+          if (textBlock) {
+            textBlock.text = buttonText
+          }
+          exportPomlButton.isEnabled = true
+        }
+      }
     )
 
     exportPomlButton.onPointerEnterObservable.add(() => {
