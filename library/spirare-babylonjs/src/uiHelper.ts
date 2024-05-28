@@ -209,6 +209,17 @@ export class UIHelper {
       ...param,
     })
 
+    if (param !== undefined && 'imagePadding' in param) {
+      const imagePadding = (param as any).imagePadding
+      const image = button.image
+      if (typeof imagePadding === 'string' && image !== null) {
+        image.paddingTop = imagePadding
+        image.paddingLeft = imagePadding
+        image.paddingRight = imagePadding
+        image.paddingBottom = imagePadding
+      }
+    }
+
     // Invoke onPointerUp only on left-click.
     button.onPointerUpObservable.add((event) => {
       if (event.buttonIndex == 0) {

@@ -80,10 +80,11 @@ import { CoordinateConverter } from './coordinateConverter'
 import { openFilePicker } from './filePicker'
 import clone from 'clone'
 
-import gizmoNoneIcon from './images/hand.png'
-import gizmoScaleIcon from './images/scale.png'
-import gizmoRotationIcon from './images/refresh_alt.png'
-import gizmoPositionIcon from './images/move.png'
+import homeIcon from './images/home_door.svg'
+import gizmoNoneIcon from './images/hand.svg'
+import gizmoScaleIcon from './images/scale.svg'
+import gizmoRotationIcon from './images/refresh_alt.svg'
+import gizmoPositionIcon from './images/move.svg'
 import shareIcon from './images/share_alt.svg'
 
 export type CameraControllerFactory = (
@@ -1036,6 +1037,25 @@ export class App {
     const firstRow: Control[] = []
     if (this.startPageUrl) {
       firstRow.push(
+        UIHelper.createImageButton(
+          homeIcon,
+          {
+            background: '#3E8ED0',
+            color: 'transparent',
+            width: '30px',
+            height: '30px',
+            imagePadding: '3px',
+          },
+          () => {
+            const a = document.createElement('a')
+            a.href = this.startPageUrl ?? '/'
+            a.click()
+          }
+        )
+      )
+
+      /*
+      firstRow.push(
         UIHelper.createButton(
           'Go back',
           {
@@ -1051,6 +1071,7 @@ export class App {
           }
         )
       )
+      */
     }
     if (isEditor) {
       firstRow.push(
@@ -1073,6 +1094,7 @@ export class App {
 
     firstRow.push(
       UIHelper.createTextBlock(isEditor ? 'Editor Mode' : 'Viewer Mode', {
+        paddingLeft: '6px',
         width: '120px',
         height: '30px',
       })
@@ -1082,7 +1104,13 @@ export class App {
       firstRow.push(
         UIHelper.createImageButton(
           shareIcon,
-          { margin: '4px', background: 'white', color: 'black' },
+          {
+            background: 'white',
+            color: 'black',
+            width: '30px',
+            height: '30px',
+            imagePadding: '3px',
+          },
           async () => {
             const linkMenu = UIHelper.getControl(
               this.ui,
@@ -1214,7 +1242,7 @@ export class App {
       horizontalAlignment: Control.HORIZONTAL_ALIGNMENT_LEFT,
       verticalAlignment: Control.VERTICAL_ALIGNMENT_TOP,
       top: '30px',
-      left: '176px',
+      left: '180px',
       adaptHeightToChildren: true,
       adaptWidthToChildren: true,
       background: '#DDDDDD',
@@ -1415,7 +1443,9 @@ export class App {
 
   private createGizmoModePanel() {
     const buttonParam = {
-      margin: '14px',
+      width: '30px',
+      height: '30px',
+      imagePadding: '2px',
     }
 
     const buttonAction = (gizmoMode: GizmoMode): (() => void) => {
@@ -1433,13 +1463,19 @@ export class App {
 
     const positionButton = UIHelper.createImageButton(
       gizmoPositionIcon,
-      buttonParam,
+      {
+        ...buttonParam,
+        imagePadding: '3px',
+      },
       buttonAction('position')
     )
 
     const rotationButton = UIHelper.createImageButton(
       gizmoRotationIcon,
-      buttonParam,
+      {
+        ...buttonParam,
+        imagePadding: '3px',
+      },
       buttonAction('rotation')
     )
 
