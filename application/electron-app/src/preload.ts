@@ -21,4 +21,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.invoke('get-absolute-file-path', pomlId, relativePath),
 
   getRecentScenes: () => ipcRenderer.invoke('get-recent-scenes'),
+
+  getServerUrl: () => ipcRenderer.invoke('get-server-url'),
 })

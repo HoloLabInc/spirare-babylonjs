@@ -44,6 +44,16 @@ const startApp = async () => {
     const poml = await app.buildPoml()
     await window.electronAPI.savePoml(app.pomlId, poml)
   }
+
+  app.getServerUrl = async (pomlId: string) => {
+    try {
+      const servers = await window.electronAPI.getServerUrl()
+      return { success: true, servers }
+    } catch (err) {
+      console.log(err)
+      return { success: false }
+    }
+  }
 }
 
 class ElectronAppSourceResolver {

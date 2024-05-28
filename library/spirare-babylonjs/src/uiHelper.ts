@@ -86,6 +86,18 @@ export class UIHelper {
     return grid
   }
 
+  public static createMargin(param: { height?: string; width?: string }) {
+    const rectangle = new Rectangle(undefined)
+    rectangle.color = 'transparent'
+    if (param.height) {
+      rectangle.height = param.height
+    }
+    if (param.width) {
+      rectangle.width = param.width
+    }
+    return rectangle
+  }
+
   public static createRectangle(param?: object, child?: Control) {
     const rectangle = new Rectangle(undefined)
     Object.assign(rectangle, {

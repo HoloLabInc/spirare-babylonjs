@@ -74,6 +74,7 @@ import {
   AppLaunchParams,
   SpaceStatus,
   AppDisplayMode,
+  ServerUrlResult,
 } from './types'
 import { CoordinateConverter } from './coordinateConverter'
 import { openFilePicker } from './filePicker'
@@ -83,6 +84,7 @@ import gizmoNoneIcon from './images/hand.png'
 import gizmoScaleIcon from './images/scale.png'
 import gizmoRotationIcon from './images/refresh_alt.png'
 import gizmoPositionIcon from './images/move.png'
+import shareIcon from './images/share_alt.svg'
 
 export type CameraControllerFactory = (
   app: App,
@@ -584,6 +586,13 @@ export class App {
   }
 
   /**
+   * Override this method to get POML server url
+   */
+  public async getServerUrl(pomlId: string): Promise<ServerUrlResult> {
+    return { success: false }
+  }
+
+  /**
    * Updates the recognition status of the Space in AR display mode
    */
   public updateSpaceStatus(status: SpaceStatus): void {
@@ -1060,13 +1069,6 @@ export class App {
           }
         )
       )
-      firstRow.push(
-        UIHelper.createButton(
-          'Export',
-          undefined,
-          async () => await this.exportClicked()
-        )
-      )
     }
 
     firstRow.push(
@@ -1075,6 +1077,53 @@ export class App {
         height: '30px',
       })
     )
+
+    if (isEditor) {
+      firstRow.push(
+        UIHelper.createImageButton(
+          shareIcon,
+          { margin: '4px', background: 'white', color: 'black' },
+          async () => {
+            const linkMenu = UIHelper.getControl(
+              this.ui,
+              'externalLinkMenu',
+              Control
+            ) as Control
+
+            linkMenu.isVisible = !linkMenu.isVisible
+
+            if (linkMenu.isVisible) {
+              const serverUrlResult = await this.getServerUrl(this.pomlId)
+
+              const urlText = UIHelper.getControl(
+                this.ui,
+                'urlText',
+                TextBlock
+              ) as TextBlock
+
+              let serverUrlText = ''
+              if (serverUrlResult.success) {
+                serverUrlText = serverUrlResult.servers
+                  .map((server) => {
+                    return `- ${server.url}`
+                  })
+                  .join('\n')
+              }
+
+              urlText.text = serverUrlText
+
+              const linkMenuNetwork = UIHelper.getControl(
+                this.ui,
+                'externalLinkMenuNetwork',
+                Control
+              ) as Control
+              linkMenuNetwork.isVisible = serverUrlResult.success
+            }
+          }
+        )
+      )
+    }
+
     panelRows.push(
       UIHelper.createStackPanel(
         {
@@ -1139,14 +1188,128 @@ export class App {
       )
     }
 
-    const panel = UIHelper.createStackPanel(
+    const leftStackPanel = UIHelper.createStackPanel(
       {
         width: '100%',
         height: '100%',
       },
       panelRows
     )
+
+    const extenralLinkMenu = this.createExternalLinkMenu()
+
+    const panel = UIHelper.createRectangle({
+      width: '100%',
+      height: '100%',
+    })
+    panel.addControl(leftStackPanel)
+    panel.addControl(extenralLinkMenu)
+
     return panel
+  }
+
+  private createExternalLinkMenu(): Control {
+    const rectanglePanel = UIHelper.createRectangle({
+      name: 'externalLinkMenu',
+      horizontalAlignment: Control.HORIZONTAL_ALIGNMENT_LEFT,
+      verticalAlignment: Control.VERTICAL_ALIGNMENT_TOP,
+      top: '30px',
+      left: '176px',
+      adaptHeightToChildren: true,
+      adaptWidthToChildren: true,
+      background: '#DDDDDD',
+      color: 'black',
+      cornerRadius: 8,
+    })
+
+    rectanglePanel.isVisible = false
+
+    const horizontalStackPanel = UIHelper.createStackPanel({
+      horizontalAlignment: Control.HORIZONTAL_ALIGNMENT_LEFT,
+      verticalAlignment: Control.VERTICAL_ALIGNMENT_TOP,
+      adaptHeightToChildren: true,
+      adaptWidthToChildren: true,
+      isVertical: false,
+    })
+
+    rectanglePanel.addControl(horizontalStackPanel)
+
+    const verticalStackPanel = UIHelper.createStackPanel({
+      width: '220px',
+      horizontalAlignment: Control.HORIZONTAL_ALIGNMENT_LEFT,
+      verticalAlignment: Control.VERTICAL_ALIGNMENT_TOP,
+      adaptHeightToChildren: true,
+    })
+
+    const paddingLeft = UIHelper.createMargin({ width: '12px' })
+    const paddingRight = UIHelper.createMargin({ width: '12px' })
+
+    horizontalStackPanel.addControl(paddingLeft)
+    horizontalStackPanel.addControl(verticalStackPanel)
+    horizontalStackPanel.addControl(paddingRight)
+
+    const paddingTop = UIHelper.createMargin({ height: '12px' })
+    const paddingBottom = UIHelper.createMargin({ height: '12px' })
+
+    const labelTextParam = {
+      color: 'black',
+      resizeToFit: true,
+      fontSize: 14,
+    }
+
+    const fileLabelText = UIHelper.createTextBlock('File', labelTextParam)
+    const fileLabelMargin = UIHelper.createMargin({ height: '4px' })
+
+    const exportPomlButton = UIHelper.createButton(
+      'Export POML',
+      {
+        left: '20px',
+        width: '130px',
+      },
+      async () => await this.exportClicked()
+    )
+
+    exportPomlButton.onPointerEnterObservable.add(() => {
+      exportPomlButton.background = '#EEEEEE'
+    })
+
+    exportPomlButton.onPointerOutObservable.add(() => {
+      exportPomlButton.background = 'white'
+    })
+
+    const networkStackPanel = UIHelper.createStackPanel(
+      {
+        name: 'externalLinkMenuNetwork',
+        horizontalAlignment: Control.HORIZONTAL_ALIGNMENT_LEFT,
+        verticalAlignment: Control.VERTICAL_ALIGNMENT_TOP,
+        width: '100%',
+        adaptHeightToChildren: true,
+      },
+      [
+        UIHelper.createMargin({ height: '12px' }),
+
+        UIHelper.createTextBlock('Network', labelTextParam),
+        UIHelper.createMargin({ height: '4px' }),
+
+        UIHelper.createTextBlock(undefined, {
+          name: 'urlText',
+          width: '100%',
+          left: '20px',
+          color: 'black',
+          resizeToFit: true,
+        }),
+      ]
+    )
+
+    verticalStackPanel.addControl(paddingTop)
+    verticalStackPanel.addControl(fileLabelText)
+    verticalStackPanel.addControl(fileLabelMargin)
+    verticalStackPanel.addControl(exportPomlButton)
+
+    verticalStackPanel.addControl(networkStackPanel)
+    verticalStackPanel.addControl(paddingBottom)
+
+    return rectanglePanel
   }
 
   private createGeoModeCameraTargetPanel(): Control {
