@@ -81,10 +81,10 @@ import { openFilePicker } from './filePicker'
 import clone from 'clone'
 
 import homeIcon from './images/home_door.svg'
-import gizmoNoneIcon from './images/hand.png'
-import gizmoScaleIcon from './images/scale.png'
-import gizmoRotationIcon from './images/refresh_alt.png'
-import gizmoPositionIcon from './images/move.png'
+import gizmoNoneIcon from './images/hand.svg'
+import gizmoScaleIcon from './images/scale.svg'
+import gizmoRotationIcon from './images/refresh_alt.svg'
+import gizmoPositionIcon from './images/move.svg'
 import shareIcon from './images/share_alt.svg'
 
 export type CameraControllerFactory = (
@@ -1242,7 +1242,7 @@ export class App {
       horizontalAlignment: Control.HORIZONTAL_ALIGNMENT_LEFT,
       verticalAlignment: Control.VERTICAL_ALIGNMENT_TOP,
       top: '30px',
-      left: '176px',
+      left: '180px',
       adaptHeightToChildren: true,
       adaptWidthToChildren: true,
       background: '#DDDDDD',
