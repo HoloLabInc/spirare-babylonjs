@@ -25,7 +25,7 @@ class NamedBlob {
 
 export interface PomlBuilderResult {
   pomlText: string
-  pomlzBlob: Blob | undefined
+  pomlzBlob: Blob
 }
 
 export class PomlBuilder {
@@ -128,17 +128,14 @@ export class PomlBuilder {
     poml.scene.children = sceneRootElements
     poml.scene.coordinateReferences = coordinateReferences
     poml.scene.scriptElements = sceneScriptElements
+
     const pomlText = this.parser.build(poml, options)
+    const pomlzBlob = await PomlBuilder.createZip(
+      pomlFileName,
+      pomlText,
+      namedBlobs
+    )
 
-    let pomlzBlob = undefined
-
-    if (namedBlobs.length > 0) {
-      pomlzBlob = await PomlBuilder.createZip(
-        pomlFileName,
-        pomlText,
-        namedBlobs
-      )
-    }
     return {
       pomlText: pomlText,
       pomlzBlob: pomlzBlob,
