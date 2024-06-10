@@ -1577,12 +1577,8 @@ export class App {
       options
     )
 
-    if (result.pomlzBlob) {
-      const zipName = this.title || this.pomlId
-      IOHelper.downloadBlob(result.pomlzBlob, `${zipName}.poml.zip`)
-    } else {
-      IOHelper.downloadText(result.pomlText, `${this.pomlId}.poml`)
-    }
+    const zipName = this.title || this.pomlId
+    IOHelper.downloadBlob(result.pomlzBlob, `${zipName}.poml.zip`)
     console.log(result.pomlText)
   }
 
