@@ -353,7 +353,7 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
 
   // Called from the inspector.
   private get rotationString(): string | undefined {
-    const enuRotation = this.getFirstGeoReference()?.enuRotation
+    const enuRotation = this._pomlElement.rotation
     if (enuRotation === undefined) {
       return undefined
     }
@@ -527,12 +527,7 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
       return
     }
 
-    const geoReference = this.getFirstGeoReference()
-    if (geoReference === undefined) {
-      return
-    }
-
-    geoReference.enuRotation = rotation
+    this._pomlElement.rotation = rotation
     this.loadGeoReference()
     this.onChange?.()
   }
@@ -963,10 +958,6 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
           targetReference.ellipsoidalHeight = geoReferenceDiff.ellipsoidalHeight
           geoReferenceChanged = true
         }
-        if (geoReferenceDiff.enuRotation) {
-          targetReference.enuRotation = geoReferenceDiff.enuRotation
-          geoReferenceChanged = true
-        }
 
         if (geoReferenceChanged) {
           this.loadGeoReference()
@@ -1125,14 +1116,15 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
         this.rotationQuaternion,
         geoPosition
       )
-      geoReference.enuRotation = enuRotation
+      this._pomlElement.rotation = enuRotation
+
+      // enu-rotation in geo-reference tag is deprecated.
+      geoReference.enuRotation = undefined
+      geoReference.originalAttrs?.delete('enu-rotation')
     }
 
     this.element.position = undefined
     this.element.originalAttrs?.delete('position')
-
-    this.element.rotation = undefined
-    this.element.originalAttrs?.delete('rotation')
   }
 
   /**
@@ -1179,6 +1171,13 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
       )
 
       const combinedRotation = geoReferenceRotation.multiply(elementRotation)
+
+      // enu-rotation in geo-reference tag is deprecated.
+      if (geoReference.enuRotation !== undefined) {
+        this.element.rotation = combinedRotation
+        geoReference.enuRotation = undefined
+        geoReference.originalAttrs?.delete('enu-rotation')
+      }
 
       const rotationQuaternion = geoManager.spirareEnuRotationToBabylonRotation(
         combinedRotation,
@@ -1281,25 +1280,6 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
           ) == false
         ) {
           return true
-        }
-
-        if (this.rotationQuaternion) {
-          const enuRotation =
-            this.app.geoManager.babylonRotationToSpirareEnuRotation(
-              this.rotationQuaternion,
-              geoPosition
-            )
-
-          if (
-            firstGeoReference.enuRotation &&
-            rotationEqualsWithEpsilon(
-              firstGeoReference.enuRotation,
-              enuRotation,
-              0.0000001
-            ) == false
-          ) {
-            return true
-          }
         }
       }
     }
