@@ -376,10 +376,8 @@ export class App {
 
       const hintUIOffset = isGeodeticMode ? 40 : 0
       this.hintUI = this.createHintUI(hintUIOffset)
+      this.hintUI.isVisible = false
       this.ui.addControl(this.hintUI)
-      if (!isEditorMode) {
-        this.hintUI.isVisible = false
-      }
     }
 
     this.updateCameraTargetTerrainHeight()
