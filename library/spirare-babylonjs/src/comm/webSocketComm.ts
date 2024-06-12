@@ -10,6 +10,7 @@ export class WebSocketComm {
       if (typeof e.data === 'string') {
         this.readData(e.data)
       }
+      this.webSocket.send('ack')
     }
   }
 
