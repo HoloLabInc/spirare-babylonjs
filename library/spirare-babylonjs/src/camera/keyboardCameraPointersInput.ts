@@ -11,6 +11,7 @@ import {
   Observer,
   Scene,
   Tools,
+  Vector3,
 } from '@babylonjs/core'
 
 export class KeyboardCameraPointersInput extends BaseCameraPointersInput {
@@ -41,11 +42,17 @@ export class KeyboardCameraPointersInput extends BaseCameraPointersInput {
 
   public keysForward = [87]
   public keysBackward = [83]
+  public keysRight = [68]
+  public keysLeft = [65]
 
   //public inputKeys
   // property
   get inputKeys(): number[] {
-    return this.keysForward.concat(this.keysBackward)
+    return this.keysForward.concat(
+      this.keysBackward,
+      this.keysRight,
+      this.keysLeft
+    )
   }
 
   /**
@@ -100,9 +107,7 @@ export class KeyboardCameraPointersInput extends BaseCameraPointersInput {
         if (index === -1) {
           this._keys.push(keyCode)
         }
-        console.log('down')
       } else if (info.type === KeyboardEventTypes.KEYUP) {
-        console.log('up')
         const index = this._keys.indexOf(keyCode)
         if (index >= 0) {
           this._keys.splice(index, 1)
@@ -208,6 +213,66 @@ export class KeyboardCameraPointersInput extends BaseCameraPointersInput {
     }
 
     console.log('camera control enabled')
+
+    if (this._keys.length === 0) {
+      return
+    }
+
+    //let directionInLocal = new Vector3(0, 0, 0)
+    // en: horizontal movement on the camera plane
+    let horizontalMovementOnCameraPlane = new Vector3(0, 0, 0)
+    let depthMovement = 0
+
+    for (let index = 0; index < this._keys.length; index++) {
+      const keyCode = this._keys[index]
+      if (this.keysForward.indexOf(keyCode) !== -1) {
+        depthMovement += 1
+        //directionInLocal.addInPlace(new Vector3(0, 0, 1))
+      } else if (this.keysBackward.indexOf(keyCode) !== -1) {
+        //directionInLocal.addInPlace(new Vector3(0, 0, -1))
+        depthMovement -= 1
+      } else if (this.keysRight.indexOf(keyCode) !== -1) {
+        horizontalMovementOnCameraPlane.addInPlace(new Vector3(1, 0, 0))
+      } else if (this.keysLeft.indexOf(keyCode) !== -1) {
+        horizontalMovementOnCameraPlane.addInPlace(new Vector3(-1, 0, 0))
+      }
+    }
+
+    const minRadius = 0.5
+    let depthDelta = camera.radius * 0.01 * depthMovement
+    if (depthDelta > 0) {
+      if (camera.radius - depthDelta >= minRadius) {
+        camera.radius -= depthDelta
+        depthDelta = 0
+      } else if (camera.radius > minRadius) {
+        camera.radius = minRadius
+        depthDelta -= camera.radius - minRadius
+      }
+    } else {
+      if (camera.radius - depthDelta <= minRadius) {
+        camera.radius -= depthDelta
+        depthDelta = 0
+      } else if (camera.radius < minRadius) {
+        camera.radius = minRadius
+        depthDelta += camera.radius - minRadius
+      }
+    }
+
+    const direction = camera.getDirection(horizontalMovementOnCameraPlane)
+    const speed = camera.radius * 0.01
+
+    const horizontalDeltaVector = direction.scale(speed)
+    const depthDeltaVector = camera.getDirection(new Vector3(0, 0, depthDelta))
+    const deltaVector = horizontalDeltaVector.add(depthDeltaVector)
+    const position = camera.position.add(deltaVector)
+    const target = camera.target.add(deltaVector)
+    camera.target = target
+    camera.position = position
+
+    //console.log(currentTarget)
+    //console.log(newTarget)
+    //camera.target = target
+    //camera.setTarget(target)
     /*
         camera.cameraRotation.y = this._offsetX / this.touchAngularSensibility;
 
