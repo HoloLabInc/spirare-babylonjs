@@ -35,6 +35,8 @@ export class KeyboardCameraPointersInput extends BaseCameraPointersInput {
     )
   }
 
+  private rightClickButton = 2
+
   private onCanvasBlurObserver: Nullable<Observer<Engine>> = null
   private onKeyboardObserver: Nullable<Observer<KeyboardInfo>> = null
   private scene: Scene
@@ -156,24 +158,23 @@ export class KeyboardCameraPointersInput extends BaseCameraPointersInput {
 
     const depthSpeed = camera.radius * 0.01 * speedFactor
     const horizontalSpeed = camera.radius * 0.01 * speedFactor
-    const minRadius = 1
+    const minRadiusForZoomIn = 1
 
     let depthDelta = depthSpeed * depthMovement
     if (depthDelta > 0) {
-      if (camera.radius - depthDelta >= minRadius) {
+      if (camera.radius - depthDelta >= minRadiusForZoomIn) {
         camera.radius -= depthDelta
         depthDelta = 0
-      } else if (camera.radius > minRadius) {
-        camera.radius = minRadius
-        depthDelta -= camera.radius - minRadius
+      } else if (camera.radius > minRadiusForZoomIn) {
+        camera.radius = minRadiusForZoomIn
+        depthDelta -= camera.radius - minRadiusForZoomIn
       }
     } else {
-      if (camera.radius - depthDelta <= minRadius) {
+      if (camera.radius <= minRadiusForZoomIn + 0.01) {
+        // move camera target when camera radius is small
+      } else {
         camera.radius -= depthDelta
         depthDelta = 0
-      } else if (camera.radius < minRadius) {
-        camera.radius = minRadius
-        depthDelta += camera.radius - minRadius
       }
     }
 
@@ -194,8 +195,6 @@ export class KeyboardCameraPointersInput extends BaseCameraPointersInput {
       this.cameraControlEnabled = true
     }
   }
-
-  rightClickButton = 2
 
   public onButtonUp(evt: IPointerEvent): void {
     if (evt.pointerType === 'mouse' && evt.button === this.rightClickButton) {
