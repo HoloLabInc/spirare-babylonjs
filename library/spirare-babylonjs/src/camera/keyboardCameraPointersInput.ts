@@ -15,19 +15,13 @@ import {
 export class KeyboardCameraPointersInput extends BaseCameraPointersInput {
   public camera: ArcRotateCamera
 
-  private _onCanvasBlurObserver: Nullable<Observer<Engine>> = null
-  private _onKeyboardObserver: Nullable<Observer<KeyboardInfo>> = null
-  private _scene: Scene
-  private _engine: Engine
-
-  private cameraControlEnabled = false
-
   public keysForward = [87]
   public keysBackward = [83]
   public keysRight = [68]
   public keysLeft = [65]
   public keysUp = [81]
   public keysDown = [69]
+  public keysSpeedUp = [16]
 
   get inputKeys(): number[] {
     return this.keysForward.concat(
@@ -36,15 +30,24 @@ export class KeyboardCameraPointersInput extends BaseCameraPointersInput {
       this.keysRight,
       this.keysLeft,
       this.keysUp,
-      this.keysDown
+      this.keysDown,
+      this.keysSpeedUp
     )
   }
+
+  private onCanvasBlurObserver: Nullable<Observer<Engine>> = null
+  private onKeyboardObserver: Nullable<Observer<KeyboardInfo>> = null
+  private scene: Scene
+  private engine: Engine
+
+  private cameraControlEnabled = false
+  private keys = new Array<number>()
 
   constructor(camera: ArcRotateCamera) {
     super()
     this.camera = camera
-    this._scene = this.camera.getScene()
-    this._engine = this._scene.getEngine()
+    this.scene = this.camera.getScene()
+    this.engine = this.scene.getEngine()
   }
 
   public getSimpleName(): string {
@@ -55,42 +58,39 @@ export class KeyboardCameraPointersInput extends BaseCameraPointersInput {
     return 'KeyboardCameraPointersInput'
   }
 
-  private _keys = new Array<number>()
-
   public attachControl(noPreventDefault?: boolean): void {
     super.attachControl(noPreventDefault)
 
     noPreventDefault = Tools.BackCompatCameraNoPreventDefault(arguments)
 
-    if (this._onCanvasBlurObserver) {
+    if (this.onCanvasBlurObserver) {
       return
     }
 
-    this._onCanvasBlurObserver = this._engine.onCanvasBlurObservable.add(() => {
-      this._keys.length = 0
+    this.onCanvasBlurObserver = this.engine.onCanvasBlurObservable.add(() => {
+      this.keys.length = 0
     })
 
-    this._onKeyboardObserver = this._scene.onKeyboardObservable.add((info) => {
+    this.onKeyboardObserver = this.scene.onKeyboardObservable.add((info) => {
       const evt = info.event
-      console.log(evt)
 
       if (evt.metaKey) {
         return
       }
 
-      const keyCode = evt.keyCode
+      const keyCode = evt.inputIndex
       if (this.inputKeys.indexOf(keyCode) === -1) {
         return
       }
       if (info.type === KeyboardEventTypes.KEYDOWN) {
-        const index = this._keys.indexOf(keyCode)
+        const index = this.keys.indexOf(keyCode)
         if (index === -1) {
-          this._keys.push(keyCode)
+          this.keys.push(keyCode)
         }
       } else if (info.type === KeyboardEventTypes.KEYUP) {
-        const index = this._keys.indexOf(keyCode)
+        const index = this.keys.indexOf(keyCode)
         if (index >= 0) {
-          this._keys.splice(index, 1)
+          this.keys.splice(index, 1)
         }
       }
 
@@ -102,6 +102,21 @@ export class KeyboardCameraPointersInput extends BaseCameraPointersInput {
     })
   }
 
+  public detachControl(): void {
+    if (this.scene) {
+      if (this.onKeyboardObserver) {
+        this.scene.onKeyboardObservable.remove(this.onKeyboardObserver)
+      }
+      if (this.onCanvasBlurObserver) {
+        this.engine.onCanvasBlurObservable.remove(this.onCanvasBlurObserver)
+      }
+      this.onKeyboardObserver = null
+      this.onCanvasBlurObserver = null
+    }
+
+    this.keys.length = 0
+  }
+
   public checkInputs(): void {
     const camera = this.camera
 
@@ -109,15 +124,16 @@ export class KeyboardCameraPointersInput extends BaseCameraPointersInput {
       return
     }
 
-    if (this._keys.length === 0) {
+    if (this.keys.length === 0) {
       return
     }
 
     let horizontalMovementOnCameraPlane = new Vector3(0, 0, 0)
     let depthMovement = 0
+    let speedUp = false
 
-    for (let index = 0; index < this._keys.length; index++) {
-      const keyCode = this._keys[index]
+    for (let index = 0; index < this.keys.length; index++) {
+      const keyCode = this.keys[index]
       if (this.keysForward.indexOf(keyCode) !== -1) {
         depthMovement += 1
       } else if (this.keysBackward.indexOf(keyCode) !== -1) {
@@ -130,11 +146,16 @@ export class KeyboardCameraPointersInput extends BaseCameraPointersInput {
         horizontalMovementOnCameraPlane.addInPlace(new Vector3(0, 1, 0))
       } else if (this.keysDown.indexOf(keyCode) !== -1) {
         horizontalMovementOnCameraPlane.addInPlace(new Vector3(0, -1, 0))
+      } else if (this.keysSpeedUp.indexOf(keyCode) !== -1) {
+        speedUp = true
       }
     }
 
-    const depthSpeed = camera.radius * 0.01
-    const horizontalSpeed = camera.radius * 0.01
+    const speedUpScale = 2
+    const speedFactor = speedUp ? speedUpScale : 1
+
+    const depthSpeed = camera.radius * 0.01 * speedFactor
+    const horizontalSpeed = camera.radius * 0.01 * speedFactor
     const minRadius = 1
 
     let depthDelta = depthSpeed * depthMovement
