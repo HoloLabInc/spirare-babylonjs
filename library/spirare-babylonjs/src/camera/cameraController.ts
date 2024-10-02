@@ -20,6 +20,7 @@ import {
   createScreenSpaceCamera,
   updateScreenSpaceCameraSize,
 } from './screenSpaceCamera'
+import { KeyboardCameraPointersInput } from './keyboardCameraPointersInput'
 
 type FrameTiming = 'beforeRender' | 'afterRender'
 
@@ -427,6 +428,10 @@ export class CameraController implements ICameraController {
       // Set the camera control input to use only wheel and right click
       cameraPointers.buttons = [1, 2]
     }
+
+    const keyboardInput = new KeyboardCameraPointersInput(camera)
+    camera.inputs.add(keyboardInput)
+
     camera.attachControl(canvas, true)
     camera._panningMouseButton = 1
 
