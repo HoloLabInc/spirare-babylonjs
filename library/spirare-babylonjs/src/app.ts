@@ -196,7 +196,7 @@ export class App {
 
   public sourceResolver: SourceResolver | undefined
 
-  public onChange?: () => void
+  public onChange?: (poml: string) => void
 
   public get camera(): TargetCamera {
     return this.cameraController.camera
@@ -835,7 +835,7 @@ export class App {
 
       if (poml != undefined) {
         await this.restorePomlScene(poml)
-        this.onChange?.()
+        this.onChange?.(poml)
       }
     })
   }
@@ -846,17 +846,16 @@ export class App {
 
       if (poml != undefined) {
         await this.restorePomlScene(poml)
-        this.onChange?.()
+        this.onChange?.(poml)
       }
     })
   }
 
   private onEdit() {
-    this.onChange?.()
-
     this.asyncLock.acquire(this.sceneLockKey, async () => {
       const poml = await this.buildPoml()
       this.historyManager.updateState(poml)
+      this.onChange?.(poml)
     })
   }
 
