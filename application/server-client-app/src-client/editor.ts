@@ -74,8 +74,7 @@ const startApp = async () => {
     }
 
     // Receive the onChange event after the scene is initialized.
-    app.onChange = async () => {
-      const poml = await app.buildPoml()
+    app.onChange = async (poml: string) => {
       await savePomlAsync(app.pomlId, poml)
     }
   } else if (params.runMode === 'viewer') {

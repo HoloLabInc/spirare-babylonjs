@@ -40,8 +40,7 @@ const startApp = async () => {
   await app.initializeScene(poml)
 
   // Receive the onChange event after scene initialization is complete
-  app.onChange = async () => {
-    const poml = await app.buildPoml()
+  app.onChange = async (poml: string) => {
     await window.electronAPI.savePoml(app.pomlId, poml)
   }
 
