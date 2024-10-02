@@ -10,6 +10,7 @@ import {
   Observable,
   AbstractMesh,
   Matrix,
+  Nullable,
 } from '@babylonjs/core'
 import { Display, GeoReference, PomlElement, Position, Rotation } from 'ts-poml'
 import { App, getApp } from '../app'
@@ -88,6 +89,9 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
 
   private scriptComponentsActivated: boolean = false
   private scriptComponents: ScriptElementComponent[]
+
+  private previousRotationInBabylonSpace: Nullable<Quaternion> = null
+  private previousPositionInBabylonSpace: Nullable<Vector3> = null
 
   private readonly eventObservableMap = new Map<
     SpirareEventType,
@@ -617,6 +621,9 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
         this.updateElement()
         this.onChange?.()
       }
+
+      this.previousPositionInBabylonSpace = this.position
+      this.previousRotationInBabylonSpace = this.rotationQuaternion
     })
 
     scene.onBeforeRenderObservable.add(() => {
@@ -856,6 +863,7 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
     ) {
       element.scale = CoordinateConverter.toSpirareScale(this.scaling)
     }
+
     const rot = this.rotationQuaternion
     element.rotation = rot
       ? CoordinateConverter.toSpirareQuaternion(rot)
@@ -906,6 +914,9 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
     this.position = CoordinateConverter.toBabylonPosition(pos)
     this.rotationQuaternion = CoordinateConverter.toBabylonQuaternion(rot)
     this.scaling = CoordinateConverter.toBabylonScale(scale)
+
+    this.previousPositionInBabylonSpace = this.position
+    this.previousRotationInBabylonSpace = this.rotationQuaternion
 
     this.loadGeoReference()
   }
@@ -1151,6 +1162,7 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
       const babylonPosition =
         geoManager.geodeticPositionToBabylonPosition(geodeticPosition)
       this.position = babylonPosition
+      this.previousPositionInBabylonSpace = babylonPosition
 
       const toNormalizedQuaternion = (rotation: Rotation | undefined) => {
         if (rotation === undefined) {
@@ -1184,6 +1196,7 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
         geodeticPosition
       )
       this.rotationQuaternion = rotationQuaternion
+      this.previousRotationInBabylonSpace = rotationQuaternion
     }
   }
 
@@ -1196,16 +1209,24 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
       return false
     }
 
-    if (this.element.position) {
-      const pos = CoordinateConverter.toBabylonPosition(this.element.position)
-      if (this.position.equalsWithEpsilon(pos, 0.0001) == false) {
+    if (this.previousPositionInBabylonSpace) {
+      if (
+        this.position.equalsWithEpsilon(
+          this.previousPositionInBabylonSpace,
+          0.0001
+        ) == false
+      ) {
         return true
       }
     }
 
-    if (this.element.rotation && this.rotationQuaternion) {
-      const rot = CoordinateConverter.toBabylonQuaternion(this.element.rotation)
-      if (this.rotationQuaternion.equalsWithEpsilon(rot, 0.00001) == false) {
+    if (this.previousRotationInBabylonSpace && this.rotationQuaternion) {
+      if (
+        this.rotationQuaternion.equalsWithEpsilon(
+          this.previousRotationInBabylonSpace,
+          0.00001
+        ) == false
+      ) {
         return true
       }
     }
