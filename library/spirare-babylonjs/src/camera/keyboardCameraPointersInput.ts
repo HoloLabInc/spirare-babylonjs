@@ -171,7 +171,7 @@ export class KeyboardCameraPointersInput extends BaseCameraPointersInput {
       }
     } else {
       if (camera.radius <= minRadiusForZoomIn + 0.01) {
-        // move camera target when camera radius is small
+        // Move camera target when camera radius is small.
       } else {
         camera.radius -= depthDelta
         depthDelta = 0
