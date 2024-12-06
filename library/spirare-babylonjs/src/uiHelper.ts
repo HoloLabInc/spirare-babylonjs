@@ -234,7 +234,7 @@ export class UIHelper {
     param?: object,
     events?: {
       onTextChanged?: CallbackType<InputText>
-      onBlur?: CallbackType<InputText>
+      onBlur?: CallbackType<Control>
     }
   ) {
     const defaultParam = {
