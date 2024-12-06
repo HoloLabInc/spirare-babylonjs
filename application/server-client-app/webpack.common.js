@@ -1,6 +1,5 @@
 const cesiumSource = 'node_modules/cesium/Source'
 const cesiumWorkers = '../Build/Cesium/Workers'
-const webIfcWasm = 'node_modules/spirare-babylonjs/node_modules/web-ifc/'
 const CopyWebpackPlugin = require('copy-webpack-plugin')
 const webpack = require('webpack')
 
@@ -117,8 +116,6 @@ const clientConfig = {
         { from: path.join(cesiumSource, cesiumWorkers), to: 'Workers' },
         { from: path.join(cesiumSource, 'Assets'), to: 'Assets' },
         { from: path.join(cesiumSource, 'Widgets'), to: 'Widgets' },
-        { from: path.join(webIfcWasm, 'web-ifc-mt.wasm') },
-        { from: path.join(webIfcWasm, 'web-ifc.wasm') },
       ],
     }),
     new webpack.DefinePlugin({
@@ -127,13 +124,6 @@ const clientConfig = {
       // Define relative base path in cesium for loading assets
       CESIUM_BASE_URL: JSON.stringify('dist'),
     }),
-    // Suppress the following error:
-    // WARNING in ../../library/spirare-babylonjs/node_modules/web-ifc/web-ifc-api.js 19:11-21
-    // Critical dependency: the request of a dependency is an expression
-    new webpack.ContextReplacementPlugin(
-      /spirare-babylonjs[\/\\]node_modules[\/\\]web-ifc/,
-      /^$/
-    ),
     // for ARToolkit
     new CopyWebpackPlugin({
       patterns: [
