@@ -9,7 +9,6 @@ import {
 } from '@babylonjs/core'
 import { PomlModelElement } from 'ts-poml'
 import { PointCloudLoader } from './pointCloudLoader'
-import { IfcLoader } from 'web-ifc-babylon/dist/IfcLoader'
 import { getFileLoadUrlAsync } from './spirareNodeUtils'
 import { CreateNodeParams } from './spirareNode'
 import { SpirareNodeBase } from './spirareNodeBase'
@@ -233,9 +232,6 @@ export class SpirareModelNode extends SpirareNodeBase<PomlModelElement> {
         case 'splat':
           loadFuncion = loadGaussianSplattingAsync
           break
-        case 'ifc':
-          loadFuncion = loadIfcAsync
-          break
         default:
           loadFuncion = loadGlbAsync
       }
@@ -376,25 +372,5 @@ const loadGaussianSplattingOrPointCloudAsync: LoadFunction = async (
     return gsResult
   } else {
     return await loadPointCloudAsync(url, fileExtention, scene)
-  }
-}
-
-const loadIfcAsync: LoadFunction = async (
-  url: string,
-  fileExtention: string,
-  scene: Scene
-) => {
-  const ifc = new IfcLoader()
-  await ifc.initialize()
-  const response = await fetch(url)
-  const blob = await response.blob()
-  const arrayBuffer = await blob.arrayBuffer()
-  const mesh = await ifc.load(new Uint8Array(arrayBuffer), scene, true)
-  return {
-    success: true,
-    disposes: [],
-    meshes: [mesh],
-    highlightable: true,
-    animationGroups: undefined,
   }
 }
