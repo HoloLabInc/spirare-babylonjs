@@ -1,9 +1,9 @@
-import { Camera, Engine, FreeCamera, Scene, Vector3 } from '@babylonjs/core'
+import { AbstractEngine, Camera, FreeCamera, Scene, Vector3 } from '@babylonjs/core'
 
 const screenSpaceLayerMask = 0x10000000
 
 export const createScreenSpaceCamera = (
-  engine: Engine,
+  engine: AbstractEngine,
   scene: Scene
 ): FreeCamera => {
   const camera = new FreeCamera(
@@ -22,7 +22,7 @@ export const createScreenSpaceCamera = (
 }
 
 export const updateScreenSpaceCameraSize = (
-  engine: Engine,
+  engine: AbstractEngine,
   camera: Camera
 ): void => {
   const aspectRatio = engine.getRenderWidth() / engine.getRenderHeight()

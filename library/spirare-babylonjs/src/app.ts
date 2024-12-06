@@ -1061,8 +1061,8 @@ export class App {
             name: 'titleInput',
           },
           {
-            onBlur: (input, _) => {
-              this.title = input.text
+            onBlur: (control, _) => {
+              this.title = (control as InputText).text
             },
           }
         )

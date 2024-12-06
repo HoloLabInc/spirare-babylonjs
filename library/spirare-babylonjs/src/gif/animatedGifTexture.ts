@@ -9,7 +9,7 @@
 import { Nullable } from "@babylonjs/core/types";
 import { BaseTexture } from "@babylonjs/core/Materials/Textures/baseTexture";
 import { Constants } from "@babylonjs/core/Engines/constants";
-import { ThinEngine } from "@babylonjs/core/Engines/thinEngine";
+import { AbstractEngine } from "@babylonjs/core";
 import { PrecisionDate } from "@babylonjs/core/Misc/precisionDate";
 import { EffectWrapper, EffectRenderer } from "@babylonjs/core/Materials/effectRenderer";
 import { InternalTexture } from "@babylonjs/core/Materials/Textures/internalTexture";
@@ -86,7 +86,7 @@ export class AnimatedGifTexture extends BaseTexture {
      * @param engine engine the texture will be used in
      * @param onLoad defines a callback to trigger once all ready.
      */
-    constructor(url: string, engine: ThinEngine, onLoad: Nullable<() => void> = null, onError: Nullable<(exception?: any) => void> = null) {
+    constructor(url: string, engine: AbstractEngine, onLoad: Nullable<() => void> = null, onError: Nullable<(exception?: any) => void> = null) {
         super(engine);
 
         this.name = url;

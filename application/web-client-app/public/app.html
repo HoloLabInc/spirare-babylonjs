@@ -24,6 +24,20 @@
         position: relative;
         top: -100%;
       }
+
+      /* hide the copy button in the inspector */
+      #actionTabs .checkBoxLine {
+        grid-template-columns: 1fr auto 0px 0px !important;
+      }
+      #actionTabs .checkBoxLine .copy {
+        display: none !important;
+      }
+      #actionTabs .listLine {
+        grid-template-columns: 1fr auto 0px 0px !important;
+      }
+      #actionTabs .listLine .copy {
+        display: none !important;
+      }
     </style>
   </head>
   <body>

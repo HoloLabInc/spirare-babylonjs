@@ -1,4 +1,5 @@
 import {
+  AbstractEngine,
   ArcRotateCamera,
   BaseCameraPointersInput,
   Engine,
@@ -37,10 +38,10 @@ export class KeyboardCameraPointersInput extends BaseCameraPointersInput {
 
   private rightClickButton = 2
 
-  private onCanvasBlurObserver: Nullable<Observer<Engine>> = null
+  private onCanvasBlurObserver: Nullable<Observer<AbstractEngine>> = null
   private onKeyboardObserver: Nullable<Observer<KeyboardInfo>> = null
   private scene: Scene
-  private engine: Engine
+  private engine: AbstractEngine
 
   private cameraControlEnabled = false
   private keys = new Array<number>()
