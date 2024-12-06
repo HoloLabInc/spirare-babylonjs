@@ -1,6 +1,5 @@
 const cesiumSource = 'node_modules/spirare-babylonjs/node_modules/cesium/Source'
 const cesiumWorkers = '../Build/Cesium/Workers'
-const webIfcWasm = 'node_modules/spirare-babylonjs/node_modules/web-ifc/'
 const CopyWebpackPlugin = require('copy-webpack-plugin')
 const webpack = require('webpack')
 
@@ -72,8 +71,6 @@ const webpackConfig = {
         { from: path.join(cesiumSource, cesiumWorkers), to: 'Workers' },
         { from: path.join(cesiumSource, 'Assets'), to: 'Assets' },
         { from: path.join(cesiumSource, 'Widgets'), to: 'Widgets' },
-        { from: path.join(webIfcWasm, 'web-ifc-mt.wasm'), to: 'js' },
-        { from: path.join(webIfcWasm, 'web-ifc.wasm'), to: 'js' },
       ],
     }),
     new webpack.DefinePlugin({
@@ -82,14 +79,6 @@ const webpackConfig = {
       CESIUM_BASE_URL: JSON.stringify('.'),
       TERRAIN_TILESET_URL: JSON.stringify(process.env.TERRAIN_TILESET_URL ?? ''),
     }),
-
-    // Suppress the following error:
-    // WARNING in ../../library/spirare-babylonjs/node_modules/web-ifc/web-ifc-api.js 19:11-21
-    // Critical dependency: the request of a dependency is an expression
-    new webpack.ContextReplacementPlugin(
-      /spirare-babylonjs[\/\\]node_modules[\/\\]web-ifc/,
-      /^$/
-    ),
   ],
   mode: 'development',
 }

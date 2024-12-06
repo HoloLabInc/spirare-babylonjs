@@ -679,7 +679,6 @@ export class App {
         const elementType = (() => {
           switch (fileExt) {
             case 'glb':
-            case 'ifc':
             case 'ply':
             case 'splat': {
               return PomlModelElement
@@ -1520,7 +1519,7 @@ export class App {
       }),
       UIHelper.createButton('Local File...', buttonParam, async () => {
         const fileList = await openFilePicker({
-          accept: '.poml,.zip,.jpg,.jpeg,.png,.gif,.mp4,.glb,.ply,.ifc',
+          accept: '.poml,.zip,.jpg,.jpeg,.png,.gif,.mp4,.glb,.ply',
           multiple: true,
         })
         await this.loadFilesAsync(fileList)
