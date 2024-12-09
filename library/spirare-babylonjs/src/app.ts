@@ -652,7 +652,7 @@ export class App {
     file: File,
     useCameraAdjustAnimation: boolean
   ): Promise<void> {
-    const fileExt = file.name.split('.').pop()
+    const fileExt = file.name.split('.').pop()?.toLowerCase()
     switch (fileExt) {
       case 'poml':
       case 'xml': {
@@ -680,7 +680,8 @@ export class App {
           switch (fileExt) {
             case 'glb':
             case 'ply':
-            case 'splat': {
+            case 'splat':
+            case 'spz': {
               return PomlModelElement
             }
             case 'png':
