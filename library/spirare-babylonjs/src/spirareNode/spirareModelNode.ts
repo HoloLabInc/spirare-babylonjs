@@ -311,9 +311,7 @@ const loadMeshAsync: LoadFunction = async (
 
 const isMeshHighlightable = (meshes: AbstractMesh[]): boolean => {
   for (const mesh of meshes) {
-    console.log(mesh)
     if (mesh instanceof GaussianSplattingMesh) {
-      console.log('gs')
       return false
     }
   }
