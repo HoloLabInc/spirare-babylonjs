@@ -300,6 +300,15 @@ const loadMeshAsync: LoadFunction = async (
     })
   })
 
+  if (fileExtention === 'ply' && loaded.meshes.length > 0) {
+    for (const mesh of loaded.meshes) {
+      if (mesh.id === 'PointCloud') {
+        // invert x axis
+        mesh.scaling.x *= -1
+      }
+    }
+  }
+
   return {
     success: true,
     disposes: [],
