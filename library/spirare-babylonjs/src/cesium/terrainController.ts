@@ -9,6 +9,7 @@ import {
 } from '@babylonjs/core'
 import { CesiumManager } from '../cesiumManager'
 import { GeodeticPosition, GeoManager } from './geoManager'
+import AsyncLock from 'async-lock'
 
 type TerrainMeshInfo = {
   scene: Scene
@@ -28,6 +29,9 @@ export class TerrainController {
   private latestTerrain: Mesh | undefined
 
   private terrainMaterial: Material | undefined
+
+  private readonly asyncLock = new AsyncLock()
+  private readonly updateTerrainMeshAsyncLockKey = 'updateTerrainMeshAsync'
 
   constructor(cesiumManager: CesiumManager, geoManager: GeoManager) {
     this.cesiumManager = cesiumManager
@@ -106,15 +110,29 @@ export class TerrainController {
    * @param meshInfo Information needed to create the mesh.
    */
   private updateTerrainMesh(meshInfo: TerrainMeshInfo) {
-    const terrain = this.createTerrainMesh(
-      meshInfo.vertices,
-      meshInfo.gridNumberX,
-      meshInfo.gridNumberZ,
-      meshInfo.scene
-    )
+    this.asyncLock.acquire(this.updateTerrainMeshAsyncLockKey, async () => {
+      const previousTerrain = this.latestTerrain
 
-    this.latestTerrain?.dispose()
-    this.latestTerrain = terrain
+      const terrain = this.createTerrainMesh(
+        meshInfo.vertices,
+        meshInfo.gridNumberX,
+        meshInfo.gridNumberZ,
+        meshInfo.scene
+      )
+
+      this.latestTerrain = terrain
+
+      // Wait for one frame.
+      await new Promise<void>((resolve) => {
+        meshInfo.scene.onAfterRenderObservable.addOnce(() => {
+          resolve()
+        })
+      })
+
+      if (previousTerrain) {
+        previousTerrain.dispose()
+      }
+    })
   }
 
   /**
