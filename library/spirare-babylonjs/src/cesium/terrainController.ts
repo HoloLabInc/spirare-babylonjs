@@ -35,7 +35,7 @@ export class TerrainController {
 
     geoManager.onOriginChanged.add((_) => {
       if (this.latestTerrainMeshInfo) {
-        this.updateTerrainMesh(this.latestTerrainMeshInfo)
+        this.updateTerrainMeshAsync(this.latestTerrainMeshInfo)
       }
     })
   }
@@ -98,17 +98,14 @@ export class TerrainController {
       gridNumberZ,
     }
 
-    this.updateTerrainMeshAsync(this.latestTerrainMeshInfo, scene)
+    this.updateTerrainMeshAsync(this.latestTerrainMeshInfo)
   }
 
   /**
    * Create a terrain mesh and dispose of the current mesh.
    * @param meshInfo Information needed to create the mesh.
    */
-  private async updateTerrainMeshAsync(
-    meshInfo: TerrainMeshInfo,
-    scene: Scene
-  ) {
+  private async updateTerrainMeshAsync(meshInfo: TerrainMeshInfo) {
     const previousTerrain = this.latestTerrain
 
     const terrain = this.createTerrainMesh(
@@ -122,7 +119,7 @@ export class TerrainController {
 
     // Wait for one frame.
     await new Promise<void>((resolve) => {
-      scene.onAfterRenderObservable.addOnce(() => {
+      meshInfo.scene.onAfterRenderObservable.addOnce(() => {
         resolve()
       })
     })
