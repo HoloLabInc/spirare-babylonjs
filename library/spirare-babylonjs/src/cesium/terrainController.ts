@@ -9,6 +9,7 @@ import {
 } from '@babylonjs/core'
 import { CesiumManager } from '../cesiumManager'
 import { GeodeticPosition, GeoManager } from './geoManager'
+import AsyncLock from 'async-lock'
 
 type TerrainMeshInfo = {
   scene: Scene
@@ -29,13 +30,16 @@ export class TerrainController {
 
   private terrainMaterial: Material | undefined
 
+  private readonly asyncLock = new AsyncLock()
+  private readonly updateTerrainMeshAsyncLockKey = 'updateTerrainMeshAsync'
+
   constructor(cesiumManager: CesiumManager, geoManager: GeoManager) {
     this.cesiumManager = cesiumManager
     this.geoManager = geoManager
 
     geoManager.onOriginChanged.add((_) => {
       if (this.latestTerrainMeshInfo) {
-        this.updateTerrainMeshAsync(this.latestTerrainMeshInfo)
+        this.updateTerrainMesh(this.latestTerrainMeshInfo)
       }
     })
   }
@@ -98,35 +102,37 @@ export class TerrainController {
       gridNumberZ,
     }
 
-    this.updateTerrainMeshAsync(this.latestTerrainMeshInfo)
+    this.updateTerrainMesh(this.latestTerrainMeshInfo)
   }
 
   /**
    * Create a terrain mesh and dispose of the current mesh.
    * @param meshInfo Information needed to create the mesh.
    */
-  private async updateTerrainMeshAsync(meshInfo: TerrainMeshInfo) {
-    const previousTerrain = this.latestTerrain
+  private updateTerrainMesh(meshInfo: TerrainMeshInfo) {
+    this.asyncLock.acquire(this.updateTerrainMeshAsyncLockKey, async () => {
+      const previousTerrain = this.latestTerrain
 
-    const terrain = this.createTerrainMesh(
-      meshInfo.vertices,
-      meshInfo.gridNumberX,
-      meshInfo.gridNumberZ,
-      meshInfo.scene
-    )
+      const terrain = this.createTerrainMesh(
+        meshInfo.vertices,
+        meshInfo.gridNumberX,
+        meshInfo.gridNumberZ,
+        meshInfo.scene
+      )
 
-    this.latestTerrain = terrain
+      this.latestTerrain = terrain
 
-    // Wait for one frame.
-    await new Promise<void>((resolve) => {
-      meshInfo.scene.onAfterRenderObservable.addOnce(() => {
-        resolve()
+      // Wait for one frame.
+      await new Promise<void>((resolve) => {
+        meshInfo.scene.onAfterRenderObservable.addOnce(() => {
+          resolve()
+        })
       })
-    })
 
-    if (previousTerrain) {
-      previousTerrain.dispose()
-    }
+      if (previousTerrain) {
+        previousTerrain.dispose()
+      }
+    })
   }
 
   /**
