@@ -1,0 +1,14 @@
+diff --git a/node_modules/@babylonjs/core/Particles/pointsCloudSystem.js b/node_modules/@babylonjs/core/Particles/pointsCloudSystem.js
+index 6858b86..bece265 100644
+--- a/node_modules/@babylonjs/core/Particles/pointsCloudSystem.js
++++ b/node_modules/@babylonjs/core/Particles/pointsCloudSystem.js
+@@ -159,7 +159,8 @@ export class PointsCloudSystem {
+     // adds a new particle object in the particles array
+     _addParticle(idx, group, groupId, idxInGroup) {
+         const cp = new CloudPoint(idx, group, groupId, idxInGroup, this);
+-        this.particles.push(cp);
++        // Changed by HoloLab
++        // this.particles.push(cp);
+         return cp;
+     }
+     _randomUnitVector(particle) {

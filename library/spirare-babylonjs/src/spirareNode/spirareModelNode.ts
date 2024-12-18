@@ -222,18 +222,26 @@ export class SpirareModelNode extends SpirareNodeBase<PomlModelElement> {
 
       // Get the file extension
       // If the filename is set, prioritize the extension of the filename
-      const fileExt = (element.filename || src).split('.').pop() ?? ''
+      const fileExt = (element.filename || src)
+        .split('.')
+        .pop()
+        ?.toLocaleLowerCase()
+
+      if (fileExt === undefined) {
+        return
+      }
 
       let loadFuncion: LoadFunction
       switch (fileExt) {
+        case 'glb':
         case 'ply':
-          loadFuncion = loadGaussianSplattingOrPointCloudAsync
-          break
         case 'splat':
-          loadFuncion = loadGaussianSplattingAsync
+        case 'spz':
+          loadFuncion = loadMeshAsync
           break
         default:
-          loadFuncion = loadGlbAsync
+          console.log(`Unsupported model file type: ${fileExt}`)
+          return
       }
 
       const result = await loadFuncion(url, fileExt, scene)
@@ -268,7 +276,7 @@ type LoadFunction = (
   animationGroups: AnimationGroup[] | undefined
 }>
 
-const loadGlbAsync: LoadFunction = async (
+const loadMeshAsync: LoadFunction = async (
   url: string,
   fileExtention: string,
   scene: Scene
@@ -279,98 +287,42 @@ const loadGlbAsync: LoadFunction = async (
     undefined,
     scene,
     undefined,
-    '.glb'
+    `.${fileExtention}`
   )
+
+  // Wait for mesh is loaded.
+  await new Promise<void>((resolve) => {
+    const observer = scene.onBeforeRenderObservable.add(() => {
+      if (loaded.meshes.length > 0) {
+        scene.onBeforeRenderObservable.remove(observer)
+        resolve()
+      }
+    })
+  })
+
+  if (fileExtention === 'ply' && loaded.meshes.length > 0) {
+    for (const mesh of loaded.meshes) {
+      if (mesh.id === 'PointCloud') {
+        // invert x axis
+        mesh.scaling.x *= -1
+      }
+    }
+  }
 
   return {
     success: true,
     disposes: [],
     meshes: loaded.meshes,
-    highlightable: true,
+    highlightable: isMeshHighlightable(loaded.meshes),
     animationGroups: loaded.animationGroups,
   }
 }
 
-const loadPointCloudAsync: LoadFunction = async (
-  url: string,
-  fileExtention: string,
-  scene: Scene
-) => {
-  const loaded = await PointCloudLoader.importWithUrlAsync(
-    url,
-    fileExtention,
-    scene
-  )
-
-  if (loaded) {
-    return {
-      success: true,
-      disposes: [],
-      meshes: loaded.meshes,
-      highlightable: false,
-      animationGroups: undefined,
-    }
-  } else {
-    return {
-      success: false,
-      disposes: [],
-      highlightable: false,
-      meshes: [],
-      animationGroups: undefined,
+const isMeshHighlightable = (meshes: AbstractMesh[]): boolean => {
+  for (const mesh of meshes) {
+    if (mesh instanceof GaussianSplattingMesh) {
+      return false
     }
   }
-}
-
-const loadGaussianSplattingAsync: LoadFunction = async (
-  url: string,
-  fileExtention: string,
-  scene: Scene
-) => {
-  const gs = new GaussianSplattingMesh('GaussianSplatting', null, scene)
-  gs.alwaysSelectAsActiveMesh = true
-  try {
-    await gs.loadFileAsync(url)
-
-    // Wait a few frames in order that focus works correctly
-    for (let i = 0; i < 2; i++) {
-      await new Promise<void>((resolve) => {
-        scene.onAfterRenderObservable.addOnce(() => {
-          resolve()
-        })
-      })
-    }
-
-    return {
-      success: true,
-      disposes: [gs],
-      meshes: [gs],
-      highlightable: false,
-      animationGroups: undefined,
-    }
-  } catch (e) {
-    gs.dispose()
-    console.log(e)
-
-    return {
-      success: false,
-      disposes: [],
-      highlightable: false,
-      meshes: [],
-      animationGroups: undefined,
-    }
-  }
-}
-
-const loadGaussianSplattingOrPointCloudAsync: LoadFunction = async (
-  url: string,
-  fileExtention: string,
-  scene: Scene
-) => {
-  const gsResult = await loadGaussianSplattingAsync(url, fileExtention, scene)
-
-  if (gsResult.success) {
-    return gsResult
-  } else {
-    return await loadPointCloudAsync(url, fileExtention, scene)
-  }
+  return true
 }
