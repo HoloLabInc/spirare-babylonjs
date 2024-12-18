@@ -98,14 +98,19 @@ export class TerrainController {
       gridNumberZ,
     }
 
-    this.updateTerrainMesh(this.latestTerrainMeshInfo)
+    this.updateTerrainMeshAsync(this.latestTerrainMeshInfo, scene)
   }
 
   /**
    * Create a terrain mesh and dispose of the current mesh.
    * @param meshInfo Information needed to create the mesh.
    */
-  private updateTerrainMesh(meshInfo: TerrainMeshInfo) {
+  private async updateTerrainMeshAsync(
+    meshInfo: TerrainMeshInfo,
+    scene: Scene
+  ) {
+    const previousTerrain = this.latestTerrain
+
     const terrain = this.createTerrainMesh(
       meshInfo.vertices,
       meshInfo.gridNumberX,
@@ -113,8 +118,18 @@ export class TerrainController {
       meshInfo.scene
     )
 
-    this.latestTerrain?.dispose()
     this.latestTerrain = terrain
+
+    // Wait for one frame.
+    await new Promise<void>((resolve) => {
+      scene.onAfterRenderObservable.addOnce(() => {
+        resolve()
+      })
+    })
+
+    if (previousTerrain) {
+      previousTerrain.dispose()
+    }
   }
 
   /**
