@@ -1520,7 +1520,7 @@ export class App {
       }),
       UIHelper.createButton('Local File...', buttonParam, async () => {
         const fileList = await openFilePicker({
-          accept: '.poml,.zip,.jpg,.jpeg,.png,.gif,.mp4,.glb,.ply',
+          accept: '.poml,.zip,.jpg,.jpeg,.png,.gif,.mp4,.glb,.ply,.splat,.spz',
           multiple: true,
         })
         await this.loadFilesAsync(fileList)
