@@ -379,6 +379,9 @@ export class SpirareNodeBase<T extends PomlElement> extends TransformNode {
   // Called from the inspector.
   private set idInspector(value: string | undefined) {
     const id = value?.trim() || undefined
+    if (id === undefined) {
+      this._pomlElement.originalAttrs?.delete('id')
+    }
     if (this._pomlElement.id !== id) {
       this._pomlElement.id = id
       this.onChange?.()
